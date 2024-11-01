@@ -82,6 +82,8 @@ Source:
 
 We have decided to develop our own CLI and infrastructure tooling to create a more flexible deployment process and address some of the inconveniences we encountered while testing existing solutions. Given the challenges in getting current solutions to work easily and the relatively short time required to replicate them, we aim for our development to also meet new requirements, including a user interface and scalable deployment.
 
+![full-picture](./assets/full-picture.png)
+
 # Decisions and drivers
 
 ### General
