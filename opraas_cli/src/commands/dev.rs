@@ -102,6 +102,12 @@ impl DevCommand {
             false => self.dialoguer.prompt("Input release name (e.g. v0.1.0)"),
         };
 
+        // deploy monitoring and explorer
+
+        let enable_monitoring = self.dialoguer.confirm("Do you want to enable monitoring?");
+
+        let enable_explorer = self.dialoguer.confirm("Do you want to enable explorer?");
+
         // update config for devnet mode
 
         let wallet_address = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
@@ -158,11 +164,15 @@ impl DevCommand {
             "⏳ Installing infra in local kubernetes...",
         );
 
-        self.stack_runner.start(&Stack::new(
-            project.infra.helm.clone(),
-            project.infra.aws.clone(),
-            Some(contracts_deployment),
-        ))?;
+        self.stack_runner.start(
+            &Stack::new(
+                project.infra.helm.clone(),
+                project.infra.aws.clone(),
+                Some(contracts_deployment),
+            ),
+            enable_monitoring,
+            enable_explorer,
+        )?;
 
         infra_spinner.finish_with_message("✔️ Infra installed...");
 
@@ -172,8 +182,12 @@ impl DevCommand {
 
         print_info("L1 rpc available at http://localhost:8545");
         print_info("L2 rpc available at http://localhost:80/rpc");
-        print_info("Off-chain monitoring at http://localhost:80/monitoring");
-        print_info("Explorer available at http://localhost:80");
+        if enable_monitoring {
+            print_info("L2 monitoring available at http://localhost:80/monitoring");
+        }
+        if enable_explorer {
+            print_info("L2 explorer available at http://localhost:80");
+        }
         print_warning("It may take a little bit for rpc to respond and explorer to index...");
 
         print_info("\n\n================================================\n\n");

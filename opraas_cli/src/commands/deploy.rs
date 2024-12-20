@@ -111,12 +111,20 @@ impl DeployCommand {
             return Ok(());
         }
 
-        let domain = if matches!(target, DeployTarget::Infra | DeployTarget::All) {
-            self.dialoguer
-                .prompt("Input domain name (e.g. wakeuplabs.com)")
-        } else {
-            "".to_string()
-        };
+        let domain = matches!(target, DeployTarget::Infra | DeployTarget::All)
+            .then(|| {
+                self.dialoguer
+                    .prompt("Input domain name (e.g. wakeuplabs.com)")
+            })
+            .unwrap_or_default();
+
+        let enable_monitoring = matches!(target, DeployTarget::Infra | DeployTarget::All)
+            .then(|| self.dialoguer.confirm("Enable monitoring?"))
+            .unwrap_or_default();
+
+        let enable_explorer = matches!(target, DeployTarget::Infra | DeployTarget::All)
+            .then(|| self.dialoguer.confirm("Enable explorer?"))
+            .unwrap_or_default();
 
         // contracts deployment ===========================================================
 
@@ -146,8 +154,12 @@ impl DeployCommand {
         if matches!(target, DeployTarget::Infra | DeployTarget::All) {
             let infra_deployer_spinner = style_spinner(ProgressBar::new_spinner(), "Deploying stack infra...");
 
-            self.infra_deployer
-                .deploy(&Stack::load(&project, &name), &domain)?;
+            self.infra_deployer.deploy(
+                &Stack::load(&project, &name),
+                &domain,
+                enable_monitoring,
+                enable_explorer,
+            )?;
 
             infra_deployer_spinner.finish_with_message("✔️ Infra deployed, your chain is live!");
 

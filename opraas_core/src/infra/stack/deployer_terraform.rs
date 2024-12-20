@@ -1,3 +1,5 @@
+use serde_yaml::Value;
+
 use crate::{
     domain::{Deployment, Stack, TDeploymentRepository, TStackInfraDeployer},
     infra::deployment::InMemoryDeploymentRepository,
@@ -25,71 +27,71 @@ impl TerraformDeployer {
     fn create_values_file(
         &self,
         stack: &Stack,
-        values: &HashMap<&str, String>,
+        values: &HashMap<&str, Value>,
         target: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let depl = stack.deployment.as_ref().unwrap();
-        let mut updates = values.clone();
+        let mut updates: HashMap<&str, Value> = values.clone();
 
         // global ================================================
 
         updates
             .entry("global.host")
-            .or_insert("localhost".to_string());
+            .or_insert("localhost".into());
         updates
             .entry("global.protocol")
-            .or_insert("https".to_string());
+            .or_insert("https".into());
         updates
             .entry("global.storageClassName")
-            .or_insert("gp2".to_string());
+            .or_insert("gp2".into());
 
         // private keys ================================================
 
         updates
             .entry("wallets.batcher")
-            .or_insert(depl.accounts_config.batcher_private_key.clone());
+            .or_insert(depl.accounts_config.batcher_private_key.clone().into());
         updates
             .entry("wallets.proposer")
-            .or_insert(depl.accounts_config.proposer_private_key.clone());
+            .or_insert(depl.accounts_config.proposer_private_key.clone().into());
 
         // artifacts images =============================================
 
         updates
             .entry("node.image.tag")
-            .or_insert(depl.release_name.clone());
+            .or_insert(depl.release_name.clone().into());
         updates
             .entry("node.image.repository")
-            .or_insert(format!("{}/{}", depl.registry_url, "op-node"));
+            .or_insert(format!("{}/{}", depl.registry_url, "op-node").into());
 
         updates
             .entry("batcher.image.tag")
-            .or_insert(depl.release_name.clone());
+            .or_insert(depl.release_name.clone().into());
         updates
             .entry("batcher.image.repository")
-            .or_insert(format!("{}/{}", depl.registry_url, "op-batcher"));
+            .or_insert(format!("{}/{}", depl.registry_url, "op-batcher").into());
 
         updates
             .entry("proposer.image.tag")
-            .or_insert(depl.release_name.clone());
+            .or_insert(depl.release_name.clone().into());
         updates
             .entry("proposer.image.repository")
-            .or_insert(format!("{}/{}", depl.registry_url, "op-proposer"));
+            .or_insert(format!("{}/{}", depl.registry_url, "op-proposer").into());
 
         updates
             .entry("geth.image.tag")
-            .or_insert(depl.release_name.clone());
+            .or_insert(depl.release_name.clone().into());
         updates
             .entry("geth.image.repository")
-            .or_insert(format!("{}/{}", depl.registry_url, "op-geth"));
+            .or_insert(format!("{}/{}", depl.registry_url, "op-geth").into());
 
         // chain settings ================================================
 
         updates
             .entry("chain.id")
-            .or_insert(depl.network_config.l2_chain_id.to_string());
+            .or_insert(depl.network_config.l2_chain_id.to_string().into());
         updates
             .entry("chain.l1Rpc")
-            .or_insert(depl.network_config.l1_rpc_url.clone());
+            .or_insert(depl.network_config.l1_rpc_url.clone().into());
 
         // ================================================
 
@@ -104,7 +106,7 @@ impl TerraformDeployer {
 }
 
 impl TStackInfraDeployer for TerraformDeployer {
-    fn deploy(&self, stack: &Stack, values: &HashMap<&str, String>) -> Result<Deployment, Box<dyn std::error::Error>> {
+    fn deploy(&self, stack: &Stack, values: &HashMap<&str, Value>) -> Result<Deployment, Box<dyn std::error::Error>> {
         let mut deployment = stack.deployment.as_ref().unwrap().clone();
         let contracts_artifacts = deployment.contracts_artifacts.as_ref().unwrap();
 

@@ -5,7 +5,7 @@ use std::fs::File;
 pub fn rewrite_yaml_to(
     from: &str,
     to: &str,
-    updates: &HashMap<&str, String>,
+    updates: &HashMap<&str, Value>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let file = File::open(from)?;
     let mut yaml: Value = serde_yaml::from_reader(file)?;
@@ -23,7 +23,7 @@ pub fn rewrite_yaml_to(
                 if let Value::Mapping(map) = current {
                     map.insert(
                         Value::String(key_part.to_string()),
-                        Value::String(new_value.to_string()),
+                        new_value.clone()
                     );
                 }
             } else {
