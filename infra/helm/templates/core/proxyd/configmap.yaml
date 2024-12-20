@@ -6,7 +6,6 @@ metadata:
     app: {{ .Values.proxyd.name }}
 data:
   proxyd.toml: |
-    # proxyd.toml
     ws_method_whitelist = [
       "eth_subscribe",
       "eth_chainId",
@@ -45,11 +44,11 @@ data:
     log_level = "info"
 
     [redis]
-    url = "redis://{{ .Values.proxyd.redis.name }}-service:6379"
+    url = "redis://{{ .Values.proxyd.redis.name }}-service:{{ .Values.proxyd.redis.port }}"
 
     [metrics]
     enabled = true
-    host = "0.0.0.0" # kube-prometheus-stack:9090 # Check if we can make this name dynamic
+    host = "0.0.0.0"
     port = 9090 # 9090 or 9761
 
     [backend]
@@ -63,14 +62,14 @@ data:
 
     [backends]
     [backends.sequencer]
-    rpc_url = "http://{{ .Values.geth.name }}-sequencer-service:{{ .Values.geth.ports.rpc }}"
-    ws_url = "ws://{{ .Values.geth.name }}-sequencer-service:{{ .Values.geth.ports.ws }}"
+    rpc_url = "http://{{ .Values.geth.name }}-sequencer-service:{{ .Values.geth.ports.rpcHttp }}"
+    ws_url = "ws://{{ .Values.geth.name }}-sequencer-service:{{ .Values.geth.ports.rpcWs }}"
     max_rps = 10
     max_ws_conns = 5
 
     [backends.replicas]
-    rpc_url = "http://{{ .Values.geth.name }}-replica-service:{{ .Values.geth.ports.rpc }}"
-    ws_url = "ws://{{ .Values.geth.name }}-replica-service:{{ .Values.geth.ports.ws }}"
+    rpc_url = "http://{{ .Values.geth.name }}-replica-service:{{ .Values.geth.ports.rpcHttp }}"
+    ws_url = "ws://{{ .Values.geth.name }}-replica-service:{{ .Values.geth.ports.rpcWs }}"
     max_rps = 10
     max_ws_conns = 5
 

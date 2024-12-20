@@ -18,11 +18,8 @@ spec:
             - sh
             - "-c"
             - |
-              ls config
               echo "Decoding and unzipping artifacts..."
               unzip config/artifacts.zip -d /app/data/configurations
-              echo "Unzipped files:"
-              ls /app/data/configurations
           volumeMounts:
             - name: read-config-volume
               mountPath: /config

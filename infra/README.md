@@ -27,7 +27,7 @@ helm install cert-manager jetstack/cert-manager --namespace cert-manager --creat
 5. Deploy opraas chart
 
 ```bash
-helm install opraas ./helm --namespace opraas --create-namespace -f ./helm/values.yaml
+helm install opruaas ./helm --namespace opruaas --create-namespace -f ./helm/values.yaml
 ```
 
 
@@ -39,88 +39,8 @@ You can get `elb_dnsname` with `terraform output elb_dnsname` or with `kubectl -
 
 Also, all ingress should be defined in `helm/templates/ingress.yaml`
 
+## Self references in helm/values.yaml
 
-## Volume claims
+You may notice we use `self....` in the helm values.yaml file, for example for `self.global.host` or `self.chain.id`. Be aware this is not a yaml nor helm feature, this will only work if you're using the opruaas CLI, in any other case you'll need to replace these values manually ensuring they are consistent across the values file. Notice also if you decide to opt out, the cli will not be capable of helping you replace, for example between local and prod enviroments, so before `dev` you'll need to recheck, same before `deploy`.
 
-db-pvc.yaml
 
-```yaml
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: postgres-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5gi
-  storageClassName: gp2
-```
-
-db-svc.yaml
-
-``` yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: postgres-service
-spec:
-  type: ClusterIP
-  ports:
-    - port: 5432
-      targetPort: 5432
-  selector:
-    app: postgres
-```
-
-db-depl.yaml
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: postgres-deployment
-  labels:
-    app: postgres
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: postgres
-  template:
-    metadata:
-      labels:
-        app: postgres
-    spec:
-      containers:
-        - name: postgres
-          image: postgres:latest  # Use a specific version for production
-          env:
-            - name: POSTGRES_DB
-              value: "dbname"  # Change to your desired database name
-            - name: POSTGRES_USER
-              value: "user"  # Change to your desired username
-            - name: POSTGRES_PASSWORD
-              value: "password"  # Change to your desired password
-            - name: PGDATA
-              value: /var/lib/postgresql/data/pgdata
-          ports:
-            - containerPort: 5432
-          volumeMounts:
-            - name: postgres-storage
-              mountPath: /var/lib/postgresql/data  # Persistent storage path
-      volumes:
-        - name: postgres-storage
-          persistentVolumeClaim:
-            claimName: postgres-pvc  # Reference to the PVC
-```
-
-## Wait for service
-
-```yaml
- initContainers:
-        - name: wait-for-db
-          image: busybox
-          command: ['sh', '-c', 'until nc -z postgres-service 5432; do echo waiting for db; sleep 2; done;']
-```

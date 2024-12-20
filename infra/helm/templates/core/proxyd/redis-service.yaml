@@ -7,5 +7,5 @@ spec:
   selector:
     app: {{ .Values.proxyd.redis.name }}
   ports:
-    - port: 6379
+    - port: {{ .Values.proxyd.redis.port }}
       targetPort: 6379

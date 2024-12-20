@@ -1,4 +1,6 @@
 use crate::domain::{Stack, TStackInfraRepository, TStackRunner};
+use serde_yaml::Value;
+use std::collections::HashMap;
 
 pub struct StackRunnerService {
     stack_runner: Box<dyn TStackRunner>,
@@ -6,7 +8,7 @@ pub struct StackRunnerService {
 }
 
 pub trait TStackRunnerService {
-    fn start(&self, stack: &Stack) -> Result<(), Box<dyn std::error::Error>>;
+    fn start(&self, stack: &Stack, monitoring: bool, explorer: bool) -> Result<(), Box<dyn std::error::Error>>;
     fn stop(&self) -> Result<(), Box<dyn std::error::Error>>;
 }
 
@@ -22,10 +24,14 @@ impl StackRunnerService {
 }
 
 impl TStackRunnerService for StackRunnerService {
-    fn start(&self, stack: &Stack) -> Result<(), Box<dyn std::error::Error>> {
+    fn start(&self, stack: &Stack, monitoring: bool, explorer: bool) -> Result<(), Box<dyn std::error::Error>> {
         self.stack_infra_repository.pull(stack)?;
 
-        self.stack_runner.run(stack)?;
+        let mut values: HashMap<&str, Value> = HashMap::new();
+        values.insert("monitoring.enabled", monitoring.into());
+        values.insert("explorer.enabled", explorer.into());
+
+        self.stack_runner.run(stack, &values)?;
 
         Ok(())
     }
