@@ -1,4 +1,3 @@
-
 # Opruaas - Optimism Rollup as a service
 
 Optimism Rollup As A Service. Easily deploy and manage rollups with the Optimism stack.
@@ -7,42 +6,50 @@ Optimism Rollup As A Service. Easily deploy and manage rollups with the Optimism
 
 Install with `npm i -g @wakeuplabs/opruaas`
 
-### System Requirements  
+### System Requirements
 
-Ensure you have the following tools installed and properly configured:  
+Ensure you have the following tools installed and properly configured:
 
-- **Docker**: `>= 24.0.0`  
+- **Docker**: `>= 24.0.0`
 - **kubectl**: `>= 1.28.0` (ensure kubernetes engine is running when calling the cli, you can check with `kubectl version`)
-- **Helm**: `>= 3.0.0`  
-- **Terraform**: `>= 1.9.8` (with AWS authentication configured)  
-- **Git**: `>= 2.0.0`  
+- **Helm**: `>= 3.0.0`
+- **Terraform**: `>= 1.9.8` (with AWS authentication configured)
+- **Git**: `>= 2.0.0`
+
+To run it all smoothly we recommend:
+
+- 16 GB Ram specially if building contracts image, otherwise 8 GB should get things moving as well.
+- 80 GB free on top of installed programs (This should account for images and volume claims (customizable from values.yaml))
 
 Recommended PC specifications to run it all smoothly:
-- 16 GB RAM 
-- + 25 GB storage available on top of installed programs
+
+- 16 GB RAM
+- 25+ GB storage available on top of installed programs
 
 ### Commands
 
-Usage: `opruaas [OPTIONS] <COMMAND>`  
+Usage: `opruaas [OPTIONS] <COMMAND>`
 
 #### Available Commands:
-- `new`      Create a new project, template config file, and folders  
-- `init`     Initialize a new project  
-- `build`    Compile sources and create Docker images  
-- `release`  Tag and push the already built Docker images to the registry for deployment  
-- `dev`      Spin up a local development environment  
-- `deploy`   Deploy your blockchain. Target must be one of: `contracts`, `infra`, `all`  
-- `inspect`  Get details about the current deployment. Target must be one of: `contracts`, `infra`  
-- `help`     Print this message or the help for the given subcommand(s)  
+
+- `new` Create a new project, template config file, and folders
+- `init` Initialize a new project
+- `build` Compile sources and create Docker images
+- `release` Tag and push the already built Docker images to the registry for deployment
+- `dev` Spin up a local development environment
+- `deploy` Deploy your blockchain. Target must be one of: `contracts`, `infra`, `all`
+- `inspect` Get details about the current deployment. Target must be one of: `contracts`, `infra`
+- `help` Print this message or the help for the given subcommand(s)
 
 #### Options:
-- `-q`, `--quiet`    Suppress logging output  
-- `-h`, `--help`     Print help  
-- `-V`, `--version`  Print version
 
-### Create a New Project and Build Releases from Source  
+- `-q`, `--quiet` Suppress logging output
+- `-h`, `--help` Print help
+- `-V`, `--version` Print version
 
-Follow these steps to create a new project and build releases:  
+### Create a New Project and Build Releases from Source
+
+Follow these steps to create a new project and build releases:
 
 ```bash
 # 1. Create your project
@@ -71,6 +78,7 @@ The dev command simplifies the setup for local testing. It performs the followin
 4. Installs Helm Chart: Configures the corresponding Helm chart on your local machine for testing.
 
 **Prerequisites**
+
 - You need to provide the `container registry` and the release `name` for your deployment.
 - For reference, you can use the example configuration at `wakeuplabs` with the release name `v0.0.4`.
 
@@ -83,6 +91,7 @@ npx opruaas -v dev
 ```
 
 Once all deployments are up and running, it may take some time for the system to become fully responsive. This includes:
+
 - RPC responsiveness: The RPC endpoint may initially take a few moments to respond to queries.
 - Explorer indexing: The block explorer will need time to finish indexing before it can display your transactions.
 
@@ -139,6 +148,7 @@ In dev mode, all wallets on both L1 and L2 will be funded by default. This is ac
 ```
 
 Once the setup is complete, you can access the following services:
+
 - L1 RPC: http://localhost:8545
 - L2 RPC: http://localhost:80/rpc
 - Off-chain Monitoring: http://localhost:80/monitoring
@@ -152,9 +162,9 @@ Ensure that your `config.toml` configuration file is properly set up before proc
 # Use -v for verbose output; recommended for detailed progress logs.
 npx opruaas -v deploy all --name my-prod-deployment
 ```
+
 - Optional Flag:
   Add `--deploy-deployer` if the L1 chain does not already have a deployer. For most popular L1 chains, this step is unnecessary.
-
 
 The deployment process will create a deployments/my-prod-deployment directory containing the generated artifacts.
 
@@ -165,37 +175,37 @@ The deployment process will create a deployments/my-prod-deployment directory co
 
 ## Dev
 
-### Makefile Commands  
+### Makefile Commands
 
-- `make format`: Format the codebase.  
-- `make lint`: Run linting checks on the codebase.  
+- `make format`: Format the codebase.
+- `make lint`: Run linting checks on the codebase.
 - `make release-{windows/apple/linux}`:  
-  Creates binaries and zip releases for the specified platform (`windows`, `apple`, or `linux`) within the `releases` folder.  
+  Creates binaries and zip releases for the specified platform (`windows`, `apple`, or `linux`) within the `releases` folder.
 
+### NPM Distribution
 
-### NPM Distribution  
+Follow these steps to prepare and publish a new version of the package:
 
-Follow these steps to prepare and publish a new version of the package:  
+1. Update Version Constants:
 
-1. Update Version Constants:  
-   - Update the version constant in `npm/lib/binary.js`.  
-   - Update the `version` field in `npm/package.json`.  
+   - Update the version constant in `npm/lib/binary.js`.
+   - Update the `version` field in `npm/package.json`.
 
 2. Update Artifacts (if applicable):  
-   If the artifacts have changed, modify `opraas_core/src/config/artifact.rs` to reflect the future version.  
+   If the artifacts have changed, modify `opraas_core/src/config/artifact.rs` to reflect the future version.
 
 3. Tag the Release:  
-   Create a GitHub tag in the format `v{}.{}.{}` and push it to trigger the GitHub Actions workflow.  
+   Create a GitHub tag in the format `v{}.{}.{}` and push it to trigger the GitHub Actions workflow.
 
 4. Verify Actions:  
-   Ensure the GitHub Actions workflow completes successfully.  
+   Ensure the GitHub Actions workflow completes successfully.
 
 5. Publish the Package:  
-   From the `packages/cli` folder, run the following command to publish the package:  
+   From the `packages/cli` folder, run the following command to publish the package:
 
-  ```bash
-   npm run publish --access public
-  ```
+```bash
+ npm publish --access public
+```
 
 ### WWW Deployments
 
@@ -204,9 +214,10 @@ Follow these steps to prepare and publish a new version of the package:
 1. Setup `terraform` with `aws`
 2. `cd packages/ui` -> `terraform init` -> `terraform plan` -> `terraform apply`
 3. After this actions can take place. Or manually (assuming bucket name to be `op-ruaas`, otherwise you can get this commands from `terraform output`):
-  - `npm run build`
-  - `aws s3 sync dist s3://op-ruaas --delete`
-  - `DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[?DomainName=='op-ruaas.s3.amazonaws.com'].DomainName].Id" --output text) && aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"`
+
+- `npm run build`
+- `aws s3 sync dist s3://op-ruaas --delete`
+- `DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[?DomainName=='op-ruaas.s3.amazonaws.com'].DomainName].Id" --output text) && aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"`
 
 #### Server
 
@@ -214,12 +225,11 @@ Follow these steps to prepare and publish a new version of the package:
 
 1. Install [cargo-lambda](https://www.cargo-lambda.info/guide/getting-started.html)
 2. Run `cargo lambda watch`
-2. Base url is `http://localhost:9000/lambda-url/opraas_server`, so for example you can try `curl http://localhost:9000/lambda-url/opraas_server/health`
+3. Base url is `http://localhost:9000/lambda-url/opraas_server`, so for example you can try `curl http://localhost:9000/lambda-url/opraas_server/health`
 
 **Build & Deploy**
 
 1. Install [cargo-lambda](https://www.cargo-lambda.info/guide/getting-started.html)
 2. Install [cross](https://crates.io/crates/cross)
-2. Build the function with `cargo lambda build --package opraas_server --release --compiler cross`
-3. Deploy the function to AWS Lambda with `cargo lambda deploy opraas_server --tag customer=op-ruaas --enable-function-url`
-
+3. Build the function with `cargo lambda build --package opraas_server --release --compiler cross`
+4. Deploy the function to AWS Lambda with `cargo lambda deploy opraas_server --tag customer=op-ruaas --enable-function-url`

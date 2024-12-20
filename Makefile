@@ -14,6 +14,9 @@ LINUX_TARGET=x86_64-unknown-linux-musl
 format:
 	cargo fmt --all
 
+format-md:
+	npx prettier --write "**/*.md"
+
 lint:
 	cargo clippy --fix
 

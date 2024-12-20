@@ -1,4 +1,3 @@
-
 ## Enhancement/Fix/Other...: {TITLE}
 
 ### Overview
@@ -17,4 +16,3 @@ Short description...
 ### Demo
 
 ### Extra notes
-

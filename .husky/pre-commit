@@ -1,0 +1,2 @@
+git-format-staged '*.md' -f 'prettier --ignore-unknown --stdin --stdin-filepath "{}"'
+git-format-staged '*.rs' -f 'cargo fmt'
