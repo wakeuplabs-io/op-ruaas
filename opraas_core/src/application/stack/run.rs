@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::domain::{Stack, TStackInfraRepository, TStackRunner};
 
 pub struct StackRunnerService {
@@ -25,7 +27,9 @@ impl TStackRunnerService for StackRunnerService {
     fn start(&self, stack: &Stack) -> Result<(), Box<dyn std::error::Error>> {
         self.stack_infra_repository.pull(stack)?;
 
-        self.stack_runner.run(stack)?;
+        let values: HashMap<&str, String> = HashMap::new();
+
+        self.stack_runner.run(stack, &values)?;
 
         Ok(())
     }

@@ -38,17 +38,11 @@ spec:
             - "--rpc.port={{ .Values.node.ports.rpc }}"
             # P2P Flags
             # https://github.com/ethereum-optimism/optimism/blob/develop/op-node/flags/p2p_flags.go
-            {{- if not .Values.node.config.p2pEnabled }}
             - "--p2p.disable"
-            {{- else }}
             - "--p2p.listen.ip=0.0.0.0"
             - "--p2p.listen.tcp={{ .Values.node.ports.p2p }}"
             - "--p2p.listen.udp=0" # same as tcp port if 0
             - "--p2p.priv.path=/app/data/configurations/opnode_p2p_priv.txt"
-              {{- if .Values.node.config.p2p.sequencerKey }}
-            - "--p2p.sequencer.key={{ .Values.node.config.p2p.sequencerKey }}"
-              {{- end }}
-            {{- end }}
             # Metrics Options
             # https://github.com/ethereum-optimism/optimism/blob/develop/op-service/metrics/cli.go
             {{- if .Values.monitoring.enabled }}

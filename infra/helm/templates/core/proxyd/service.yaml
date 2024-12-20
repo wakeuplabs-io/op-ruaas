@@ -7,5 +7,5 @@ spec:
   selector:
     app: {{ .Values.proxyd.name }}
   ports:
-    - port: {{ .Values.proxyd.service.port }}
-      targetPort: {{ .Values.proxyd.service.targetPort }}
+    - port: {{ .Values.proxyd.port }}
+      targetPort: 8080

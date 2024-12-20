@@ -13,7 +13,7 @@ pub struct StackInfraDeployerService {
 pub struct StackInfraInspectorService {}
 
 pub trait TStackInfraDeployerService: Send + Sync {
-    fn deploy(&self, stack: &Stack) -> Result<Deployment, Box<dyn std::error::Error>>;
+    fn deploy(&self, stack: &Stack, domain: &str) -> Result<Deployment, Box<dyn std::error::Error>>;
     fn find(&self, name: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>>;
 }
 
@@ -40,14 +40,17 @@ impl StackInfraDeployerService {
 }
 
 impl TStackInfraDeployerService for StackInfraDeployerService {
-    fn deploy(&self, stack: &Stack) -> Result<Deployment, Box<dyn std::error::Error>> {
+    fn deploy(&self, stack: &Stack, domain: &str) -> Result<Deployment, Box<dyn std::error::Error>> {
         if stack.deployment.is_none() {
             return Err("Stack does not contain deployment".into());
         }
 
         self.stack_infra_repository.pull(stack)?;
 
-        let deployment = self.stack_deployer.deploy(stack)?;
+        let mut values = HashMap::new();
+        values.insert("global.host", domain.to_string());
+
+        let deployment = self.stack_deployer.deploy(stack, &values)?;
 
         Ok(deployment)
     }

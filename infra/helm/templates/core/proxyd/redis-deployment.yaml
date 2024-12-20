@@ -18,4 +18,4 @@ spec:
         - name: {{ .Values.proxyd.redis.name }}
           image: {{ .Values.proxyd.redis.image.repository }}:{{ .Values.proxyd.redis.image.tag }}
           ports:
-            - containerPort: 6379
+            - containerPort: {{ .Values.proxyd.redis.port }}

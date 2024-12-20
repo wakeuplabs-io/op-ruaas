@@ -22,66 +22,81 @@ impl TerraformDeployer {
         }
     }
 
-    fn create_values_file(&self, stack: &Stack, path: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let mut updates: HashMap<&str, String> = HashMap::new();
+    fn create_values_file(
+        &self,
+        stack: &Stack,
+        values: &HashMap<&str, String>,
+        target: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let depl = stack.deployment.as_ref().unwrap();
+        let mut updates = values.clone();
 
         // global ================================================
 
-        updates.insert("global.storageClassName", "gp2".to_string());
+        updates
+            .entry("global.host")
+            .or_insert("localhost".to_string());
+        updates
+            .entry("global.protocol")
+            .or_insert("https".to_string());
+        updates
+            .entry("global.storageClassName")
+            .or_insert("gp2".to_string());
 
         // private keys ================================================
 
-        updates.insert(
-            "node.config.privateKey",
-            depl.accounts_config.sequencer_private_key.clone(),
-        );
-        updates.insert(
-            "batcher.config.privateKey",
-            depl.accounts_config.batcher_private_key.clone(),
-        );
-        updates.insert(
-            "proposer.config.privateKey",
-            depl.accounts_config.proposer_private_key.clone(),
-        );
+        updates
+            .entry("wallets.batcher")
+            .or_insert(depl.accounts_config.batcher_private_key.clone());
+        updates
+            .entry("wallets.proposer")
+            .or_insert(depl.accounts_config.proposer_private_key.clone());
 
         // artifacts images =============================================
 
-        updates.insert("node.image.tag", depl.release_name.clone());
-        updates.insert(
-            "node.image.repository",
-            format!("{}/{}", depl.registry_url, "op-node"),
-        );
+        updates
+            .entry("node.image.tag")
+            .or_insert(depl.release_name.clone());
+        updates
+            .entry("node.image.repository")
+            .or_insert(format!("{}/{}", depl.registry_url, "op-node"));
 
-        updates.insert("batcher.image.tag", depl.release_name.clone());
-        updates.insert(
-            "batcher.image.repository",
-            format!("{}/{}", depl.registry_url, "op-batcher"),
-        );
+        updates
+            .entry("batcher.image.tag")
+            .or_insert(depl.release_name.clone());
+        updates
+            .entry("batcher.image.repository")
+            .or_insert(format!("{}/{}", depl.registry_url, "op-batcher"));
 
-        updates.insert("proposer.image.tag", depl.release_name.clone());
-        updates.insert(
-            "proposer.image.repository",
-            format!("{}/{}", depl.registry_url, "op-proposer"),
-        );
+        updates
+            .entry("proposer.image.tag")
+            .or_insert(depl.release_name.clone());
+        updates
+            .entry("proposer.image.repository")
+            .or_insert(format!("{}/{}", depl.registry_url, "op-proposer"));
 
-        updates.insert("geth.image.tag", depl.release_name.clone());
-        updates.insert(
-            "geth.image.repository",
-            format!("{}/{}", depl.registry_url, "op-geth"),
-        );
+        updates
+            .entry("geth.image.tag")
+            .or_insert(depl.release_name.clone());
+        updates
+            .entry("geth.image.repository")
+            .or_insert(format!("{}/{}", depl.registry_url, "op-geth"));
 
         // chain settings ================================================
 
-        updates.insert("chain.id", depl.network_config.l2_chain_id.to_string());
-        updates.insert("chain.l1Rpc", depl.network_config.l1_rpc_url.clone());
+        updates
+            .entry("chain.id")
+            .or_insert(depl.network_config.l2_chain_id.to_string());
+        updates
+            .entry("chain.l1Rpc")
+            .or_insert(depl.network_config.l1_rpc_url.clone());
 
         // ================================================
 
         yaml::rewrite_yaml_to(
             stack.helm.join("values.yaml").to_str().unwrap(),
-            path,
-            &updates,
+            target,
+            &values,
         )?;
 
         Ok(())
@@ -89,13 +104,13 @@ impl TerraformDeployer {
 }
 
 impl TStackInfraDeployer for TerraformDeployer {
-    fn deploy(&self, stack: &Stack) -> Result<Deployment, Box<dyn std::error::Error>> {
+    fn deploy(&self, stack: &Stack, values: &HashMap<&str, String>) -> Result<Deployment, Box<dyn std::error::Error>> {
         let mut deployment = stack.deployment.as_ref().unwrap().clone();
         let contracts_artifacts = deployment.contracts_artifacts.as_ref().unwrap();
 
         // create values file
-        let values = tempfile::NamedTempFile::new()?;
-        self.create_values_file(stack, values.path().to_str().unwrap())?;
+        let values_file = tempfile::NamedTempFile::new()?;
+        self.create_values_file(stack, &values, values_file.path().to_str().unwrap())?;
 
         // copy addresses.json and artifacts.zip to helm/config so it can be loaded by it
         let config_dir = stack.helm.join("config");
@@ -136,7 +151,7 @@ impl TStackInfraDeployer for TerraformDeployer {
                 .arg("-auto-approve")
                 .arg(format!(
                     "-var=values_file_path={}",
-                    values.path().to_str().unwrap()
+                    values_file.path().to_str().unwrap()
                 ))
                 .current_dir(stack.aws.to_str().unwrap()),
             false,

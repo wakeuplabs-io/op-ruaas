@@ -13,8 +13,14 @@ use indicatif::ProgressBar;
 use log::info;
 use opraas_core::{
     application::{
-        contracts::{deploy::{StackContractsDeployerService, TStackContractsDeployerService}, StackContractsInspectorService, TStackContractsInspectorService},
-        stack::{deploy::{StackInfraDeployerService, TStackInfraDeployerService}, StackInfraInspectorService, TStackInfraInspectorService},
+        contracts::{
+            deploy::{StackContractsDeployerService, TStackContractsDeployerService},
+            StackContractsInspectorService, TStackContractsInspectorService,
+        },
+        stack::{
+            deploy::{StackInfraDeployerService, TStackInfraDeployerService},
+            StackInfraInspectorService, TStackInfraInspectorService,
+        },
     },
     config::CoreConfig,
     domain::{ArtifactFactory, ArtifactKind, ProjectFactory, Release, Stack, TArtifactFactory, TProjectFactory},
@@ -105,6 +111,13 @@ impl DeployCommand {
             return Ok(());
         }
 
+        let domain = if matches!(target, DeployTarget::Infra | DeployTarget::All) {
+            self.dialoguer
+                .prompt("Input domain name (e.g. wakeuplabs.com)")
+        } else {
+            "".to_string()
+        };
+
         // contracts deployment ===========================================================
 
         if matches!(target, DeployTarget::Contracts | DeployTarget::All) {
@@ -133,7 +146,8 @@ impl DeployCommand {
         if matches!(target, DeployTarget::Infra | DeployTarget::All) {
             let infra_deployer_spinner = style_spinner(ProgressBar::new_spinner(), "Deploying stack infra...");
 
-            self.infra_deployer.deploy(&Stack::load(&project, &name))?;
+            self.infra_deployer
+                .deploy(&Stack::load(&project, &name), &domain)?;
 
             infra_deployer_spinner.finish_with_message("✔️ Infra deployed, your chain is live!");
 
@@ -149,7 +163,7 @@ impl DeployCommand {
 
             if let Some(deployment) = deployment {
                 info!("Inspecting contracts deployment: {}", deployment.name);
-                
+
                 let artifact_cursor = Cursor::new(std::fs::read(&deployment.contracts_artifacts.unwrap())?);
                 println!(
                     "{}",
@@ -165,7 +179,7 @@ impl DeployCommand {
 
             if let Some(deployment) = deployment {
                 info!("Inspecting infra deployment: {}", deployment.name);
-                
+
                 let artifact_cursor = Cursor::new(std::fs::read(&deployment.infra_artifacts.unwrap())?);
                 println!(
                     "{}",

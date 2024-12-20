@@ -54,11 +54,11 @@ spec:
             -  "--http.corsdomain=*"
             -  "--http.vhosts=*"
             -  "--http.addr=0.0.0.0"
-            -  "--http.port={{ .Values.geth.ports.rpc }}"
+            -  "--http.port={{ .Values.geth.ports.rpcHttp }}"
             -  "--http.api=admin,web3,debug,eth,txpool,net,engine"
             -  "--ws"
             -  "--ws.addr=0.0.0.0"
-            -  "--ws.port={{ .Values.geth.ports.ws }}"
+            -  "--ws.port={{ .Values.geth.ports.rpcWs }}"
             -  "--ws.origins=*"
             -  "--ws.api=admin,debug,eth,txpool,net,engine"
             -  "--authrpc.addr=0.0.0.0"
@@ -72,8 +72,8 @@ spec:
             -  "--metrics.port={{ .Values.geth.ports.metrics }}"
             {{- end }}
           ports:
-            - containerPort: {{ .Values.geth.ports.rpc }}
-            - containerPort: {{ .Values.geth.ports.ws }}
+            - containerPort: {{ .Values.geth.ports.rpcHttp }}
+            - containerPort: {{ .Values.geth.ports.rpcWs }}
             - containerPort: {{ .Values.geth.ports.rpcAuth }}
             - containerPort: {{ .Values.geth.ports.metrics }}
           volumeMounts:

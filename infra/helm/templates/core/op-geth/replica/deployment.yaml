@@ -41,7 +41,7 @@ spec:
           args:
             - |
                 while true; do
-                  SEQUENCER_ENODE=$(wget -qO- --timeout=1 --header="Content-Type: application/json" --post-data='{"jsonrpc":"2.0","method":"admin_nodeInfo","params":[],"id":1}' http://{{ .Values.geth.name }}-sequencer-service:{{ .Values.geth.ports.rpc }} | sed -n 's/.*"enode":"\([^"]*\)".*/\1/p' 2>/dev/null)
+                  SEQUENCER_ENODE=$(wget -qO- --timeout=1 --header="Content-Type: application/json" --post-data='{"jsonrpc":"2.0","method":"admin_nodeInfo","params":[],"id":1}' http://{{ .Values.geth.name }}-sequencer-service:{{ .Values.geth.ports.rpcHttp }} | sed -n 's/.*"enode":"\([^"]*\)".*/\1/p' 2>/dev/null)
                 
                   if [ -n "$SEQUENCER_ENODE" ] && [ "$SEQUENCER_ENODE" != "null" ]; then
                     SEQUENCER_ENODE=$(echo "$SEQUENCER_ENODE" | sed 's/127\.0\.0\.1/{{ .Values.geth.name }}-sequencer-service/')
@@ -80,11 +80,11 @@ spec:
                   --http.corsdomain=* \
                   --http.vhosts=* \
                   --http.addr=0.0.0.0 \
-                  --http.port={{ .Values.geth.ports.rpc }} \
+                  --http.port={{ .Values.geth.ports.rpcHttp }} \
                   --http.api=admin,web3,debug,eth,txpool,net,engine \
                   --ws \
                   --ws.addr=0.0.0.0 \
-                  --ws.port={{ .Values.geth.ports.ws }} \
+                  --ws.port={{ .Values.geth.ports.rpcWs }} \
                   --ws.origins=* \
                   --ws.api=admin,debug,eth,txpool,net,engine \
                   --metrics \
@@ -95,8 +95,8 @@ spec:
                   --authrpc.vhosts=* \
                   --authrpc.jwtsecret=/app/data/configurations/jwt-secret.txt 
           ports:
-            - containerPort: {{ .Values.geth.ports.rpc }}
-            - containerPort: {{ .Values.geth.ports.ws }}
+            - containerPort: {{ .Values.geth.ports.rpcHttp }}
+            - containerPort: {{ .Values.geth.ports.rpcWs }}
             - containerPort: {{ .Values.geth.ports.rpcAuth }}
             - containerPort: {{ .Values.geth.ports.metrics }}
           volumeMounts:

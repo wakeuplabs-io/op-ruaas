@@ -1,4 +1,4 @@
-use serde_yaml::{to_writer, Value};
+use serde_yaml::{to_writer, Mapping, Value};
 use std::collections::HashMap;
 use std::fs::File;
 
@@ -37,9 +37,51 @@ pub fn rewrite_yaml_to(
         }
     }
 
+    // replace self... references
+    let mut updated_yaml = yaml.clone();
+    resolve_self_references(&mut updated_yaml, &yaml.as_mapping().unwrap())?;
+
     // Write the updated YAML back to the file
     let mut file = File::create(to)?;
-    to_writer(&mut file, &yaml)?;
+    to_writer(&mut file, &updated_yaml)?;
 
     Ok(())
+}
+
+pub fn resolve_self_references(value: &mut Value, context: &Mapping) -> Result<(), Box<dyn std::error::Error>> {
+    match value {
+        Value::String(s) if s.starts_with("self.") => {
+            // Handle `self.` references by extracting the key path
+            if let Some(resolved_value) = resolve_path(context, &s[5..]) {
+                *value = resolved_value.clone();
+            } else {
+                return Err(format!("Failed to resolve self-reference: {}", s).into());
+            }
+        }
+        Value::Mapping(map) => {
+            for val in map.values_mut() {
+                resolve_self_references(val, context)?;
+            }
+        }
+        Value::Sequence(seq) => {
+            for val in seq {
+                resolve_self_references(val, context)?;
+            }
+        }
+        _ => {}
+    }
+
+    Ok(())
+}
+
+pub fn resolve_path<'a>(context: &'a Mapping, path: &str) -> Option<&'a Value> {
+    let mut current = context;
+    for part in path.split('.') {
+        if let Some(Value::Mapping(map)) = current.get(&Value::String(part.to_string())) {
+            current = map;
+        } else {
+            return current.get(&Value::String(part.to_string()));
+        }
+    }
+    None
 }

@@ -57,11 +57,6 @@ impl HelmStackRunner {
         let pre_requisites = [
             ("ingress-nginx", "ingress-nginx/ingress-nginx", vec![]),
             (
-                "prometheus",
-                "prometheus-community/kube-prometheus-stack",
-                vec![],
-            ),
-            (
                 "cert-manager",
                 "jetstack/cert-manager",
                 vec!["--version", "v1.10.0", "--set", "installCRDs=true"],
@@ -90,6 +85,14 @@ impl HelmStackRunner {
         system::execute_command(
             Command::new("helm")
                 .arg("dependency")
+                .arg("update")
+                .current_dir(&stack.helm),
+            false,
+        )?;
+
+        system::execute_command(
+            Command::new("helm")
+                .arg("dependency")
                 .arg("build")
                 .current_dir(&stack.helm),
             false,
@@ -98,66 +101,86 @@ impl HelmStackRunner {
         Ok(())
     }
 
-    fn create_values_file(&self, stack: &Stack, path: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let mut updates: HashMap<&str, String> = HashMap::new();
+    fn create_values_file(
+        &self,
+        stack: &Stack,
+        values: &HashMap<&str, String>,
+        target: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let depl = stack.deployment.as_ref().unwrap();
+        let mut updates = values.clone();
 
         // global ================================================
 
-        updates.insert("global.storageClassName", "".to_string());
-        updates.insert("domain.host", "localhost".to_string());
+        updates
+            .entry("global.host")
+            .or_insert("localhost".to_string());
+        updates
+            .entry("global.protocol")
+            .or_insert("http".to_string());
+        updates
+            .entry("global.storageClassName")
+            .or_insert("".to_string());
 
         // private keys ================================================
 
-        updates.insert(
-            "node.config.privateKey",
-            depl.accounts_config.sequencer_private_key.clone(),
-        );
-        updates.insert(
-            "batcher.config.privateKey",
-            depl.accounts_config.batcher_private_key.clone(),
-        );
-        updates.insert(
-            "proposer.config.privateKey",
-            depl.accounts_config.proposer_private_key.clone(),
-        );
+        updates
+            .entry("wallets.batcher")
+            .or_insert(depl.accounts_config.batcher_private_key.clone());
+        updates
+            .entry("wallets.proposer")
+            .or_insert(depl.accounts_config.proposer_private_key.clone());
 
         // artifacts images =============================================
 
-        updates.insert("node.image.tag", depl.release_name.clone());
-        updates.insert(
-            "node.image.repository",
-            format!("{}/{}", depl.registry_url, "op-node"),
-        );
+        updates
+            .entry("node.image.tag")
+            .or_insert(depl.release_name.clone());
+        updates
+            .entry("node.image.repository")
+            .or_insert(format!("{}/{}", depl.registry_url, "op-node"));
 
-        updates.insert("batcher.image.tag", depl.release_name.clone());
-        updates.insert(
-            "batcher.image.repository",
-            format!("{}/{}", depl.registry_url, "op-batcher"),
-        );
+        updates
+            .entry("batcher.image.tag")
+            .or_insert(depl.release_name.clone());
+        updates
+            .entry("batcher.image.repository")
+            .or_insert(format!("{}/{}", depl.registry_url, "op-batcher"));
 
-        updates.insert("proposer.image.tag", depl.release_name.clone());
-        updates.insert(
-            "proposer.image.repository",
-            format!("{}/{}", depl.registry_url, "op-proposer"),
-        );
+        updates
+            .entry("proposer.image.tag")
+            .or_insert(depl.release_name.clone());
+        updates
+            .entry("proposer.image.repository")
+            .or_insert(format!("{}/{}", depl.registry_url, "op-proposer"));
 
-        updates.insert("geth.image.tag", depl.release_name.clone());
-        updates.insert(
-            "geth.image.repository",
-            format!("{}/{}", depl.registry_url, "op-geth"),
-        );
+        updates
+            .entry("geth.image.tag")
+            .or_insert(depl.release_name.clone());
+        updates
+            .entry("geth.image.repository")
+            .or_insert(format!("{}/{}", depl.registry_url, "op-geth"));
 
         // chain settings ================================================
 
-        updates.insert("chain.id", depl.network_config.l2_chain_id.to_string());
-        updates.insert("chain.l1Rpc", depl.network_config.l1_rpc_url.clone());
+        updates
+            .entry("chain.id")
+            .or_insert(depl.network_config.l2_chain_id.to_string());
+        updates
+            .entry("chain.l1Rpc")
+            .or_insert(depl.network_config.l1_rpc_url.clone());
 
         // ================================================
 
         yaml::rewrite_yaml_to(
             stack.helm.join("values.yaml").to_str().unwrap(),
-            path,
+            target,
+            &updates,
+        )?;
+
+        yaml::rewrite_yaml_to(
+            stack.helm.join("values.yaml").to_str().unwrap(),
+            stack.helm.join("values-updated.yaml").to_str().unwrap(),
             &updates,
         )?;
 
@@ -182,7 +205,7 @@ impl HelmStackRunner {
                 break;
             }
 
-            std::thread::sleep(std::time::Duration::from_secs(2));
+            std::thread::sleep(std::time::Duration::from_secs(4));
         }
 
         Ok(())
@@ -190,7 +213,7 @@ impl HelmStackRunner {
 }
 
 impl TStackRunner for HelmStackRunner {
-    fn run(&self, stack: &Stack) -> Result<(), Box<dyn std::error::Error>> {
+    fn run(&self, stack: &Stack, values: &HashMap<&str, String>) -> Result<(), Box<dyn std::error::Error>> {
         let deployment = stack.deployment.as_ref().unwrap();
         let contracts_artifacts = deployment.contracts_artifacts.as_ref().unwrap();
 
@@ -198,8 +221,8 @@ impl TStackRunner for HelmStackRunner {
         self.build_dependencies(stack)?;
 
         // create values file from stack
-        let values = tempfile::NamedTempFile::new()?;
-        self.create_values_file(stack, values.path().to_str().unwrap())?;
+        let values_file = tempfile::NamedTempFile::new()?;
+        self.create_values_file(stack, &values, values_file.path().to_str().unwrap())?;
 
         // copy addresses.json and artifacts.zip to helm/config so it can be loaded by it
         let config_dir = stack.helm.join("config");
@@ -225,7 +248,7 @@ impl TStackRunner for HelmStackRunner {
                 .arg("install")
                 .arg(format!("op-ruaas-runner-{}", &self.release_name))
                 .arg("-f")
-                .arg(values.path().to_str().unwrap())
+                .arg(values_file.path().to_str().unwrap())
                 .arg("--namespace")
                 .arg(&self.namespace)
                 .arg("--create-namespace")

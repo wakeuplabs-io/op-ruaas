@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{collections::HashMap, path::PathBuf};
 
 use crate::infra::deployment::InMemoryDeploymentRepository;
 
@@ -15,11 +15,11 @@ pub trait TStackInfraRepository: Send + Sync {
 }
 
 pub trait TStackInfraDeployer: Send + Sync {
-    fn deploy(&self, stack: &Stack) -> Result<Deployment, Box<dyn std::error::Error>>;
+    fn deploy(&self, stack: &Stack, values: &HashMap<&str, String>) -> Result<Deployment, Box<dyn std::error::Error>>;
 }
 
 pub trait TStackRunner {
-    fn run(&self, stack: &Stack) -> Result<(), Box<dyn std::error::Error>>;
+    fn run(&self, stack: &Stack, values: &HashMap<&str, String>) -> Result<(), Box<dyn std::error::Error>>;
     fn stop(&self) -> Result<(), Box<dyn std::error::Error>>;
 }
 

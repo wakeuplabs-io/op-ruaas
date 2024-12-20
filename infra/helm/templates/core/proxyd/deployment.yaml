@@ -14,12 +14,19 @@ spec:
       labels:
         app: {{ .Values.proxyd.name }}
     spec:
+      initContainers:
+        - name: wait-for-sequencer
+          image: busybox
+          command: ['sh', '-c', 'until nc -z {{ .Values.geth.name }}-sequencer-service {{ .Values.geth.ports.rpcHttp }}; do echo waiting for sequencer; sleep 2; done;']
+        - name: wait-for-replica
+          image: busybox
+          command: ['sh', '-c', 'until nc -z {{ .Values.geth.name }}-replica-service {{ .Values.geth.ports.rpcHttp }}; do echo waiting for sequencer; sleep 2; done;']
       containers:
         - name: {{ .Values.proxyd.name }}
           image: {{ .Values.proxyd.image.repository }}:{{ .Values.proxyd.image.tag }}
           imagePullPolicy: {{ .Values.global.image.pullPolicy }}
           ports:
-            - containerPort: {{ .Values.proxyd.service.port }}
+            - containerPort: {{ .Values.proxyd.port }}
           volumeMounts:
             - name: config
               mountPath: /etc/proxyd

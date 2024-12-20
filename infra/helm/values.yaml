@@ -1,21 +1,22 @@
 # global configs ===============================================================
 
 global:
+  host: localhost # demo.example.com
+  protocol: http
+  email: email@email.com
   storageClassName: gp2 # Override with "" for default (recommended in local environment)
   image:
     pullPolicy: IfNotPresent
-
-domain:
-  host: &domain_host localhost # demo.example.com
-  email: email@email.com
-
-# chain ===============================================================
 
 chain:
   id: "override" 
   l1Rpc: "override"
   artifacts: "config/artifacts.zip"
   addresses: "config/addresses.json"
+
+wallets:
+  batcher: "0x..."
+  proposer: "0x..."
 
 # core ===============================================================
 
@@ -24,11 +25,9 @@ geth:
   image:
     repository: wakeuplabs/op-geth
     tag: v0.0.4
-  deployment:
-    replicaCount: 1
   ports:
-    rpc: 8545 
-    ws: 8546
+    rpcHttp: 8545 
+    rpcWs: 8546
     rpcAuth: 9551
     metrics: 7300
     p2p: 30313
@@ -42,8 +41,6 @@ node:
   image:
     repository: wakeuplabs/op-node
     tag: v0.0.4
-  config:
-    p2pEnabled: false
   ports:
     rpc: 7545
     p2p: 9222
@@ -54,8 +51,6 @@ batcher:
   image:
     repository: wakeuplabs/op-batcher
     tag: v0.0.4
-  config:
-    privateKey: ""
   ports:
     rpc: 6545 
     metrics: 7300
@@ -65,8 +60,6 @@ proposer:
   image:
     repository: wakeuplabs/op-proposer
     tag: v0.0.4
-  config:
-    privateKey: ""
   ports:
     rpc: 5545 
     metrics: 7300
@@ -76,13 +69,15 @@ proxyd:
   image:
     repository: us-docker.pkg.dev/oplabs-tools-artifacts/images/proxyd
     tag: latest
-  service:
-    port: 8080
-    targetPort: 8080
+  port: 8080
+  urls:
+    http: http://proxyd-service:8080
+    ws: ws://proxyd-service:8080
   ingress:
     nodePath: /rpc
   redis:
     name: proxyd-redis
+    port: 6379
     image:
       repository: redis
       tag: latest
@@ -139,9 +134,8 @@ grafana:
       kubernetes.io/ingress.class: "nginx"
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
       nginx.ingress.kubernetes.io/rewrite-target: /$2
-    labels: {}
     hosts:
-      - *domain_host
+      - self.global.host
 
   grafana.ini:
     server:
@@ -164,7 +158,6 @@ prometheus:
   prometheus-node-exporter:
     enabled: false
 
-
 # explorer ===============================================================
 
 explorer:
@@ -172,9 +165,9 @@ explorer:
 
 blockscout:
   postgres:
-    dbName: bs
-    user: bs-db-user
-    password: bs-db-password
+    dbName: blockscout-db
+    user: user
+    password: password
     image:
       repository: postgres
       tag: latest
@@ -185,25 +178,26 @@ blockscout-stack:
     ingress:
       enabled: true
       className: nginx
-      hostname: localhost
+      hostname: self.global.host
 
     env:
+      CHAIN_ID: self.chain.id
+      NETWORK: "Optimism"
       ECTO_USE_SSL: "false"
       ETHEREUM_JSONRPC_VARIANT: "geth"
-      ETHEREUM_JSONRPC_HTTP_URL: "http://op-geth-replica-service:8545"
-      ETHEREUM_JSONRPC_WS_URL: "ws://op-geth-replica-service:8546"
-      NETWORK: "Optimism"
-      CHAIN_ID: "1201"
+      ETHEREUM_JSONRPC_HTTP_URL: self.proxyd.urls.http
+      ETHEREUM_JSONRPC_WS_URL: self.proxyd.urls.ws
     extraEnv:
       - name: DATABASE_URL
         valueFrom:
           secretKeyRef:
             name: blockscout-secret
             key: DATABASE_URL
+            
   frontend:
     ingress:
       enabled: true
       className: nginx
-      hostname: localhost
+      hostname: self.global.host
     env:
-      NEXT_PUBLIC_API_PROTOCOL: "https" # Change to http if using localhost
+      NEXT_PUBLIC_API_PROTOCOL: self.global.protocol
