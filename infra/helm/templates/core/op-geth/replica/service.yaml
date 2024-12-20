@@ -10,14 +10,17 @@ spec:
     app: {{ .Values.geth.name }}-replica
   ports:
     - name: rpc
-      port: {{ .Values.geth.ports.rpc }}
-      targetPort: {{ .Values.geth.ports.rpc }}
+      port: {{ .Values.geth.ports.rpcHttp }}
+      targetPort: {{ .Values.geth.ports.rpcHttp }}
     - name: ws
-      port: {{ .Values.geth.ports.ws }}
-      targetPort: {{ .Values.geth.ports.ws }}
+      port: {{ .Values.geth.ports.rpcWs }}
+      targetPort: {{ .Values.geth.ports.rpcWs }}
     - name: rpc-auth
       port: {{ .Values.geth.ports.rpcAuth }}
       targetPort: {{ .Values.geth.ports.rpcAuth }}
+    - name: discovery
+      port: {{ .Values.geth.ports.p2p }}
+      targetPort: {{ .Values.geth.ports.p2p }}
     - name: metrics
       port: {{ .Values.geth.ports.metrics }}
       targetPort: {{ .Values.geth.ports.metrics }}

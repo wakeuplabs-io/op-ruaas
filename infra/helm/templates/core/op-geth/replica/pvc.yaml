@@ -29,3 +29,19 @@ spec:
   {{- if ne .Values.global.storageClassName "" }}
   storageClassName: {{ .Values.global.storageClassName }}
   {{- end }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.geth.name }}-replica-pvc-bootnode
+  labels:
+    app: {{ .Values.geth.name }}-replica
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Mi
+  {{- if ne .Values.global.storageClassName "" }}
+  storageClassName: {{ .Values.global.storageClassName }}
+  {{- end }}

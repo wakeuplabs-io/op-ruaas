@@ -1,8 +1,7 @@
-use std::path::PathBuf;
-
-use crate::infra::deployment::InMemoryDeploymentRepository;
-
 use super::{Deployment, Project, TDeploymentRepository};
+use crate::infra::deployment::InMemoryDeploymentRepository;
+use serde_yaml::Value;
+use std::{collections::HashMap, path::PathBuf};
 
 pub struct Stack {
     pub helm: PathBuf,
@@ -15,11 +14,11 @@ pub trait TStackInfraRepository: Send + Sync {
 }
 
 pub trait TStackInfraDeployer: Send + Sync {
-    fn deploy(&self, stack: &Stack) -> Result<Deployment, Box<dyn std::error::Error>>;
+    fn deploy(&self, stack: &Stack, values: &HashMap<&str, Value>) -> Result<Deployment, Box<dyn std::error::Error>>;
 }
 
 pub trait TStackRunner {
-    fn run(&self, stack: &Stack) -> Result<(), Box<dyn std::error::Error>>;
+    fn run(&self, stack: &Stack, values: &HashMap<&str, Value>) -> Result<(), Box<dyn std::error::Error>>;
     fn stop(&self) -> Result<(), Box<dyn std::error::Error>>;
 }
 

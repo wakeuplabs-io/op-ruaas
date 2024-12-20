@@ -14,6 +14,10 @@ spec:
       labels:
         app: {{ .Values.proposer.name }}
     spec:
+      initContainers:
+        - name: wait-for-sequencer
+          image: busybox
+          command: ['sh', '-c', 'until nc -z {{ .Values.node.name }}-sequencer-service {{ .Values.node.ports.rpc }}; do echo waiting for sequencer; sleep 2; done;']
       containers:
         - name: {{ .Values.proposer.name }}
           image: {{ .Values.proposer.image.repository }}:{{ .Values.proposer.image.tag }}
@@ -33,7 +37,7 @@ spec:
             # Tx Manager Options
             # https://github.com/ethereum-optimism/optimism/blob/develop/op-service/txmgr/cli.go
             - "--num-confirmations=1"
-            - "--private-key={{ .Values.proposer.config.privateKey }}"
+            - "--private-key={{ .Values.wallets.proposer }}"
             # Metrics Options
             # https://github.com/ethereum-optimism/optimism/blob/develop/op-service/metrics/cli.go
             {{- if .Values.monitoring.enabled }}

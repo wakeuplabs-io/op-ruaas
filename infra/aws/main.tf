@@ -127,16 +127,6 @@ resource "helm_release" "cert_manager" {
   }
 }
 
-resource "helm_release" "prometheus" {
-  name       = "prometheus"
-  repository = "https://prometheus-community.github.io/helm-charts"
-  chart      = "kube-prometheus-stack"
-  namespace  = "prometheus"
-  timeout    = 600
-
-  create_namespace = true
-}
-
 resource "helm_release" "opraas" {
   name      = "opraas"
   chart     = "../helm"
@@ -154,6 +144,5 @@ resource "helm_release" "opraas" {
   depends_on = [
     helm_release.ingress_nginx,
     helm_release.cert_manager,
-    helm_release.prometheus
   ]
 }

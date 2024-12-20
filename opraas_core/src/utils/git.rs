@@ -5,17 +5,18 @@ use std::path::Path;
 use git2::{ObjectType, Repository};
 
 pub fn clone_tag(source_repo: &str, source_tag: &str, dst_path: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let repo = Repository::clone(
-        &format!("https://github.com/{}", source_repo), dst_path)?;
+    let repo = Repository::clone(&format!("https://github.com/{}", source_repo), dst_path)?;
 
     // Lookup the tag reference
     let tag_ref = format!("refs/tags/{}", source_tag);
     let reference = repo.find_reference(&tag_ref)?;
-    
+
     // Resolve the reference to the tag object
-    let tag_oid = reference.target().ok_or_else(|| git2::Error::from_str("Invalid tag reference"))?;
+    let tag_oid = reference
+        .target()
+        .ok_or_else(|| git2::Error::from_str("Invalid tag reference"))?;
     let tag_object = repo.find_object(tag_oid, Some(ObjectType::Any))?;
-    
+
     // Checkout the tag
     repo.checkout_tree(&tag_object, None)?;
     repo.set_head(&tag_ref)?;
