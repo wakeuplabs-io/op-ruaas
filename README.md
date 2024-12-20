@@ -188,8 +188,8 @@ Follow these steps to prepare and publish a new version of the package:
 
 1. Update Version Constants:
 
-   - Update the version constant in `npm/lib/binary.js`.
-   - Update the `version` field in `npm/package.json`.
+   - Update the version constant in `packages/cli/lib/binary.js`.
+   - Update the `version` field in `packages/cli/package.json`.
 
 2. Update Artifacts (if applicable):  
    If the artifacts have changed, modify `opraas_core/src/config/artifact.rs` to reflect the future version.
