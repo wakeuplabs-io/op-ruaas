@@ -1,6 +1,6 @@
-use std::collections::HashMap;
-use serde_yaml::Value;
 use crate::domain::{Stack, TStackInfraRepository, TStackRunner};
+use serde_yaml::Value;
+use std::collections::HashMap;
 
 pub struct StackRunnerService {
     stack_runner: Box<dyn TStackRunner>,

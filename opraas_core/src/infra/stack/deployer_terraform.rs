@@ -35,12 +35,8 @@ impl TerraformDeployer {
 
         // global ================================================
 
-        updates
-            .entry("global.host")
-            .or_insert("localhost".into());
-        updates
-            .entry("global.protocol")
-            .or_insert("https".into());
+        updates.entry("global.host").or_insert("localhost".into());
+        updates.entry("global.protocol").or_insert("https".into());
         updates
             .entry("global.storageClassName")
             .or_insert("gp2".into());

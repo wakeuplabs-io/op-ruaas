@@ -1,10 +1,9 @@
-use log::info;
-use serde_yaml::Value;
-
 use crate::{
     domain::{Stack, TStackRunner},
     system, yaml,
 };
+use log::info;
+use serde_yaml::Value;
 use std::{
     collections::HashMap,
     fs::{self, File},
@@ -113,12 +112,8 @@ impl HelmStackRunner {
 
         // global ================================================
 
-        updates
-            .entry("global.host")
-            .or_insert("localhost".into());
-        updates
-            .entry("global.protocol")
-            .or_insert("http".into());
+        updates.entry("global.host").or_insert("localhost".into());
+        updates.entry("global.protocol").or_insert("http".into());
         updates
             .entry("global.storageClassName")
             .or_insert("".into());

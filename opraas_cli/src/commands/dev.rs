@@ -1,22 +1,25 @@
-use crate::config::{
-    SystemRequirementsChecker, TSystemRequirementsChecker, DOCKER_REQUIREMENT, HELM_REQUIREMENT, K8S_REQUIREMENT,
+use crate::{
+    config::{
+        SystemRequirementsChecker, TSystemRequirementsChecker, DOCKER_REQUIREMENT, HELM_REQUIREMENT, K8S_REQUIREMENT,
+    },
+    infra::console::{print_info, print_warning, style_spinner, Dialoguer, TDialoguer},
 };
-use crate::infra::console::{print_info, print_warning, style_spinner, Dialoguer, TDialoguer};
 use assert_cmd::Command;
 use indicatif::ProgressBar;
-use opraas_core::application::{
-    contracts::deploy::{StackContractsDeployerService, TStackContractsDeployerService},
-    stack::run::{StackRunnerService, TStackRunnerService},
+use opraas_core::{
+    application::{
+        contracts::deploy::{StackContractsDeployerService, TStackContractsDeployerService},
+        stack::run::{StackRunnerService, TStackRunnerService},
+    },
+    config::CoreConfig,
+    domain::{ArtifactFactory, ArtifactKind, ProjectFactory, Release, Stack, TArtifactFactory, TProjectFactory},
+    infra::{
+        deployment::InMemoryDeploymentRepository,
+        ethereum::{GethTestnetNode, TTestnetNode},
+        release::{DockerReleaseRepository, DockerReleaseRunner},
+        stack::{repo_inmemory::GitStackInfraRepository, runner_helm::HelmStackRunner},
+    },
 };
-use opraas_core::config::CoreConfig;
-use opraas_core::domain::{
-    ArtifactFactory, ArtifactKind, ProjectFactory, Release, Stack, TArtifactFactory, TProjectFactory,
-};
-use opraas_core::infra::deployment::InMemoryDeploymentRepository;
-use opraas_core::infra::ethereum::{GethTestnetNode, TTestnetNode};
-use opraas_core::infra::release::{DockerReleaseRepository, DockerReleaseRunner};
-use opraas_core::infra::stack::repo_inmemory::GitStackInfraRepository;
-use opraas_core::infra::stack::runner_helm::HelmStackRunner;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread;
