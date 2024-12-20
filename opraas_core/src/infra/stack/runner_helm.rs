@@ -179,12 +179,6 @@ impl HelmStackRunner {
             &updates,
         )?;
 
-        yaml::rewrite_yaml_to(
-            stack.helm.join("values.yaml").to_str().unwrap(),
-            stack.helm.join("values-updated.yaml").to_str().unwrap(),
-            &updates,
-        )?;
-
         Ok(())
     }
 
