@@ -16,7 +16,7 @@ use release::ReleaseTargets;
 
 #[derive(Parser)]
 #[clap(name = "opruaas")]
-#[clap(version = "0.0.12")]
+#[clap(version = "0.1.0")]
 #[clap(about = "Easily deploy and manage rollups with the Optimism stack.", long_about = None)]
 struct Args {
     #[command(subcommand)]
