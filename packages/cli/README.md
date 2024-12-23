@@ -11,6 +11,7 @@ Install with `npm i -g @wakeuplabs/opruaas`
 Ensure you have the following tools installed and properly configured:
 
 - **Docker**: `>= 24.0.0`
+- **Docker Buildx**: `>= 0.18.0` (recommended if building images specially for arm machines to build linux/amd64)
 - **kubectl**: `>= 1.28.0`
 - **Helm**: `>= 3.0.0`
 - **Terraform**: `>= 1.9.8` (with AWS authentication configured)
