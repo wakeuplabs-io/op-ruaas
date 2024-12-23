@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use crate::domain::{self, Project};
 
 pub struct InMemoryProjectRepository;
@@ -13,16 +15,11 @@ impl domain::project::TProjectRepository for InMemoryProjectRepository {
         project.root.exists()
     }
 
-    fn has(&self, project: &Project, filepath: &std::path::PathBuf) -> bool {
+    fn has(&self, project: &Project, filepath: &Path) -> bool {
         filepath.starts_with(&project.root) && filepath.exists()
     }
 
-    fn write(
-        &self,
-        project: &Project,
-        filepath: &std::path::PathBuf,
-        content: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn write(&self, project: &Project, filepath: &Path, content: &str) -> Result<(), Box<dyn std::error::Error>> {
         // ensure filepath is a subpath of the project root
         if !filepath.starts_with(&project.root) {
             return Err("File path is not a subpath of the project root".into());

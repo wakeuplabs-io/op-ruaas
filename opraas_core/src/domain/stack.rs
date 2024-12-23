@@ -25,22 +25,28 @@ pub trait TStackRunner {
 // implementations ==================================================
 
 impl Stack {
-    pub fn new(helm: PathBuf, aws: PathBuf, deployment: Option<Deployment>) -> Self {
+    pub fn new<T>(helm: T, aws: T, deployment: Option<Deployment>) -> Self
+    where
+        T: Into<PathBuf>,
+    {
         Self {
-            helm,
-            aws,
+            helm: helm.into(),
+            aws: aws.into(),
             deployment,
         }
     }
 
-    pub fn load(project: &Project, deployment_name: &str) -> Self {
+    pub fn load<T>(project: &Project, deployment_name: T) -> Result<Self, Box<dyn std::error::Error>>
+    where
+        T: AsRef<str>,
+    {
         let deployment_repository = InMemoryDeploymentRepository::new(&project.root);
-        let deployment = deployment_repository.find(deployment_name).unwrap();
+        let deployment = deployment_repository.find(deployment_name.as_ref())?;
 
-        Self {
+        Ok(Self {
             helm: project.infra.helm.clone(),
             aws: project.infra.aws.clone(),
             deployment,
-        }
+        })
     }
 }

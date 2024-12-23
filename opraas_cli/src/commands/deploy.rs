@@ -155,7 +155,7 @@ impl DeployCommand {
             let infra_deployer_spinner = style_spinner(ProgressBar::new_spinner(), "Deploying stack infra...");
 
             self.infra_deployer.deploy(
-                &Stack::load(&project, &name),
+                &Stack::load(&project, &name)?,
                 &domain,
                 enable_monitoring,
                 enable_explorer,
