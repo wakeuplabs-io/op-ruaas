@@ -8,6 +8,7 @@ use crate::{
 use std::{
     collections::HashMap,
     fs::{self, File},
+    path::{Path, PathBuf},
     process::Command,
 };
 
@@ -18,19 +19,25 @@ pub struct TerraformDeployer {
 // implementations ================================================
 
 impl TerraformDeployer {
-    pub fn new(root: &std::path::PathBuf) -> Self {
+    pub fn new<T>(root: T) -> Self
+    where
+        T: Into<PathBuf>,
+    {
         Self {
             deployment_repository: Box::new(InMemoryDeploymentRepository::new(root)),
         }
     }
 
-    fn create_values_file(
+    fn create_values_file<T>(
         &self,
         stack: &Stack,
         values: &HashMap<&str, Value>,
-        target: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let depl = stack.deployment.as_ref().unwrap();
+        target: T,
+    ) -> Result<(), Box<dyn std::error::Error>>
+    where
+        T: AsRef<Path>,
+    {
+        let depl: &Deployment = stack.as_ref();
         let mut updates: HashMap<&str, Value> = values.clone();
 
         // global ================================================
@@ -91,11 +98,7 @@ impl TerraformDeployer {
 
         // ================================================
 
-        yaml::rewrite_yaml_to(
-            stack.helm.join("values.yaml").to_str().unwrap(),
-            target,
-            &values,
-        )?;
+        yaml::rewrite_yaml_to(stack.helm.join("values.yaml"), target, &values)?;
 
         Ok(())
     }
@@ -108,7 +111,7 @@ impl TStackInfraDeployer for TerraformDeployer {
 
         // create values file
         let values_file = tempfile::NamedTempFile::new()?;
-        self.create_values_file(stack, &values, values_file.path().to_str().unwrap())?;
+        self.create_values_file(stack, &values, values_file.path())?;
 
         // copy addresses.json and artifacts.zip to helm/config so it can be loaded by it
         let config_dir = stack.helm.join("config");
@@ -132,14 +135,14 @@ impl TStackInfraDeployer for TerraformDeployer {
         system::execute_command(
             Command::new("terraform")
                 .arg("init")
-                .current_dir(stack.aws.to_str().unwrap()),
+                .current_dir(&stack.aws),
             false,
         )?;
 
         system::execute_command(
             Command::new("terraform")
                 .arg("plan")
-                .current_dir(stack.aws.to_str().unwrap()),
+                .current_dir(&stack.aws),
             false,
         )?;
 
@@ -151,7 +154,7 @@ impl TStackInfraDeployer for TerraformDeployer {
                     "-var=values_file_path={}",
                     values_file.path().to_str().unwrap()
                 ))
-                .current_dir(stack.aws.to_str().unwrap()),
+                .current_dir(&stack.aws),
             false,
         )?;
 
@@ -162,7 +165,7 @@ impl TStackInfraDeployer for TerraformDeployer {
             Command::new("terraform")
                 .arg("output")
                 .arg("-json")
-                .current_dir(stack.aws.to_str().unwrap()),
+                .current_dir(&stack.aws),
             true,
         )?;
         fs::write(infra_artifacts.path(), output)?;

@@ -96,13 +96,13 @@ impl TSystemRequirementsChecker for SystemRequirementsChecker {
                         requirement.program, requirement.version_arg
                     )
                 })?;
-            let re = Regex::new(r"(\d+\.\d+\.\d+)").unwrap();
+            let re = Regex::new(r"(\d+\.\d+\.\d+)").expect("Failed to compile regex");
 
             let version = Version::parse(
                 &re.captures(&output)
                     .ok_or(format!("Failed to parse version from output: {}", output))?[1],
             )
-            .unwrap();
+            .expect("Failed to parse version");
 
             let required_version = Version::parse(requirement.required_version).map_err(|e| e.to_string())?;
             match requirement.required_comparator {

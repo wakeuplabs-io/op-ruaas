@@ -21,7 +21,7 @@ impl CoreConfig {
     }
 
     pub fn to_toml<P: AsRef<std::path::Path>>(&self, p: &P) -> Result<(), Box<dyn std::error::Error>> {
-        let config_content = toml::to_string(&self).unwrap();
+        let config_content = toml::to_string(&self)?;
         std::fs::write(p, config_content)?;
 
         Ok(())

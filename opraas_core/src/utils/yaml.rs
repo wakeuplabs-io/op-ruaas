@@ -1,8 +1,13 @@
 use serde_yaml::{to_writer, Mapping, Value};
 use std::collections::HashMap;
 use std::fs::File;
+use std::path::Path;
 
-pub fn rewrite_yaml_to(from: &str, to: &str, updates: &HashMap<&str, Value>) -> Result<(), Box<dyn std::error::Error>> {
+pub fn rewrite_yaml_to<T, U>(from: T, to: U, updates: &HashMap<&str, Value>) -> Result<(), Box<dyn std::error::Error>>
+where
+    T: AsRef<Path>,
+    U: AsRef<Path>,
+{
     let file = File::open(from)?;
     let mut yaml: Value = serde_yaml::from_reader(file)?;
 

@@ -50,3 +50,9 @@ impl Stack {
         })
     }
 }
+
+impl AsRef<Deployment> for Stack {
+    fn as_ref(&self) -> &Deployment {
+        self.deployment.as_ref().unwrap()
+    }
+}

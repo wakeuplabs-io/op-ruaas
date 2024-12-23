@@ -54,7 +54,9 @@ pub struct DeployCommand {
 impl DeployCommand {
     pub fn new() -> Self {
         let project_factory = Box::new(ProjectFactory::new());
-        let project = project_factory.from_cwd().unwrap();
+        let project = project_factory
+            .from_cwd()
+            .expect("No project found in current directory");
 
         Self {
             dialoguer: Box::new(Dialoguer::new()),

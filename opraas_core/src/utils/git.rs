@@ -49,7 +49,9 @@ where
     ))?;
     let bytes = response.bytes()?;
 
-    let dst_dir = Path::new(dst_path.as_ref()).parent().expect("Invalid destination path");
+    let dst_dir = Path::new(dst_path.as_ref())
+        .parent()
+        .expect("Invalid destination path");
     if !dst_dir.exists() {
         fs::create_dir_all(dst_dir)?;
     }
@@ -58,24 +60,30 @@ where
     Ok(())
 }
 
-pub fn download_zipped_asset(
-    release_repo: &str,
-    release_tag: &str,
-    asset: &str,
-    dst_path: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub fn download_zipped_asset<T, U>(
+    release_repo: T,
+    release_tag: T,
+    asset: T,
+    dst_path: U,
+) -> Result<(), Box<dyn std::error::Error>>
+where
+    T: AsRef<str>,
+    U: AsRef<Path>,
+{
     let response = reqwest::blocking::get(&format!(
         "https://github.com/{}/releases/download/{}/{}.zip",
-        release_repo, release_tag, asset
+        release_repo.as_ref(),
+        release_tag.as_ref(),
+        asset.as_ref()
     ))?;
     let bytes = response.bytes()?;
 
-    let target = Path::new(dst_path);
-    if !target.exists() {
-        fs::create_dir_all(target)?;
+    if !dst_path.as_ref().exists() {
+        fs::create_dir_all(dst_path.as_ref())?;
     }
 
-    zip_extract::extract(Cursor::new(bytes), &target, true)?;
+    let target = Path::new(dst_path.as_ref());
+    zip_extract::extract(Cursor::new(bytes), target, true)?;
 
     Ok(())
 }

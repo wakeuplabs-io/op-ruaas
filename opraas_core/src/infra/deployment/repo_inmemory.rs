@@ -34,7 +34,7 @@ impl InMemoryDeploymentRepository {
     {
         let root = root.into();
         let deployments_root = root.join("deployments");
-        std::fs::create_dir_all(&deployments_root).unwrap();
+        std::fs::create_dir_all(&deployments_root).expect("Can't create deployments directory");
 
         Self {
             root: deployments_root,

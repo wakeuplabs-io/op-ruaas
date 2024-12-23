@@ -1,5 +1,5 @@
 use crate::{
-    domain::{Stack, TStackRunner},
+    domain::{Deployment, Stack, TStackRunner},
     system, yaml,
 };
 use log::info;
@@ -107,7 +107,7 @@ impl HelmStackRunner {
         values: &HashMap<&str, Value>,
         target: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let depl = stack.deployment.as_ref().unwrap();
+        let depl: &Deployment = stack.as_ref();
         let mut updates: HashMap<&str, Value> = values.clone();
 
         // global ================================================
@@ -168,11 +168,7 @@ impl HelmStackRunner {
 
         // ================================================
 
-        yaml::rewrite_yaml_to(
-            stack.helm.join("values.yaml").to_str().unwrap(),
-            target,
-            &updates,
-        )?;
+        yaml::rewrite_yaml_to(stack.helm.join("values.yaml"), target, &updates)?;
 
         Ok(())
     }
@@ -204,7 +200,7 @@ impl HelmStackRunner {
 
 impl TStackRunner for HelmStackRunner {
     fn run(&self, stack: &Stack, values: &HashMap<&str, Value>) -> Result<(), Box<dyn std::error::Error>> {
-        let deployment = stack.deployment.as_ref().unwrap();
+        let deployment: &Deployment = stack.as_ref();
         let contracts_artifacts = deployment.contracts_artifacts.as_ref().unwrap();
 
         // add repos, install pre-requisites and build dependencies

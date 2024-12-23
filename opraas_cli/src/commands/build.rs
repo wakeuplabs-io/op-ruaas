@@ -48,8 +48,11 @@ impl BuildCommand {
         self.system_requirements_checker
             .check(vec![GIT_REQUIREMENT, DOCKER_REQUIREMENT])?;
 
-        let project = self.project_factory.from_cwd().unwrap();
-        let config = CoreConfig::new_from_toml(&project.config).unwrap();
+        let project = self
+            .project_factory
+            .from_cwd()
+            .expect("No project found in current directory");
+        let config = CoreConfig::new_from_toml(&project.config).expect("Invalid project configuration");
 
         // assemble list of artifacts to build
         let artifacts = match target {
