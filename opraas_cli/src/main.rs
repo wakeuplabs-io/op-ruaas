@@ -57,7 +57,7 @@ enum Commands {
         target: InspectTarget,
 
         #[arg(long)]
-        deployment: String,
+        name: String,
     },
     // /// Monitor your chain. Target must be one of: onchain, offchain
     // Monitor { target: MonitorTarget },
@@ -105,7 +105,7 @@ async fn main() {
             name,
             deterministic_deployer,
         } => DeployCommand::new().run(target, name, deterministic_deployer),
-        Commands::Inspect { target, deployment } => InspectCommand::new().run(target, deployment),
+        Commands::Inspect { target, name } => InspectCommand::new().run(target, name),
         // Commands::Monitor { target } => MonitorCommand::new(target).run(&config).await,
     } {
         print_error(&format!("\n\nError: {}\n\n", e));
