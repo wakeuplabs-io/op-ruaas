@@ -93,6 +93,10 @@ grafana:
   adminUser: admin
   adminPassword: admin
 
+  sidecar:
+    dashboards:
+      enabled: true
+  
   datasources:
     datasources.yaml:
       apiVersion: 1
@@ -102,31 +106,7 @@ grafana:
           access: proxy
           url: http://{{ .Release.Name }}-prometheus-server
           isDefault: true
-
-  dashboardProviders:
-    dashboardproviders.yaml:
-      apiVersion: 1
-      providers:
-        - name: 'default'
-          orgId: 1
-          folder: ''
-          type: file
-          disableDeletion: false
-          editable: true
-          options:
-            path: /var/lib/grafana/dashboards/default
-
-  dashboards:
-    default:
-      system:
-        gnetId: 315
-        revision: 1
-        datasource: Prometheus
-      geth:
-        gnetId: 18463
-        revision: 1
-        datasource: Prometheus
-
+          uid: prometheus-datasource
   ingress:
     enabled: true
     path: /monitoring(/|$)(.*)

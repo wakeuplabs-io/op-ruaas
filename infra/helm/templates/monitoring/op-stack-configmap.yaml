@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: op-stack-dashboard
+  labels:
+    grafana_dashboard: "1"
+data:
+    {{- $file := .Files.Get "dashboards/op-stack.json" }}
+  op-stack.json: |-
+    {{ $file | nindent 6 }}
+  

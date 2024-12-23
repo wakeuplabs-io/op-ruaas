@@ -1,6 +1,6 @@
-use std::process::Command;
-use log::warn;
 use crate::{domain, system};
+use log::warn;
+use std::process::Command;
 
 pub struct DockerArtifactRepository;
 
@@ -19,7 +19,7 @@ impl domain::TArtifactRepository for DockerArtifactRepository {
             Err(_) => {
                 warn!("Docker buildx not found, falling back to legacy build");
                 false
-            },
+            }
         };
 
         if use_buildx {
@@ -48,7 +48,7 @@ impl domain::TArtifactRepository for DockerArtifactRepository {
                     .arg(".")
                     .current_dir(artifact.context()),
                 false,
-            )?; 
+            )?;
         }
 
         Ok(())
