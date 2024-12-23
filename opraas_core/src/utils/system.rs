@@ -2,7 +2,7 @@ use log::info;
 use std::{
     fs,
     io::{self},
-    path::PathBuf,
+    path::Path,
     process::{Command, Stdio},
 };
 
@@ -32,7 +32,13 @@ pub fn execute_command(command: &mut Command, silent: bool) -> Result<String, St
     }
 }
 
-pub fn copy_and_overwrite(src: &PathBuf, dest: &PathBuf) -> io::Result<()> {
+pub fn copy_and_overwrite<T>(src: T, dest: T) -> io::Result<()>
+where
+    T: AsRef<Path>,
+{
+    let src = src.as_ref();
+    let dest = dest.as_ref();
+
     if src == dest {
         return Ok(());
     }

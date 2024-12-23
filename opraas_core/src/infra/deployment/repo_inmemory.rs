@@ -6,7 +6,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::{
     fs::{File, OpenOptions},
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
 pub struct InMemoryDeploymentRepository {
@@ -28,7 +28,11 @@ const INFRA_ARTIFACTS_FILENAME: &str = "artifacts/infra_artifacts.json";
 // implementations ====================================
 
 impl InMemoryDeploymentRepository {
-    pub fn new(root: &std::path::PathBuf) -> Self {
+    pub fn new<T>(root: T) -> Self
+    where
+        T: Into<PathBuf>,
+    {
+        let root = root.into();
         let deployments_root = root.join("deployments");
         std::fs::create_dir_all(&deployments_root).unwrap();
 
@@ -37,83 +41,99 @@ impl InMemoryDeploymentRepository {
         }
     }
 
-    fn load_network_config(&self, depl_path: &PathBuf) -> Result<NetworkConfig, Box<dyn std::error::Error>> {
-        let reader = File::open(depl_path.join(NETWORK_FILENAME))?;
+    fn load_network_config<T>(&self, depl_path: T) -> Result<NetworkConfig, Box<dyn std::error::Error>>
+    where
+        T: AsRef<Path>,
+    {
+        let reader = File::open(depl_path.as_ref().join(NETWORK_FILENAME))?;
         let config: NetworkConfig = serde_json::from_reader(reader)?;
 
         Ok(config)
     }
 
-    fn write_network_config(
-        &self,
-        depl_path: &PathBuf,
-        value: &NetworkConfig,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = std::fs::remove_file(depl_path.join(NETWORK_FILENAME));
+    fn write_network_config<T>(&self, depl_path: T, value: &NetworkConfig) -> Result<(), Box<dyn std::error::Error>>
+    where
+        T: AsRef<Path>,
+    {
+        let _ = std::fs::remove_file(depl_path.as_ref().join(NETWORK_FILENAME));
         let writer = OpenOptions::new()
             .write(true)
             .create(true)
-            .open(depl_path.join(NETWORK_FILENAME))?;
+            .open(depl_path.as_ref().join(NETWORK_FILENAME))?;
         serde_json::to_writer_pretty(writer, value)?;
 
         Ok(())
     }
 
-    fn load_accounts_config(&self, depl_path: &PathBuf) -> Result<AccountsConfig, Box<dyn std::error::Error>> {
-        let reader = File::open(depl_path.join(ACCOUNTS_FILENAME))?;
+    fn load_accounts_config<T>(&self, depl_path: T) -> Result<AccountsConfig, Box<dyn std::error::Error>>
+    where
+        T: AsRef<Path>,
+    {
+        let reader = File::open(depl_path.as_ref().join(ACCOUNTS_FILENAME))?;
         let config: AccountsConfig = serde_json::from_reader(reader)?;
 
         Ok(config)
     }
 
-    fn write_accounts_config(
-        &self,
-        depl_path: &PathBuf,
-        value: &AccountsConfig,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = std::fs::remove_file(depl_path.join(ACCOUNTS_FILENAME));
+    fn write_accounts_config<T>(&self, depl_path: T, value: &AccountsConfig) -> Result<(), Box<dyn std::error::Error>>
+    where
+        T: AsRef<Path>,
+    {
+        let _ = std::fs::remove_file(depl_path.as_ref().join(ACCOUNTS_FILENAME));
         let writer = OpenOptions::new()
             .write(true)
             .create(true)
-            .open(depl_path.join(ACCOUNTS_FILENAME))?;
+            .open(depl_path.as_ref().join(ACCOUNTS_FILENAME))?;
         serde_json::to_writer_pretty(writer, value)?;
 
         Ok(())
     }
 
-    fn load_releases_config(&self, depl_path: &PathBuf) -> Result<ReleaseMetadata, Box<dyn std::error::Error>> {
-        let reader = File::open(depl_path.join(RELEASE_FILENAME))?;
+    fn load_releases_config<T>(&self, depl_path: T) -> Result<ReleaseMetadata, Box<dyn std::error::Error>>
+    where
+        T: AsRef<Path>,
+    {
+        let reader = File::open(depl_path.as_ref().join(RELEASE_FILENAME))?;
         let config: ReleaseMetadata = serde_json::from_reader(reader)?;
 
         Ok(config)
     }
 
-    fn write_releases_config(
+    fn write_releases_config<T>(
         &self,
-        depl_path: &PathBuf,
+        depl_path: T,
         release_metadata: &ReleaseMetadata,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = std::fs::remove_file(depl_path.join(RELEASE_FILENAME));
+    ) -> Result<(), Box<dyn std::error::Error>>
+    where
+        T: AsRef<Path>,
+    {
+        let _ = std::fs::remove_file(depl_path.as_ref().join(RELEASE_FILENAME));
         let writer = OpenOptions::new()
             .write(true)
             .create(true)
-            .open(depl_path.join(RELEASE_FILENAME))?;
+            .open(depl_path.as_ref().join(RELEASE_FILENAME))?;
         serde_json::to_writer_pretty(writer, release_metadata)?;
 
         Ok(())
     }
 
-    fn load_path(&self, path: &PathBuf) -> Result<Option<PathBuf>, Box<dyn std::error::Error>> {
-        let exists = std::fs::exists(&path)?;
+    fn load_path<T>(&self, path: T) -> Result<Option<PathBuf>, Box<dyn std::error::Error>>
+    where
+        T: AsRef<Path>,
+    {
+        let exists = std::fs::exists(path.as_ref())?;
         if !exists {
             return Ok(None);
         }
 
-        Ok(Some(path.to_path_buf()))
+        Ok(Some(path.as_ref().to_path_buf()))
     }
 
-    fn write_path(&self, dest: &PathBuf, src: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
-        if dest != src {
+    fn write_path<T>(&self, dest: T, src: T) -> Result<(), Box<dyn std::error::Error>>
+    where
+        T: AsRef<Path>,
+    {
+        if dest.as_ref() != src.as_ref() {
             system::copy_and_overwrite(src, dest)?;
         }
 

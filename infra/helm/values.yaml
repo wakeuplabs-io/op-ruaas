@@ -154,6 +154,9 @@ blockscout:
     storage: 5Gi
 
 blockscout-stack:
+  config:
+    prometheus:
+      enabled: false
   blockscout:
     ingress:
       enabled: true
