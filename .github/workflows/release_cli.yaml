@@ -84,19 +84,16 @@ jobs:
 
     cli_release:
       name: Build and Release for Multiple Platforms
-      runs-on: ${{ matrix.os }}
+      runs-on: ubuntu-latest
   
       strategy:
         matrix:
           include:
-            - os: ubuntu-latest
-              target: x86_64-unknown-linux-gnu
+            - target: x86_64-unknown-linux-gnu
               extension: tar.gz
-            - os: macos-latest
-              target: x86_64-apple-darwin
+            - target: x86_64-apple-darwin
               extension: tar.gz
-            - os: windows-latest
-              target: x86_64-pc-windows-gnu
+            - target: x86_64-pc-windows-gnu
               extension: zip
   
       steps:
@@ -107,26 +104,13 @@ jobs:
           shell: bash
           run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
   
-        - name: Install Rust
-          uses: dtolnay/rust-toolchain@stable
-  
-        - name: Add Target for Cross-Compilation
-          run: rustup target add ${{ matrix.target }}
-
         - name: Install zig
           uses: korandoru/setup-zig@v1
           with:
             zig-version: 0.13.0
   
-        - name: Install zip on Windows
-          if: runner.os == 'Windows'
-          run: choco install zip -y
-  
         - name: Build Project
-          uses: actions-rs/cargo@v1
-          with:
-            command: zigbuild
-            args: --release --target ${{ matrix.target }}
+          run: zig build --package opraas_cli --release --target ${{ matrix.target }}
   
         - name: Package Binary
           shell: bash
@@ -137,7 +121,7 @@ jobs:
   
             # Create directory and move the binary
             mkdir "$output_dir"
-            if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            if [ "${{ matrix.target }}" = "x86_64-pc-windows-gnu" ]; then
               mv "target/${{ matrix.target }}/release/$binary_name.exe" "$output_dir/"
             else
               mv "target/${{ matrix.target }}/release/$binary_name" "$output_dir/"
