@@ -49,6 +49,10 @@ pub trait TProjectRepository: Send + Sync {
     fn has(&self, project: &Project, filepath: &Path) -> bool;
 }
 
+pub trait TProjectInfraRepository: Send + Sync {
+    fn pull(&self, project: &Project) -> Result<(), Box<dyn std::error::Error>>;
+}
+
 pub trait TProjectVersionControl: Send + Sync {
     fn init(&self, root: &Path) -> Result<(), Box<dyn std::error::Error>>;
     fn stage(&self, root: &Path) -> Result<(), Box<dyn std::error::Error>>;

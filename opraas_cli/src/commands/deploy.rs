@@ -10,22 +10,18 @@ use colored::*;
 use indicatif::ProgressBar;
 use log::info;
 use opraas_core::{
-    application::{
-        contracts::{
-            deploy::{StackContractsDeployerService, TStackContractsDeployerService},
-            StackContractsInspectorService, TStackContractsInspectorService,
-        },
-        stack::{
-            deploy::{StackInfraDeployerService, TStackInfraDeployerService},
-            StackInfraInspectorService, TStackInfraInspectorService,
-        },
+    application::deployment::{
+        deploy_contracts::{ContractsDeployerService, TContractsDeployerService},
+        deploy_infra::{InfraDeployerService, TInfraDeployerService},
+        inspect_contracts::{DeploymentContractsInspectorService, TDeploymentContractsInspectorService},
+        inspect_infra::{DeploymentInfraInspectorService, TDeploymentInfraInspectorService},
     },
     config::CoreConfig,
-    domain::{ArtifactFactory, ArtifactKind, ProjectFactory, Release, Stack, TArtifactFactory, TProjectFactory},
+    domain::{ArtifactFactory, ArtifactKind, ProjectFactory, Release, TArtifactFactory, TProjectFactory},
     infra::{
-        deployment::InMemoryDeploymentRepository,
+        deployment::{InMemoryDeploymentRepository, TerraformDeployer},
+        project::InMemoryProjectInfraRepository,
         release::{DockerReleaseRepository, DockerReleaseRunner},
-        stack::{deployer_terraform::TerraformDeployer, repo_inmemory::GitStackInfraRepository},
     },
 };
 use std::io::Cursor;
@@ -39,10 +35,10 @@ pub enum DeployTarget {
 
 pub struct DeployCommand {
     dialoguer: Box<dyn TDialoguer>,
-    contracts_deployer: Box<dyn TStackContractsDeployerService>,
-    contracts_inspector: Box<dyn TStackContractsInspectorService>,
-    infra_deployer: Box<dyn TStackInfraDeployerService>,
-    infra_inspector: Box<dyn TStackInfraInspectorService>,
+    contracts_deployer: Box<dyn TContractsDeployerService>,
+    contracts_inspector: Box<dyn TDeploymentContractsInspectorService>,
+    infra_deployer: Box<dyn TInfraDeployerService>,
+    infra_inspector: Box<dyn TDeploymentInfraInspectorService>,
     system_requirement_checker: Box<dyn TSystemRequirementsChecker>,
     artifacts_factory: Box<dyn TArtifactFactory>,
     project_factory: Box<dyn TProjectFactory>,
@@ -59,18 +55,21 @@ impl DeployCommand {
 
         Self {
             dialoguer: Box::new(Dialoguer::new()),
-            contracts_deployer: Box::new(StackContractsDeployerService::new(
+            contracts_deployer: Box::new(ContractsDeployerService::new(
                 Box::new(InMemoryDeploymentRepository::new(&project.root)),
                 Box::new(DockerReleaseRepository::new()),
                 Box::new(DockerReleaseRunner::new()),
             )),
-            contracts_inspector: Box::new(StackContractsInspectorService::new()),
-            infra_deployer: Box::new(StackInfraDeployerService::new(
+            contracts_inspector: Box::new(DeploymentContractsInspectorService::new(Box::new(
+                InMemoryDeploymentRepository::new(&project.root),
+            ))),
+            infra_deployer: Box::new(InfraDeployerService::new(
                 Box::new(TerraformDeployer::new(&project.root)),
-                Box::new(GitStackInfraRepository::new()),
-                Box::new(InMemoryDeploymentRepository::new(&project.root)),
+                Box::new(InMemoryProjectInfraRepository::new()),
             )),
-            infra_inspector: Box::new(StackInfraInspectorService::new()),
+            infra_inspector: Box::new(DeploymentInfraInspectorService::new(Box::new(
+                InMemoryDeploymentRepository::new(&project.root),
+            ))),
             system_requirement_checker: Box::new(SystemRequirementsChecker::new()),
             artifacts_factory: Box::new(ArtifactFactory::new()),
             project_factory,
@@ -153,10 +152,16 @@ impl DeployCommand {
         // infra deployment ===========================================================
 
         if matches!(target, DeployTarget::Infra | DeployTarget::All) {
+            let deployment = self
+                .contracts_inspector
+                .find(&name)?
+                .expect("Contracts deployment not found");
+
             let infra_deployer_spinner = style_spinner(ProgressBar::new_spinner(), "Deploying stack infra...");
 
             self.infra_deployer.deploy(
-                &Stack::load(&project, &name)?,
+                &project,
+                &deployment,
                 &domain,
                 enable_monitoring,
                 enable_explorer,
@@ -172,7 +177,7 @@ impl DeployCommand {
         print!("\x1B[2J\x1B[1;1H");
 
         if matches!(target, DeployTarget::Contracts | DeployTarget::All) {
-            let deployment = self.contracts_deployer.find(&name)?;
+            let deployment = self.contracts_inspector.find(&name)?;
 
             if let Some(deployment) = deployment {
                 info!("Inspecting contracts deployment: {}", deployment.name);
@@ -188,7 +193,7 @@ impl DeployCommand {
         }
 
         if matches!(target, DeployTarget::Infra | DeployTarget::All) {
-            let deployment = self.infra_deployer.find(&name)?;
+            let deployment = self.infra_inspector.find(&name)?;
 
             if let Some(deployment) = deployment {
                 info!("Inspecting infra deployment: {}", deployment.name);

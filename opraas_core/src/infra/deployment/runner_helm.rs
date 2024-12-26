@@ -1,5 +1,5 @@
 use crate::{
-    domain::{Deployment, Stack, TStackRunner},
+    domain::{Deployment, Project, TDeploymentRunner},
     system, yaml,
 };
 use log::info;
@@ -10,14 +10,14 @@ use std::{
     process::Command,
 };
 
-pub struct HelmStackRunner {
+pub struct HelmDeploymentRunner {
     release_name: String,
     namespace: String,
 }
 
 // implementations ============================================================
 
-impl HelmStackRunner {
+impl HelmDeploymentRunner {
     pub fn new(release_name: &str, namespace: &str) -> Self {
         Self {
             release_name: release_name.to_string(),
@@ -25,7 +25,7 @@ impl HelmStackRunner {
         }
     }
 
-    fn build_dependencies(&self, stack: &Stack) -> Result<(), Box<dyn std::error::Error>> {
+    fn build_dependencies(&self, project: &Project) -> Result<(), Box<dyn std::error::Error>> {
         let repo_dependencies = [
             (
                 "ingress-nginx",
@@ -86,7 +86,7 @@ impl HelmStackRunner {
             Command::new("helm")
                 .arg("dependency")
                 .arg("update")
-                .current_dir(&stack.helm),
+                .current_dir(&project.infra.helm),
             false,
         )?;
 
@@ -94,7 +94,7 @@ impl HelmStackRunner {
             Command::new("helm")
                 .arg("dependency")
                 .arg("build")
-                .current_dir(&stack.helm),
+                .current_dir(&project.infra.helm),
             false,
         )?;
 
@@ -103,14 +103,14 @@ impl HelmStackRunner {
 
     fn create_values_file<T>(
         &self,
-        stack: &Stack,
+        project: &Project,
+        deployment: &Deployment,
         values: &HashMap<&str, Value>,
         target: T,
-    ) -> Result<(), Box<dyn std::error::Error>> 
+    ) -> Result<(), Box<dyn std::error::Error>>
     where
         T: AsRef<std::path::Path>,
-        {
-        let depl: &Deployment = stack.as_ref();
+    {
         let mut updates: HashMap<&str, Value> = values.clone();
 
         // global ================================================
@@ -123,55 +123,63 @@ impl HelmStackRunner {
 
         // private keys ================================================
 
-        updates
-            .entry("wallets.batcher")
-            .or_insert(depl.accounts_config.batcher_private_key.clone().into());
-        updates
-            .entry("wallets.proposer")
-            .or_insert(depl.accounts_config.proposer_private_key.clone().into());
+        updates.entry("wallets.batcher").or_insert(
+            deployment
+                .accounts_config
+                .batcher_private_key
+                .clone()
+                .into(),
+        );
+        updates.entry("wallets.proposer").or_insert(
+            deployment
+                .accounts_config
+                .proposer_private_key
+                .clone()
+                .into(),
+        );
 
         // artifacts images =============================================
 
         updates
             .entry("node.image.tag")
-            .or_insert(depl.release_name.clone().into());
+            .or_insert(deployment.release_name.clone().into());
         updates
             .entry("node.image.repository")
-            .or_insert(format!("{}/{}", depl.registry_url, "op-node").into());
+            .or_insert(format!("{}/{}", deployment.registry_url, "op-node").into());
 
         updates
             .entry("batcher.image.tag")
-            .or_insert(depl.release_name.clone().into());
+            .or_insert(deployment.release_name.clone().into());
         updates
             .entry("batcher.image.repository")
-            .or_insert(format!("{}/{}", depl.registry_url, "op-batcher").into());
+            .or_insert(format!("{}/{}", deployment.registry_url, "op-batcher").into());
 
         updates
             .entry("proposer.image.tag")
-            .or_insert(depl.release_name.clone().into());
+            .or_insert(deployment.release_name.clone().into());
         updates
             .entry("proposer.image.repository")
-            .or_insert(format!("{}/{}", depl.registry_url, "op-proposer").into());
+            .or_insert(format!("{}/{}", deployment.registry_url, "op-proposer").into());
 
         updates
             .entry("geth.image.tag")
-            .or_insert(depl.release_name.clone().into());
+            .or_insert(deployment.release_name.clone().into());
         updates
             .entry("geth.image.repository")
-            .or_insert(format!("{}/{}", depl.registry_url, "op-geth").into());
+            .or_insert(format!("{}/{}", deployment.registry_url, "op-geth").into());
 
         // chain settings ================================================
 
         updates
             .entry("chain.id")
-            .or_insert(depl.network_config.l2_chain_id.to_string().into());
+            .or_insert(deployment.network_config.l2_chain_id.to_string().into());
         updates
             .entry("chain.l1Rpc")
-            .or_insert(depl.network_config.l1_rpc_url.clone().into());
+            .or_insert(deployment.network_config.l1_rpc_url.clone().into());
 
         // ================================================
 
-        yaml::rewrite_yaml_to(stack.helm.join("values.yaml"), target, &updates)?;
+        yaml::rewrite_yaml_to(project.infra.helm.join("values.yaml"), target, &updates)?;
 
         Ok(())
     }
@@ -201,22 +209,26 @@ impl HelmStackRunner {
     }
 }
 
-impl TStackRunner for HelmStackRunner {
-    fn run(&self, stack: &Stack, values: &HashMap<&str, Value>) -> Result<(), Box<dyn std::error::Error>> {
-        let deployment: &Deployment = stack.as_ref();
+impl TDeploymentRunner for HelmDeploymentRunner {
+    fn run(
+        &self,
+        project: &Project,
+        deployment: &Deployment,
+        values: &HashMap<&str, Value>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let contracts_artifacts = deployment.contracts_artifacts.as_ref().unwrap();
 
         // add repos, install pre-requisites and build dependencies
-        self.build_dependencies(stack)?;
+        self.build_dependencies(project)?;
 
         // create .tmp folder
-        let helm_tmp_folder = stack.helm.join(".tmp");
+        let helm_tmp_folder = project.infra.helm.join(".tmp");
         let _ = fs::remove_dir_all(&helm_tmp_folder);
         fs::create_dir_all(&helm_tmp_folder)?;
 
         // create values file from stack
         let values_file = helm_tmp_folder.join("values.yaml");
-        self.create_values_file(stack, &values, &values_file)?;
+        self.create_values_file(project, deployment, &values, &values_file)?;
 
         let unzipped_artifacts = tempfile::TempDir::new()?;
         zip_extract::extract(
@@ -224,7 +236,7 @@ impl TStackRunner for HelmStackRunner {
             &unzipped_artifacts.path(),
             true,
         )?;
-        
+
         // copy addresses.json and artifacts.zip to helm/.tmp so it can be loaded by it
         fs::copy(contracts_artifacts, helm_tmp_folder.join("artifacts.zip"))?;
         fs::copy(
@@ -243,7 +255,7 @@ impl TStackRunner for HelmStackRunner {
                 .arg("--namespace")
                 .arg(&self.namespace)
                 .arg("--create-namespace")
-                .arg(stack.helm.to_str().unwrap()),
+                .arg(project.infra.helm.to_str().unwrap()),
             false,
         )?;
 

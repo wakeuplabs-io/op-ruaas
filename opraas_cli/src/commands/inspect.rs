@@ -1,21 +1,11 @@
 use clap::ValueEnum;
 use opraas_core::{
-    application::{
-        contracts::{
-            StackContractsDeployerService, StackContractsInspectorService, TStackContractsDeployerService,
-            TStackContractsInspectorService,
-        },
-        stack::{
-            StackInfraDeployerService, StackInfraInspectorService, TStackInfraDeployerService,
-            TStackInfraInspectorService,
-        },
+    application::deployment::{
+        inspect_contracts::{DeploymentContractsInspectorService, TDeploymentContractsInspectorService},
+        inspect_infra::{DeploymentInfraInspectorService, TDeploymentInfraInspectorService},
     },
     domain::{ProjectFactory, TProjectFactory},
-    infra::{
-        deployment::InMemoryDeploymentRepository,
-        release::{DockerReleaseRepository, DockerReleaseRunner},
-        stack::{deployer_terraform::TerraformDeployer, repo_inmemory::GitStackInfraRepository},
-    },
+    infra::deployment::InMemoryDeploymentRepository,
 };
 use std::io::Cursor;
 
@@ -27,10 +17,8 @@ pub enum InspectTarget {
 }
 
 pub struct InspectCommand {
-    contracts_deployer: Box<dyn TStackContractsDeployerService>,
-    contracts_inspector: Box<dyn TStackContractsInspectorService>,
-    infra_deployer: Box<dyn TStackInfraDeployerService>,
-    infra_inspector: Box<dyn TStackInfraInspectorService>,
+    contracts_inspector: Box<dyn TDeploymentContractsInspectorService>,
+    infra_inspector: Box<dyn TDeploymentInfraInspectorService>,
 }
 
 // implementations ===================================================
@@ -41,24 +29,18 @@ impl InspectCommand {
         let project = project_factory.from_cwd().unwrap();
 
         Self {
-            contracts_deployer: Box::new(StackContractsDeployerService::new(
-                Box::new(InMemoryDeploymentRepository::new(&project.root)),
-                Box::new(DockerReleaseRepository::new()),
-                Box::new(DockerReleaseRunner::new()),
-            )),
-            contracts_inspector: Box::new(StackContractsInspectorService::new()),
-            infra_deployer: Box::new(StackInfraDeployerService::new(
-                Box::new(TerraformDeployer::new(&project.root)),
-                Box::new(GitStackInfraRepository::new()),
-                Box::new(InMemoryDeploymentRepository::new(&project.root)),
-            )),
-            infra_inspector: Box::new(StackInfraInspectorService::new()),
+            contracts_inspector: Box::new(DeploymentContractsInspectorService::new(Box::new(
+                InMemoryDeploymentRepository::new(&project.root),
+            ))),
+            infra_inspector: Box::new(DeploymentInfraInspectorService::new(Box::new(
+                InMemoryDeploymentRepository::new(&project.root),
+            ))),
         }
     }
 
     pub fn run(&self, target: InspectTarget, deployment_name: String) -> Result<(), Box<dyn std::error::Error>> {
         if matches!(target, InspectTarget::Contracts | InspectTarget::All) {
-            let deployment = self.contracts_deployer.find(&deployment_name)?;
+            let deployment = self.contracts_inspector.find(&deployment_name)?;
 
             if let Some(deployment) = deployment {
                 let artifact_cursor = Cursor::new(std::fs::read(&deployment.contracts_artifacts.unwrap())?);
@@ -72,7 +54,7 @@ impl InspectCommand {
         }
 
         if matches!(target, InspectTarget::Infra | InspectTarget::All) {
-            let deployment = self.infra_deployer.find(&deployment_name)?;
+            let deployment = self.infra_inspector.find(&deployment_name)?;
 
             if let Some(deployment) = deployment {
                 let artifact_cursor = Cursor::new(std::fs::read(&deployment.infra_artifacts.unwrap())?);

@@ -1,13 +1,13 @@
 use crate::{
     config::CoreConfig,
-    domain::{self, Project, ProjectFactory, Stack, TProjectFactory, TStackInfraRepository},
+    domain::{self, Project, ProjectFactory, TProjectFactory, TProjectInfraRepository},
 };
 use std::path::PathBuf;
 
 pub struct CreateProjectService {
     repository: Box<dyn domain::project::TProjectRepository>,
     version_control: Box<dyn domain::project::TProjectVersionControl>,
-    stack_infra_repository: Box<dyn TStackInfraRepository>,
+    project_infra_repository: Box<dyn TProjectInfraRepository>,
 }
 
 pub trait TCreateProjectService {
@@ -23,12 +23,12 @@ impl CreateProjectService {
     pub fn new(
         repository: Box<dyn domain::project::TProjectRepository>,
         version_control: Box<dyn domain::project::TProjectVersionControl>,
-        stack_infra_repository: Box<dyn TStackInfraRepository>,
+        project_infra_repository: Box<dyn TProjectInfraRepository>,
     ) -> Self {
         Self {
             repository,
             version_control,
-            stack_infra_repository,
+            project_infra_repository,
         }
     }
 }
@@ -55,11 +55,7 @@ impl TCreateProjectService for CreateProjectService {
             .write(&project, &project.config, &toml::to_string(config).unwrap())?;
 
         // pull stack infra
-        self.stack_infra_repository.pull(&Stack::new(
-            project.infra.helm.clone(),
-            project.infra.aws.clone(),
-            None,
-        ))?;
+        self.project_infra_repository.pull(&project)?;
 
         // initialize git and create first commit
         if init_git {

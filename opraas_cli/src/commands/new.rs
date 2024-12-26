@@ -4,10 +4,7 @@ use indicatif::ProgressBar;
 use opraas_core::{
     application::{CreateProjectService, TCreateProjectService},
     config::CoreConfig,
-    infra::{
-        project::{GitVersionControl, InMemoryProjectRepository},
-        stack::repo_inmemory::GitStackInfraRepository,
-    },
+    infra::project::{GitVersionControl, InMemoryProjectInfraRepository, InMemoryProjectRepository},
 };
 use std::{env, path::PathBuf};
 
@@ -23,7 +20,7 @@ impl NewCommand {
             project_creator: Box::new(CreateProjectService::new(
                 Box::new(InMemoryProjectRepository::new()),
                 Box::new(GitVersionControl::new()),
-                Box::new(GitStackInfraRepository::new()),
+                Box::new(InMemoryProjectInfraRepository::new()),
             )),
         }
     }

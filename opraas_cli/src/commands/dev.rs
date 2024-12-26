@@ -7,17 +7,17 @@ use crate::{
 use assert_cmd::Command;
 use indicatif::ProgressBar;
 use opraas_core::{
-    application::{
-        contracts::deploy::{StackContractsDeployerService, TStackContractsDeployerService},
-        stack::run::{StackRunnerService, TStackRunnerService},
+    application::deployment::{
+        deploy_contracts::{ContractsDeployerService, TContractsDeployerService},
+        run::{DeploymentRunnerService, TDeploymentRunnerService},
     },
     config::CoreConfig,
-    domain::{ArtifactFactory, ArtifactKind, ProjectFactory, Release, Stack, TArtifactFactory, TProjectFactory},
+    domain::{ArtifactFactory, ArtifactKind, ProjectFactory, Release, TArtifactFactory, TProjectFactory},
     infra::{
-        deployment::InMemoryDeploymentRepository,
+        deployment::{HelmDeploymentRunner, InMemoryDeploymentRepository},
         ethereum::{GethTestnetNode, TTestnetNode},
+        project::InMemoryProjectInfraRepository,
         release::{DockerReleaseRepository, DockerReleaseRunner},
-        stack::{repo_inmemory::GitStackInfraRepository, runner_helm::HelmStackRunner},
     },
 };
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -28,10 +28,10 @@ use std::time::Duration;
 pub struct DevCommand {
     dialoguer: Box<dyn TDialoguer>,
     l1_node: Box<dyn TTestnetNode>,
-    stack_runner: Box<dyn TStackRunnerService>,
+    deployment_runner: Box<dyn TDeploymentRunnerService>,
     system_requirement_checker: Box<dyn TSystemRequirementsChecker>,
     artifacts_factory: Box<dyn TArtifactFactory>,
-    contracts_deployer: Box<dyn TStackContractsDeployerService>,
+    contracts_deployer: Box<dyn TContractsDeployerService>,
     project_factory: Box<dyn TProjectFactory>,
 }
 
@@ -48,13 +48,13 @@ impl DevCommand {
         Self {
             dialoguer: Box::new(Dialoguer::new()),
             l1_node: Box::new(GethTestnetNode::new()),
-            stack_runner: Box::new(StackRunnerService::new(
-                Box::new(HelmStackRunner::new("opruaas-dev", "opruaas-dev")),
-                Box::new(GitStackInfraRepository::new()),
+            deployment_runner: Box::new(DeploymentRunnerService::new(
+                Box::new(HelmDeploymentRunner::new("opruaas-dev", "opruaas-dev")),
+                Box::new(InMemoryProjectInfraRepository::new()),
             )),
             system_requirement_checker: Box::new(SystemRequirementsChecker::new()),
             artifacts_factory: Box::new(ArtifactFactory::new()),
-            contracts_deployer: Box::new(StackContractsDeployerService::new(
+            contracts_deployer: Box::new(ContractsDeployerService::new(
                 Box::new(InMemoryDeploymentRepository::new(&project.root)),
                 Box::new(DockerReleaseRepository::new()),
                 Box::new(DockerReleaseRunner::new()),
@@ -167,12 +167,9 @@ impl DevCommand {
             "⏳ Installing infra in local kubernetes...",
         );
 
-        self.stack_runner.start(
-            &Stack::new(
-                project.infra.helm.clone(),
-                project.infra.aws.clone(),
-                Some(contracts_deployment),
-            ),
+        self.deployment_runner.run(
+            &project,
+            &contracts_deployment,
             enable_monitoring,
             enable_explorer,
         )?;
@@ -223,7 +220,7 @@ impl Drop for DevCommand {
             }
         }
 
-        match self.stack_runner.stop() {
+        match self.deployment_runner.stop() {
             Ok(_) => {}
             Err(e) => {
                 print_warning(&format!("Failed to stop stack runner: {}", e));

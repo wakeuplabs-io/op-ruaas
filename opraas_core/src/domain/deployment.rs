@@ -1,5 +1,11 @@
 use crate::config::{AccountsConfig, NetworkConfig};
-use std::path::{Path, PathBuf};
+use serde_yaml::Value;
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+};
+
+use super::Project;
 
 #[derive(Debug, Clone)]
 pub struct Deployment {
@@ -14,7 +20,35 @@ pub struct Deployment {
 
 pub trait TDeploymentRepository: Send + Sync {
     fn save(&self, deployment: &mut Deployment) -> Result<(), Box<dyn std::error::Error>>;
-    fn find(&self, name: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>>;
+    fn find(&self, id: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>>;
+}
+
+pub trait TInfraDeployer: Send + Sync {
+    fn deploy(
+        &self,
+        project: &Project,
+        deployment: &Deployment,
+        values: &HashMap<&str, Value>,
+    ) -> Result<Deployment, Box<dyn std::error::Error>>;
+}
+
+pub trait TContractsDeployer: Send + Sync {
+    fn deploy(
+        &self,
+        project: &Project,
+        deployment: &Deployment,
+        values: &HashMap<&str, Value>,
+    ) -> Result<Deployment, Box<dyn std::error::Error>>;
+}
+
+pub trait TDeploymentRunner {
+    fn run(
+        &self,
+        project: &Project,
+        deployment: &Deployment,
+        values: &HashMap<&str, Value>,
+    ) -> Result<(), Box<dyn std::error::Error>>;
+    fn stop(&self) -> Result<(), Box<dyn std::error::Error>>;
 }
 
 // infra_artifacts.zip folder structure
