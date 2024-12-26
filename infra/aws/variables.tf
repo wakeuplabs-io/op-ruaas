@@ -5,10 +5,10 @@ variable "region" {
   default     = "us-east-2"
 }
 
-variable "proy-name" {
-  description = "Name of the project. Used for naming resources {proy-name}-{resource}. For example, {}-vpc, {}-cluster"
+variable "name" {
+  description = "Name of the deployment. Used for naming resources {proy-name}-{resource}. For example, {}-vpc, {}-cluster"
   type        = string
-  default     = "opraas-chain"
+  default     = "opruaas"
 }
 
 variable "values_file_path" {

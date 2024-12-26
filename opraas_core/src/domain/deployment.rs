@@ -17,6 +17,13 @@ pub trait TDeploymentRepository: Send + Sync {
     fn find(&self, name: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>>;
 }
 
+// infra_artifacts.zip folder structure
+pub const OUT_INFRA_ARTIFACTS_OUTPUTS: &str = "tf_outputs.json";
+
+// infra_contracts.zip folder structure
+pub const OUT_CONTRACTS_ARTIFACTS_ADDRESSES: &str = "addresses.json";
+pub const OUT_CONTRACTS_ARTIFACTS_DEPLOY_CONFIG: &str = "deploy-config.json";
+
 // implementations ========================================================
 
 impl Deployment {

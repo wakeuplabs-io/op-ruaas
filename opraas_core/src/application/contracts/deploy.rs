@@ -1,6 +1,6 @@
 use crate::{
     config::CoreConfig,
-    domain::{self, Deployment, Release},
+    domain::{self, Deployment, Release, OUT_CONTRACTS_ARTIFACTS_ADDRESSES, OUT_CONTRACTS_ARTIFACTS_DEPLOY_CONFIG},
 };
 use rand::Rng;
 use serde_json::Value;
@@ -36,8 +36,6 @@ pub trait TStackContractsInspectorService: Send + Sync {
 
 const IN_NETWORK: &str = "in/deploy-config.json";
 const OUT_ARTIFACTS: &str = "out/artifacts.zip";
-const OUT_ARTIFACTS_ADDRESSES: &str = "addresses.json";
-const OUT_ARTIFACTS_DEPLOY_CONFIG: &str = "deploy-config.json";
 
 // implementations ===================================================
 
@@ -140,7 +138,7 @@ impl TStackContractsInspectorService for StackContractsInspectorService {
                 file_name = file.name().to_string();
             }
 
-            if file_name == OUT_ARTIFACTS_ADDRESSES || file_name == OUT_ARTIFACTS_DEPLOY_CONFIG {
+            if file_name == OUT_CONTRACTS_ARTIFACTS_ADDRESSES || file_name == OUT_CONTRACTS_ARTIFACTS_DEPLOY_CONFIG {
                 let mut file = archive.by_index(i).map_err(|e| e.to_string())?;
                 let mut contents = String::new();
 
@@ -152,8 +150,8 @@ impl TStackContractsInspectorService for StackContractsInspectorService {
         }
 
         if let (Some(addresses), Some(deploy_config)) = (
-            file_contents.get(OUT_ARTIFACTS_ADDRESSES),
-            file_contents.get(OUT_ARTIFACTS_DEPLOY_CONFIG),
+            file_contents.get(OUT_CONTRACTS_ARTIFACTS_ADDRESSES),
+            file_contents.get(OUT_CONTRACTS_ARTIFACTS_DEPLOY_CONFIG),
         ) {
             // Parse the JSON content of both files
             let addresses_json: Value = serde_json::from_str(addresses).map_err(|e| e.to_string())?;

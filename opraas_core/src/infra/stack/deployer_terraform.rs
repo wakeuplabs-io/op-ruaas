@@ -1,13 +1,15 @@
 use serde_yaml::Value;
+use zip::write::FileOptions;
 
 use crate::{
-    domain::{Deployment, Stack, TDeploymentRepository, TStackInfraDeployer},
+    domain::{Deployment, Stack, TDeploymentRepository, TStackInfraDeployer, OUT_INFRA_ARTIFACTS_OUTPUTS},
     infra::deployment::InMemoryDeploymentRepository,
     system, yaml,
 };
 use std::{
     collections::HashMap,
     fs::{self, File},
+    io::Write,
     path::{Path, PathBuf},
     process::Command,
 };
@@ -131,7 +133,6 @@ impl TStackInfraDeployer for TerraformDeployer {
         )?;
 
         // deploy using terraform
-
         system::execute_command(
             Command::new("terraform")
                 .arg("init")
@@ -142,6 +143,11 @@ impl TStackInfraDeployer for TerraformDeployer {
         system::execute_command(
             Command::new("terraform")
                 .arg("plan")
+                .arg(format!(
+                    "-var=values_file_path={}",
+                    values_file.path().to_str().unwrap()
+                ))
+                .arg(format!("-var=name={}", deployment.name))
                 .current_dir(&stack.aws),
             false,
         )?;
@@ -154,13 +160,12 @@ impl TStackInfraDeployer for TerraformDeployer {
                     "-var=values_file_path={}",
                     values_file.path().to_str().unwrap()
                 ))
+                .arg(format!("-var=name={}", deployment.name))
                 .current_dir(&stack.aws),
             false,
         )?;
 
-        // write artifacts to repository
-
-        let infra_artifacts = tempfile::NamedTempFile::new()?;
+        // extract outputs from deployment
         let output = system::execute_command(
             Command::new("terraform")
                 .arg("output")
@@ -168,8 +173,18 @@ impl TStackInfraDeployer for TerraformDeployer {
                 .current_dir(&stack.aws),
             true,
         )?;
-        fs::write(infra_artifacts.path(), output)?;
 
+        // create artifacts zip
+        let infra_artifacts = tempfile::NamedTempFile::new()?;
+        let mut zip = zip::ZipWriter::new(&infra_artifacts);
+        let options = FileOptions::default()
+            .compression_method(zip::CompressionMethod::Stored)
+            .unix_permissions(0o755);
+        zip.start_file(OUT_INFRA_ARTIFACTS_OUTPUTS, options)?;
+        zip.write_all(output.as_bytes())?;
+        zip.finish()?;
+
+        // save it in the deployment repository
         deployment.infra_artifacts = Some(infra_artifacts.path().to_path_buf());
         self.deployment_repository.save(&mut deployment)?;
 

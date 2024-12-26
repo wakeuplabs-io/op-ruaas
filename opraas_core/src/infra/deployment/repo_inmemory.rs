@@ -23,7 +23,7 @@ const NETWORK_FILENAME: &str = "config/network.json";
 const ACCOUNTS_FILENAME: &str = "config/accounts.json";
 const RELEASE_FILENAME: &str = "config/release.json";
 const CONTRACTS_ARTIFACTS_FILENAME: &str = "artifacts/contracts_artifacts.zip";
-const INFRA_ARTIFACTS_FILENAME: &str = "artifacts/infra_artifacts.json";
+const INFRA_ARTIFACTS_FILENAME: &str = "artifacts/infra_artifacts.zip";
 
 // implementations ====================================
 
