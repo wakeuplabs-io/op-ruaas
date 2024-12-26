@@ -111,25 +111,27 @@ impl TStackInfraDeployer for TerraformDeployer {
         let mut deployment = stack.deployment.as_ref().unwrap().clone();
         let contracts_artifacts = deployment.contracts_artifacts.as_ref().unwrap();
 
+        // create .tmp folder
+        let helm_tmp_folder = stack.helm.join(".tmp");
+        let _ = fs::remove_dir_all(&helm_tmp_folder);
+        fs::create_dir_all(&helm_tmp_folder)?;
+
         // create values file
-        let values_file = tempfile::NamedTempFile::new()?;
-        self.create_values_file(stack, &values, values_file.path())?;
-
-        // copy addresses.json and artifacts.zip to helm/config so it can be loaded by it
-        let config_dir = stack.helm.join("config");
-        fs::create_dir_all(&config_dir)?;
-
+        let values_file = helm_tmp_folder.join("values.yaml");
+        self.create_values_file(stack, &values, &values_file)?;
+        
         let unzipped_artifacts = tempfile::TempDir::new()?;
         zip_extract::extract(
             File::open(contracts_artifacts)?,
             &unzipped_artifacts.path(),
             true,
         )?;
-
-        fs::copy(contracts_artifacts, config_dir.join("artifacts.zip"))?;
+        
+        // copy addresses.json and artifacts.zip to helm/config so it can be loaded by it
+        fs::copy(contracts_artifacts, helm_tmp_folder.join("artifacts.zip"))?;
         fs::copy(
             unzipped_artifacts.path().join("addresses.json"),
-            config_dir.join("addresses.json"),
+            helm_tmp_folder.join("addresses.json"),
         )?;
 
         // deploy using terraform
@@ -145,7 +147,7 @@ impl TStackInfraDeployer for TerraformDeployer {
                 .arg("plan")
                 .arg(format!(
                     "-var=values_file_path={}",
-                    values_file.path().to_str().unwrap()
+                    values_file.to_str().unwrap()
                 ))
                 .arg(format!("-var=name={}", deployment.name))
                 .current_dir(&stack.aws),
@@ -158,7 +160,7 @@ impl TStackInfraDeployer for TerraformDeployer {
                 .arg("-auto-approve")
                 .arg(format!(
                     "-var=values_file_path={}",
-                    values_file.path().to_str().unwrap()
+                    values_file.to_str().unwrap()
                 ))
                 .arg(format!("-var=name={}", deployment.name))
                 .current_dir(&stack.aws),

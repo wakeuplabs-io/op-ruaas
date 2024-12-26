@@ -11,8 +11,8 @@ global:
 chain:
   id: "override" 
   l1Rpc: "override"
-  artifacts: "config/artifacts.zip"
-  addresses: "config/addresses.json"
+  artifacts: ".tmp/artifacts.zip"
+  addresses: ".tmp/addresses.json"
 
 wallets:
   batcher: "0x..."
