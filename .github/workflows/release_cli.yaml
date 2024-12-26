@@ -118,9 +118,8 @@ jobs:
           with:
             zig-version: 0.13.0
   
-        - name: Install zip on Windows
-          if: runner.os == 'Windows'
-          run: choco install zip -y
+        - name: Install zip
+          run: sudo apt update && sudo apt install -y zip
   
         - name: Build Project
           uses: actions-rs/cargo@v1
