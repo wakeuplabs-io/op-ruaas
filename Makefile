@@ -21,13 +21,13 @@ lint:
 	cargo clippy --fix
 
 build-windows:
-	cargo build --target=${WINDOW_TARGET} --release
+	cargo zigbuild --target=${WINDOW_TARGET} --release
 
 build-linux:
-	cargo build --target=${LINUX_TARGET} --release
+	cargo zigbuild --target=${LINUX_TARGET} --release
 
 build-apple:
-	cargo build --target=${APPLE_TARGET} --release
+	cargo zigbuild --target=${APPLE_TARGET} --release
 
 server-deploy:
 	cargo lambda build --package opraas_server --release
