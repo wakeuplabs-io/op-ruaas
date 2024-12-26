@@ -19,9 +19,11 @@ impl TProjectVersionControl for GitVersionControl {
     }
 
     fn stage(&self, path: &Path) -> Result<(), Box<dyn std::error::Error>> {
-        Repository::open(path)?
-            .index()?
-            .add_all(&["."], git2::IndexAddOption::DEFAULT, None)?;
+        let repo = Repository::open(path)?;
+
+        let mut index = repo.index()?;
+        index.add_all(&["."], git2::IndexAddOption::DEFAULT, None)?;
+        index.write()?;
 
         Ok(())
     }
