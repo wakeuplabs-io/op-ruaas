@@ -1,8 +1,6 @@
 use crate::utils::zip::zip_folder;
 use axum::{
-    http::{HeaderMap, HeaderValue, StatusCode},
-    response::IntoResponse,
-    Extension, Json,
+    http::{HeaderMap, HeaderValue, StatusCode}, response::IntoResponse, Extension, Json
 };
 use opraas_core::{
     application::{CreateProjectService, TCreateProjectService},
@@ -13,7 +11,7 @@ use std::{path::PathBuf, sync::Arc};
 use tempfile::TempDir;
 
 #[derive(Deserialize)]
-pub struct Payload {
+pub struct ConfigurePayload {
     pub max_sequencer_drift: u32,
     pub sequencer_window_size: u32,
     pub channel_timeout: u32,
@@ -60,9 +58,9 @@ pub struct Payload {
     pub batch_inbox_address: String,
 }
 
-pub async fn build_handler(
+pub async fn create(
     Extension(create_service): Extension<Arc<CreateProjectService>>,
-    Json(data): Json<Payload>,
+    Json(data): Json<ConfigurePayload>,
 ) -> Result<impl IntoResponse, (StatusCode, &'static str)> {
     let mut headers = HeaderMap::new();
     headers.insert("Content-Type", HeaderValue::from_static("application/zip"));

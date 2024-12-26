@@ -1,19 +1,21 @@
-mod handlers;
+mod routes;
 mod utils;
 
-use crate::handlers::{build_handler, health_handler, inspect_contracts_handler, inspect_infra_handler};
-use axum::routing::{get, post};
+use axum::extract::DefaultBodyLimit;
+use axum::routing::{get, post, put, delete};
 use axum::{Extension, Router};
 use lambda_http::{run, Error};
 use opraas_core::application::{contracts::StackContractsInspectorService, stack::StackInfraInspectorService};
-use opraas_core::infra::stack::repo_inmemory::GitStackInfraRepository;
+use opraas_core::infra::stack::infra_repo_inmemory::GitStackInfraRepository;
 use opraas_core::{
     application::CreateProjectService,
     infra::project::{GitVersionControl, InMemoryProjectRepository},
 };
+use routes::health;
 use std::sync::Arc;
 use tower_http::trace::{self, TraceLayer};
 use tracing::{level_filters::LevelFilter, Level};
+use tower_http::limit::RequestBodyLimitLayer;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -28,14 +30,19 @@ async fn main() -> Result<(), Error> {
     ));
 
     let contracts_inspector = Arc::new(StackContractsInspectorService::new());
+    let infra_inspector = Arc::new(StackInfraInspectorService::new());
 
-    let infra_deployer = Arc::new(StackInfraInspectorService::new());
+    let s3_config = aws_config::load_from_env().await;
+    let s3_client = aws_sdk_s3::Client::new(&s3_config);
 
     let router = Router::new()
-        .route("/health", get(health_handler))
-        .route("/build", post(build_handler))
-        .route("/inspect/contracts", post(inspect_contracts_handler))
-        .route("/inspect/infra", post(inspect_infra_handler))
+        .route("/health", get(health::health))
+        .route("/config", post(routes::config::create))
+        .route("/deployments", get(routes::deployments::get_all))
+        .route("/deployments/:id", post(routes::deployments::create))
+        .route("/deployments/:id", get(routes::deployments::get_by_id))
+        .route("/deployments/:id", put(routes::deployments::update))
+        .route("/deployments/:id", delete(routes::deployments::delete))
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
@@ -43,7 +50,10 @@ async fn main() -> Result<(), Error> {
         )
         .layer(Extension(create_service))
         .layer(Extension(contracts_inspector))
-        .layer(Extension(infra_deployer));
+        .layer(Extension(infra_inspector))
+        .layer(DefaultBodyLimit::disable())
+        .layer(RequestBodyLimitLayer::new(10 * 1024 * 1023))
+        .with_state(s3_client);
 
     run(router).await
 }

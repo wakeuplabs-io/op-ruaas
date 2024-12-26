@@ -1,5 +1,5 @@
 use axum::response::IntoResponse;
 
-pub async fn health_handler() -> impl IntoResponse {
+pub async fn health() -> impl IntoResponse {
     (axum::http::StatusCode::OK, "Ok")
 }
