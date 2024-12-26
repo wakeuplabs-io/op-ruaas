@@ -116,6 +116,12 @@ jobs:
         - name: Install zip on Windows
           if: runner.os == 'Windows'
           run: choco install zip -y
+
+        - name: Set up perl on Windows
+          if: runner.os == 'Windows'
+          uses: shogo82148/actions-setup-perl@v1
+          with:
+            perl-version: "5.34"
   
         - name: Build Project
           uses: actions-rs/cargo@v1
