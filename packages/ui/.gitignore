@@ -3,3 +3,6 @@
 .terraform
 dist
 node_modules
+
+# sst
+.sst
