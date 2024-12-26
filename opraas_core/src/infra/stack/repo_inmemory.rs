@@ -21,7 +21,7 @@ impl TStackInfraRepository for GitStackInfraRepository {
                 INFRA_SOURCE_REPO,
                 INFRA_SOURCE_REPO_VERSION,
                 "infra-helm",
-                stack.helm.to_str().unwrap(),
+                &stack.helm,
             )?;
         }
 
@@ -30,7 +30,7 @@ impl TStackInfraRepository for GitStackInfraRepository {
                 INFRA_SOURCE_REPO,
                 INFRA_SOURCE_REPO_VERSION,
                 "infra-aws",
-                stack.aws.to_str().unwrap(),
+                &stack.aws,
             )?;
         }
 

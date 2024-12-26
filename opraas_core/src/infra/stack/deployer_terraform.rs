@@ -1,13 +1,16 @@
 use serde_yaml::Value;
+use zip::write::FileOptions;
 
 use crate::{
-    domain::{Deployment, Stack, TDeploymentRepository, TStackInfraDeployer},
+    domain::{Deployment, Stack, TDeploymentRepository, TStackInfraDeployer, OUT_INFRA_ARTIFACTS_OUTPUTS},
     infra::deployment::InMemoryDeploymentRepository,
     system, yaml,
 };
 use std::{
     collections::HashMap,
     fs::{self, File},
+    io::Write,
+    path::{Path, PathBuf},
     process::Command,
 };
 
@@ -18,19 +21,25 @@ pub struct TerraformDeployer {
 // implementations ================================================
 
 impl TerraformDeployer {
-    pub fn new(root: &std::path::PathBuf) -> Self {
+    pub fn new<T>(root: T) -> Self
+    where
+        T: Into<PathBuf>,
+    {
         Self {
             deployment_repository: Box::new(InMemoryDeploymentRepository::new(root)),
         }
     }
 
-    fn create_values_file(
+    fn create_values_file<T>(
         &self,
         stack: &Stack,
         values: &HashMap<&str, Value>,
-        target: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let depl = stack.deployment.as_ref().unwrap();
+        target: T,
+    ) -> Result<(), Box<dyn std::error::Error>>
+    where
+        T: AsRef<Path>,
+    {
+        let depl: &Deployment = stack.as_ref();
         let mut updates: HashMap<&str, Value> = values.clone();
 
         // global ================================================
@@ -91,11 +100,7 @@ impl TerraformDeployer {
 
         // ================================================
 
-        yaml::rewrite_yaml_to(
-            stack.helm.join("values.yaml").to_str().unwrap(),
-            target,
-            &values,
-        )?;
+        yaml::rewrite_yaml_to(stack.helm.join("values.yaml"), target, &values)?;
 
         Ok(())
     }
@@ -106,40 +111,46 @@ impl TStackInfraDeployer for TerraformDeployer {
         let mut deployment = stack.deployment.as_ref().unwrap().clone();
         let contracts_artifacts = deployment.contracts_artifacts.as_ref().unwrap();
 
+        // create .tmp folder
+        let helm_tmp_folder = stack.helm.join(".tmp");
+        let _ = fs::remove_dir_all(&helm_tmp_folder);
+        fs::create_dir_all(&helm_tmp_folder)?;
+
         // create values file
-        let values_file = tempfile::NamedTempFile::new()?;
-        self.create_values_file(stack, &values, values_file.path().to_str().unwrap())?;
-
-        // copy addresses.json and artifacts.zip to helm/config so it can be loaded by it
-        let config_dir = stack.helm.join("config");
-        fs::create_dir_all(&config_dir)?;
-
+        let values_file = helm_tmp_folder.join("values.yaml");
+        self.create_values_file(stack, &values, &values_file)?;
+        
         let unzipped_artifacts = tempfile::TempDir::new()?;
         zip_extract::extract(
             File::open(contracts_artifacts)?,
             &unzipped_artifacts.path(),
             true,
         )?;
-
-        fs::copy(contracts_artifacts, config_dir.join("artifacts.zip"))?;
+        
+        // copy addresses.json and artifacts.zip to helm/config so it can be loaded by it
+        fs::copy(contracts_artifacts, helm_tmp_folder.join("artifacts.zip"))?;
         fs::copy(
             unzipped_artifacts.path().join("addresses.json"),
-            config_dir.join("addresses.json"),
+            helm_tmp_folder.join("addresses.json"),
         )?;
 
         // deploy using terraform
-
         system::execute_command(
             Command::new("terraform")
                 .arg("init")
-                .current_dir(stack.aws.to_str().unwrap()),
+                .current_dir(&stack.aws),
             false,
         )?;
 
         system::execute_command(
             Command::new("terraform")
                 .arg("plan")
-                .current_dir(stack.aws.to_str().unwrap()),
+                .arg(format!(
+                    "-var=values_file_path={}",
+                    values_file.to_str().unwrap()
+                ))
+                .arg(format!("-var=name={}", deployment.name))
+                .current_dir(&stack.aws),
             false,
         )?;
 
@@ -149,24 +160,33 @@ impl TStackInfraDeployer for TerraformDeployer {
                 .arg("-auto-approve")
                 .arg(format!(
                     "-var=values_file_path={}",
-                    values_file.path().to_str().unwrap()
+                    values_file.to_str().unwrap()
                 ))
-                .current_dir(stack.aws.to_str().unwrap()),
+                .arg(format!("-var=name={}", deployment.name))
+                .current_dir(&stack.aws),
             false,
         )?;
 
-        // write artifacts to repository
-
-        let infra_artifacts = tempfile::NamedTempFile::new()?;
+        // extract outputs from deployment
         let output = system::execute_command(
             Command::new("terraform")
                 .arg("output")
                 .arg("-json")
-                .current_dir(stack.aws.to_str().unwrap()),
+                .current_dir(&stack.aws),
             true,
         )?;
-        fs::write(infra_artifacts.path(), output)?;
 
+        // create artifacts zip
+        let infra_artifacts = tempfile::NamedTempFile::new()?;
+        let mut zip = zip::ZipWriter::new(&infra_artifacts);
+        let options = FileOptions::default()
+            .compression_method(zip::CompressionMethod::Stored)
+            .unix_permissions(0o755);
+        zip.start_file(OUT_INFRA_ARTIFACTS_OUTPUTS, options)?;
+        zip.write_all(output.as_bytes())?;
+        zip.finish()?;
+
+        // save it in the deployment repository
         deployment.infra_artifacts = Some(infra_artifacts.path().to_path_buf());
         self.deployment_repository.save(&mut deployment)?;
 

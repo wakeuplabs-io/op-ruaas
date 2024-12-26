@@ -16,11 +16,7 @@ impl domain::artifact::TArtifactSourceRepository for GitArtifactSourceRepository
     fn pull(&self, artifact: &Artifact) -> Result<(), Box<dyn std::error::Error>> {
         let (source_repo, source_tag) = artifact.source_info();
 
-        git::clone_tag(
-            source_repo,
-            source_tag,
-            artifact.context().as_path().to_str().unwrap(),
-        )?;
+        git::clone_tag(source_repo, source_tag, artifact.context())?;
 
         // download dockerfile for infra
         match artifact {
@@ -29,7 +25,7 @@ impl domain::artifact::TArtifactSourceRepository for GitArtifactSourceRepository
                     INFRA_SOURCE_REPO,
                     INFRA_SOURCE_REPO_VERSION,
                     "infra/docker/batcher.dockerfile",
-                    artifact.dockerfile().as_path().to_str().unwrap(),
+                    artifact.dockerfile(),
                 )?;
             }
             Artifact::Contracts(..) => {
@@ -37,7 +33,7 @@ impl domain::artifact::TArtifactSourceRepository for GitArtifactSourceRepository
                     INFRA_SOURCE_REPO,
                     INFRA_SOURCE_REPO_VERSION,
                     "infra/docker/contracts.dockerfile",
-                    artifact.dockerfile().as_path().to_str().unwrap(),
+                    artifact.dockerfile(),
                 )?;
             }
             Artifact::Proposer(..) => {
@@ -45,7 +41,7 @@ impl domain::artifact::TArtifactSourceRepository for GitArtifactSourceRepository
                     INFRA_SOURCE_REPO,
                     INFRA_SOURCE_REPO_VERSION,
                     "infra/docker/proposer.dockerfile",
-                    artifact.dockerfile().as_path().to_str().unwrap(),
+                    artifact.dockerfile(),
                 )?;
             }
             Artifact::Geth(..) => {
@@ -53,7 +49,7 @@ impl domain::artifact::TArtifactSourceRepository for GitArtifactSourceRepository
                     INFRA_SOURCE_REPO,
                     INFRA_SOURCE_REPO_VERSION,
                     "infra/docker/geth.dockerfile",
-                    artifact.dockerfile().as_path().to_str().unwrap(),
+                    artifact.dockerfile(),
                 )?;
             }
             Artifact::Node(..) => {
@@ -61,7 +57,7 @@ impl domain::artifact::TArtifactSourceRepository for GitArtifactSourceRepository
                     INFRA_SOURCE_REPO,
                     INFRA_SOURCE_REPO_VERSION,
                     "infra/docker/node.dockerfile",
-                    artifact.dockerfile().as_path().to_str().unwrap(),
+                    artifact.dockerfile(),
                 )?;
             }
         };

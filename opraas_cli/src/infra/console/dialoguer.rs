@@ -18,13 +18,13 @@ impl TDialoguer for Dialoguer {
         dialoguer::Input::with_theme(&ColorfulTheme::default())
             .with_prompt(message)
             .interact_text()
-            .unwrap()
+            .expect("Failed to prompt")
     }
 
     fn confirm(&self, message: &str) -> bool {
         dialoguer::Confirm::with_theme(&ColorfulTheme::default())
             .with_prompt(message)
             .interact()
-            .unwrap()
+            .expect("Failed to confirm")
     }
 }

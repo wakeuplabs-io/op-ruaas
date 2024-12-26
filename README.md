@@ -20,12 +20,7 @@ Ensure you have the following tools installed and properly configured:
 To run it all smoothly we recommend:
 
 - 16 GB Ram specially if building contracts image, otherwise 8 GB should get things moving as well.
-- 80 GB free on top of installed programs (This should account for images and volume claims (customizable from values.yaml))
-
-Recommended PC specifications to run it all smoothly:
-
-- 16 GB RAM
-- 25+ GB storage available on top of installed programs
+- 25+ GB free on top of installed programs (This should account for images and volume claims (customizable from values.yaml))
 
 ### Commands
 
@@ -68,6 +63,8 @@ npx opruaas build contracts
 # Ensure Docker is properly configured with permissions to push to your target repository
 npx opruaas release contracts
 ```
+
+> Please refer to current contracts image to output a cli compatible zip.
 
 ### Test releases with dev
 

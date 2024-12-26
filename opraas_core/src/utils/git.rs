@@ -4,11 +4,18 @@ use std::path::Path;
 
 use git2::{ObjectType, Repository};
 
-pub fn clone_tag(source_repo: &str, source_tag: &str, dst_path: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let repo = Repository::clone(&format!("https://github.com/{}", source_repo), dst_path)?;
+pub fn clone_tag<T, U>(source_repo: U, source_tag: U, dst_path: T) -> Result<(), Box<dyn std::error::Error>>
+where
+    T: AsRef<std::path::Path>,
+    U: AsRef<str>,
+{
+    let repo = Repository::clone(
+        &format!("https://github.com/{}", source_repo.as_ref()),
+        dst_path,
+    )?;
 
     // Lookup the tag reference
-    let tag_ref = format!("refs/tags/{}", source_tag);
+    let tag_ref = format!("refs/tags/{}", source_tag.as_ref());
     let reference = repo.find_reference(&tag_ref)?;
 
     // Resolve the reference to the tag object
@@ -24,19 +31,27 @@ pub fn clone_tag(source_repo: &str, source_tag: &str, dst_path: &str) -> Result<
     Ok(())
 }
 
-pub fn download_release_asset(
-    release_repo: &str,
-    release_tag: &str,
-    asset_path: &str,
-    dst_path: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub fn download_release_asset<T, U>(
+    release_repo: T,
+    release_tag: T,
+    asset_path: T,
+    dst_path: U,
+) -> Result<(), Box<dyn std::error::Error>>
+where
+    T: AsRef<str>,
+    U: AsRef<Path>,
+{
     let response = reqwest::blocking::get(&format!(
         "https://raw.githubusercontent.com/{}/refs/tags/{}/{}",
-        release_repo, release_tag, asset_path
+        release_repo.as_ref(),
+        release_tag.as_ref(),
+        asset_path.as_ref()
     ))?;
     let bytes = response.bytes()?;
 
-    let dst_dir = Path::new(dst_path).parent().unwrap();
+    let dst_dir = Path::new(dst_path.as_ref())
+        .parent()
+        .expect("Invalid destination path");
     if !dst_dir.exists() {
         fs::create_dir_all(dst_dir)?;
     }
@@ -45,24 +60,30 @@ pub fn download_release_asset(
     Ok(())
 }
 
-pub fn download_zipped_asset(
-    release_repo: &str,
-    release_tag: &str,
-    asset: &str,
-    dst_path: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub fn download_zipped_asset<T, U>(
+    release_repo: T,
+    release_tag: T,
+    asset: T,
+    dst_path: U,
+) -> Result<(), Box<dyn std::error::Error>>
+where
+    T: AsRef<str>,
+    U: AsRef<Path>,
+{
     let response = reqwest::blocking::get(&format!(
         "https://github.com/{}/releases/download/{}/{}.zip",
-        release_repo, release_tag, asset
+        release_repo.as_ref(),
+        release_tag.as_ref(),
+        asset.as_ref()
     ))?;
     let bytes = response.bytes()?;
 
-    let target = Path::new(dst_path);
-    if !target.exists() {
-        fs::create_dir_all(target)?;
+    if !dst_path.as_ref().exists() {
+        fs::create_dir_all(dst_path.as_ref())?;
     }
 
-    zip_extract::extract(Cursor::new(bytes), &target, true)?;
+    let target = Path::new(dst_path.as_ref());
+    zip_extract::extract(Cursor::new(bytes), target, true)?;
 
     Ok(())
 }

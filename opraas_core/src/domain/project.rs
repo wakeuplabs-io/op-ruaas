@@ -1,4 +1,7 @@
-use std::{env, path::PathBuf};
+use std::{
+    env,
+    path::{Path, PathBuf},
+};
 
 #[derive(Debug, Clone)]
 pub struct Project {
@@ -41,16 +44,16 @@ pub struct Src {
 }
 
 pub trait TProjectRepository: Send + Sync {
-    fn write(&self, project: &Project, filepath: &PathBuf, content: &str) -> Result<(), Box<dyn std::error::Error>>;
+    fn write(&self, project: &Project, filepath: &Path, content: &str) -> Result<(), Box<dyn std::error::Error>>;
     fn exists(&self, project: &Project) -> bool;
-    fn has(&self, project: &Project, filepath: &PathBuf) -> bool;
+    fn has(&self, project: &Project, filepath: &Path) -> bool;
 }
 
 pub trait TProjectVersionControl: Send + Sync {
-    fn init(&self, root: &str) -> Result<(), Box<dyn std::error::Error>>;
-    fn stage(&self, root: &str) -> Result<(), Box<dyn std::error::Error>>;
-    fn commit(&self, root: &str, message: &str, initial: bool) -> Result<(), Box<dyn std::error::Error>>;
-    fn tag(&self, root: &str, tag: &str) -> Result<(), Box<dyn std::error::Error>>;
+    fn init(&self, root: &Path) -> Result<(), Box<dyn std::error::Error>>;
+    fn stage(&self, root: &Path) -> Result<(), Box<dyn std::error::Error>>;
+    fn commit(&self, root: &Path, message: &str, initial: bool) -> Result<(), Box<dyn std::error::Error>>;
+    fn tag(&self, root: &Path, tag: &str) -> Result<(), Box<dyn std::error::Error>>;
 }
 
 pub trait TProjectFactory: Send + Sync {

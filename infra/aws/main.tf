@@ -13,7 +13,7 @@ module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "5.8.1"
 
-  name = "${var.proy-name}-vpc"
+  name = "${var.name}-vpc"
 
   cidr = "10.0.0.0/16"
   azs  = slice(data.aws_availability_zones.available.names, 0, 3)
@@ -42,7 +42,7 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "20.8.5"
 
-  cluster_name    = "${var.proy-name}-cluster"
+  cluster_name    = "${var.name}-cluster"
   cluster_version = "1.29"
 
   cluster_endpoint_public_access           = true
@@ -127,10 +127,10 @@ resource "helm_release" "cert_manager" {
   }
 }
 
-resource "helm_release" "opraas" {
-  name      = "opraas"
+resource "helm_release" "opruaas" {
+  name      = "opruaas"
   chart     = "../helm"
-  namespace = "opraas"
+  namespace = "opruaas"
   timeout    = 600
 
   create_namespace = true

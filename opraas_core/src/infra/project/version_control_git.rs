@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use crate::domain::TProjectVersionControl;
 use git2::{Commit, Oid, Repository, Tree};
 
@@ -10,21 +12,23 @@ impl GitVersionControl {
 }
 
 impl TProjectVersionControl for GitVersionControl {
-    fn init(&self, path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    fn init(&self, path: &Path) -> Result<(), Box<dyn std::error::Error>> {
         Repository::init(path)?;
 
         Ok(())
     }
 
-    fn stage(&self, path: &str) -> Result<(), Box<dyn std::error::Error>> {
-        Repository::open(path)?
-            .index()?
-            .add_all(&["."], git2::IndexAddOption::DEFAULT, None)?;
+    fn stage(&self, path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+        let repo = Repository::open(path)?;
+
+        let mut index = repo.index()?;
+        index.add_all(&["."], git2::IndexAddOption::DEFAULT, None)?;
+        index.write()?;
 
         Ok(())
     }
 
-    fn commit(&self, path: &str, message: &str, initial_commit: bool) -> Result<(), Box<dyn std::error::Error>> {
+    fn commit(&self, path: &Path, message: &str, initial_commit: bool) -> Result<(), Box<dyn std::error::Error>> {
         let repo = Repository::open(path)?;
         let signature = repo.signature().unwrap();
         let mut index = repo.index()?;
@@ -62,7 +66,7 @@ impl TProjectVersionControl for GitVersionControl {
         Ok(())
     }
 
-    fn tag(&self, root: &str, tag: &str) -> Result<(), Box<dyn std::error::Error>> {
+    fn tag(&self, root: &Path, tag: &str) -> Result<(), Box<dyn std::error::Error>> {
         let repo = Repository::open(root)?;
 
         let head = repo.head()?.peel_to_commit()?;

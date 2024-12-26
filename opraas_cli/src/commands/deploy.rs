@@ -1,5 +1,3 @@
-use std::io::Cursor;
-
 use crate::{
     config::{
         SystemRequirementsChecker, TSystemRequirementsChecker, DOCKER_REQUIREMENT, HELM_REQUIREMENT, K8S_REQUIREMENT,
@@ -30,6 +28,7 @@ use opraas_core::{
         stack::{deployer_terraform::TerraformDeployer, repo_inmemory::GitStackInfraRepository},
     },
 };
+use std::io::Cursor;
 
 #[derive(Debug, Clone, ValueEnum)]
 pub enum DeployTarget {
@@ -54,7 +53,9 @@ pub struct DeployCommand {
 impl DeployCommand {
     pub fn new() -> Self {
         let project_factory = Box::new(ProjectFactory::new());
-        let project = project_factory.from_cwd().unwrap();
+        let project = project_factory
+            .from_cwd()
+            .expect("No project found in current directory");
 
         Self {
             dialoguer: Box::new(Dialoguer::new()),
@@ -155,7 +156,7 @@ impl DeployCommand {
             let infra_deployer_spinner = style_spinner(ProgressBar::new_spinner(), "Deploying stack infra...");
 
             self.infra_deployer.deploy(
-                &Stack::load(&project, &name),
+                &Stack::load(&project, &name)?,
                 &domain,
                 enable_monitoring,
                 enable_explorer,
@@ -192,7 +193,11 @@ impl DeployCommand {
             if let Some(deployment) = deployment {
                 info!("Inspecting infra deployment: {}", deployment.name);
 
-                let artifact_cursor = Cursor::new(std::fs::read(&deployment.infra_artifacts.unwrap())?);
+                let artifact_cursor = Cursor::new(std::fs::read(
+                    &deployment
+                        .infra_artifacts
+                        .expect("Infra deployment not found"),
+                )?);
                 println!(
                     "{}",
                     serde_json::to_string_pretty(&self.infra_inspector.inspect(artifact_cursor)?)?
@@ -217,6 +222,10 @@ impl DeployCommand {
             command="inspect [contracts|infra|all] --name <deployment_name>".blue(),
             note="NOTE: At the moment there's no way to remove a deployment, you'll need to manually go to `infra/aws` and run `terraform destroy`. For upgrades you'll also need to run them directly in helm.".yellow()
         );
+
+        if matches!(target, DeployTarget::Infra | DeployTarget::All) {
+            println!("\n{}\n", "Make sure to create an A record pointing to `elb_dnsname` as specified here: https://github.com/amcginlay/venafi-demos/tree/main/demos/01-eks-ingress-nginx-cert-manager#configure-route53".yellow());
+        }
 
         Ok(())
     }

@@ -1,5 +1,5 @@
 use crate::config::{AccountsConfig, NetworkConfig};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone)]
 pub struct Deployment {
@@ -17,20 +17,30 @@ pub trait TDeploymentRepository: Send + Sync {
     fn find(&self, name: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>>;
 }
 
+// infra_artifacts.zip folder structure
+pub const OUT_INFRA_ARTIFACTS_OUTPUTS: &str = "tf_outputs.json";
+
+// infra_contracts.zip folder structure
+pub const OUT_CONTRACTS_ARTIFACTS_ADDRESSES: &str = "addresses.json";
+pub const OUT_CONTRACTS_ARTIFACTS_DEPLOY_CONFIG: &str = "deploy-config.json";
+
 // implementations ========================================================
 
 impl Deployment {
-    pub fn new(
-        name: String,
-        release_name: String,
-        registry_url: String,
+    pub fn new<T>(
+        name: T,
+        release_name: T,
+        registry_url: T,
         network_config: NetworkConfig,
         accounts_config: AccountsConfig,
-    ) -> Self {
+    ) -> Self
+    where
+        T: Into<String>,
+    {
         Self {
-            name,
-            release_name,
-            registry_url,
+            name: name.into(),
+            release_name: release_name.into(),
+            registry_url: registry_url.into(),
             network_config,
             accounts_config,
             contracts_artifacts: None,
@@ -38,7 +48,10 @@ impl Deployment {
         }
     }
 
-    pub fn write_contracts_config(&self, path: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn write_contracts_config<T>(&self, path: T) -> Result<(), Box<dyn std::error::Error>>
+    where
+        T: AsRef<Path>,
+    {
         let json = format!(
             r#"{{
                 "l1ChainID": {l1_chain_id},
@@ -161,7 +174,7 @@ impl Deployment {
             superchain_config_guardian = self.accounts_config.admin_address,
         );
 
-        std::fs::write(path, json.as_bytes())?;
+        std::fs::write(path.as_ref(), json.as_bytes())?;
 
         Ok(())
     }

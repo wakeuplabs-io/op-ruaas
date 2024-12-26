@@ -1,4 +1,4 @@
-use crate::domain::{self, Deployment, Stack};
+use crate::domain::{self, Deployment, Stack, OUT_INFRA_ARTIFACTS_OUTPUTS};
 use serde_json::Value;
 use std::io::Read;
 use std::{collections::HashMap, io::Cursor};
@@ -26,8 +26,6 @@ pub trait TStackInfraDeployerService: Send + Sync {
 pub trait TStackInfraInspectorService: Send + Sync {
     fn inspect(&self, artifact: Cursor<Vec<u8>>) -> Result<Value, Box<dyn std::error::Error>>;
 }
-
-const OUT_ARTIFACTS_OUTPUTS: &str = "output.json";
 
 // implementations ===================================================
 
@@ -94,7 +92,7 @@ impl TStackInfraInspectorService for StackInfraInspectorService {
                 file_name = file.name().to_string();
             }
 
-            if file_name == OUT_ARTIFACTS_OUTPUTS {
+            if file_name == OUT_INFRA_ARTIFACTS_OUTPUTS {
                 let mut file = archive.by_index(i).map_err(|e| e.to_string())?;
                 let mut contents = String::new();
 
@@ -105,7 +103,7 @@ impl TStackInfraInspectorService for StackInfraInspectorService {
             }
         }
 
-        if let Some(addresses) = file_contents.get(OUT_ARTIFACTS_OUTPUTS) {
+        if let Some(addresses) = file_contents.get(OUT_INFRA_ARTIFACTS_OUTPUTS) {
             let outputs_json: Value = serde_json::from_str(addresses).map_err(|e| e.to_string())?;
 
             // Combine the results into a single JSON response

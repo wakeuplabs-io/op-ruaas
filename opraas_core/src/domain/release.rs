@@ -34,7 +34,14 @@ pub trait TReleaseRunner: Send + Sync {
 // implementations =============================================
 
 impl Release {
-    pub fn new(artifact_name: String, artifact_tag: String, registry_url: String) -> Self {
+    pub fn new<T>(artifact_name: T, artifact_tag: T, registry_url: T) -> Self
+    where
+        T: Into<String>,
+    {
+        let artifact_name = artifact_name.into();
+        let artifact_tag = artifact_tag.into();
+        let registry_url = registry_url.into();
+
         if artifact_name.is_empty() {
             panic!("Artifact name can't be empty");
         }
@@ -52,7 +59,13 @@ impl Release {
         }
     }
 
-    pub fn from_artifact(artifact: &Artifact, release_name: &str, registry_url: &str) -> Self {
+    pub fn from_artifact<T>(artifact: &Artifact, release_name: T, registry_url: T) -> Self
+    where
+        T: Into<String>,
+    {
+        let release_name = release_name.into();
+        let registry_url = registry_url.into();
+
         if artifact.name().is_empty() {
             panic!("Artifact name can't be empty");
         }

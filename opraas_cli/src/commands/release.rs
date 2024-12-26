@@ -71,8 +71,7 @@ impl ReleaseCommand {
             .dialoguer
             .confirm("Would you also like to tag your local git repository?")
         {
-            self.version_control
-                .tag(&project.root.to_str().unwrap(), &release_name)?;
+            self.version_control.tag(&project.root, &release_name)?;
         }
 
         // Iterate over the artifacts and release =========================

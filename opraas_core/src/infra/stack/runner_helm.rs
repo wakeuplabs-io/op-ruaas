@@ -1,5 +1,5 @@
 use crate::{
-    domain::{Stack, TStackRunner},
+    domain::{Deployment, Stack, TStackRunner},
     system, yaml,
 };
 use log::info;
@@ -101,13 +101,16 @@ impl HelmStackRunner {
         Ok(())
     }
 
-    fn create_values_file(
+    fn create_values_file<T>(
         &self,
         stack: &Stack,
         values: &HashMap<&str, Value>,
-        target: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let depl = stack.deployment.as_ref().unwrap();
+        target: T,
+    ) -> Result<(), Box<dyn std::error::Error>> 
+    where
+        T: AsRef<std::path::Path>,
+        {
+        let depl: &Deployment = stack.as_ref();
         let mut updates: HashMap<&str, Value> = values.clone();
 
         // global ================================================
@@ -168,11 +171,7 @@ impl HelmStackRunner {
 
         // ================================================
 
-        yaml::rewrite_yaml_to(
-            stack.helm.join("values.yaml").to_str().unwrap(),
-            target,
-            &updates,
-        )?;
+        yaml::rewrite_yaml_to(stack.helm.join("values.yaml"), target, &updates)?;
 
         Ok(())
     }
@@ -204,19 +203,20 @@ impl HelmStackRunner {
 
 impl TStackRunner for HelmStackRunner {
     fn run(&self, stack: &Stack, values: &HashMap<&str, Value>) -> Result<(), Box<dyn std::error::Error>> {
-        let deployment = stack.deployment.as_ref().unwrap();
+        let deployment: &Deployment = stack.as_ref();
         let contracts_artifacts = deployment.contracts_artifacts.as_ref().unwrap();
 
         // add repos, install pre-requisites and build dependencies
         self.build_dependencies(stack)?;
 
-        // create values file from stack
-        let values_file = tempfile::NamedTempFile::new()?;
-        self.create_values_file(stack, &values, values_file.path().to_str().unwrap())?;
+        // create .tmp folder
+        let helm_tmp_folder = stack.helm.join(".tmp");
+        let _ = fs::remove_dir_all(&helm_tmp_folder);
+        fs::create_dir_all(&helm_tmp_folder)?;
 
-        // copy addresses.json and artifacts.zip to helm/config so it can be loaded by it
-        let config_dir = stack.helm.join("config");
-        fs::create_dir_all(&config_dir)?;
+        // create values file from stack
+        let values_file = helm_tmp_folder.join("values.yaml");
+        self.create_values_file(stack, &values, &values_file)?;
 
         let unzipped_artifacts = tempfile::TempDir::new()?;
         zip_extract::extract(
@@ -224,11 +224,12 @@ impl TStackRunner for HelmStackRunner {
             &unzipped_artifacts.path(),
             true,
         )?;
-
-        fs::copy(contracts_artifacts, config_dir.join("artifacts.zip"))?;
+        
+        // copy addresses.json and artifacts.zip to helm/.tmp so it can be loaded by it
+        fs::copy(contracts_artifacts, helm_tmp_folder.join("artifacts.zip"))?;
         fs::copy(
             unzipped_artifacts.path().join("addresses.json"),
-            config_dir.join("addresses.json"),
+            helm_tmp_folder.join("addresses.json"),
         )?;
 
         // install core infrastructure
@@ -238,7 +239,7 @@ impl TStackRunner for HelmStackRunner {
                 .arg("install")
                 .arg(format!("op-ruaas-runner-{}", &self.release_name))
                 .arg("-f")
-                .arg(values_file.path().to_str().unwrap())
+                .arg(values_file.to_str().unwrap())
                 .arg("--namespace")
                 .arg(&self.namespace)
                 .arg("--create-namespace")
