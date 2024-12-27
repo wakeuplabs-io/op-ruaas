@@ -5,10 +5,7 @@ mod utils;
 use axum::extract::DefaultBodyLimit;
 use axum::routing::{delete, get, post, put};
 use axum::{Extension, Router};
-use infra::S3DeploymentRepository;
 use lambda_http::{run, Error};
-use opraas_core::application::deployment::inspect_contracts::DeploymentContractsInspectorService;
-use opraas_core::application::deployment::inspect_infra::DeploymentInfraInspectorService;
 use opraas_core::infra::project::InMemoryProjectInfraRepository;
 use opraas_core::{
     application::CreateProjectService,
@@ -32,13 +29,6 @@ async fn main() -> Result<(), Error> {
         Box::new(InMemoryProjectInfraRepository::new()),
     ));
 
-    let contracts_inspector = Arc::new(DeploymentContractsInspectorService::new(Box::new(
-        S3DeploymentRepository::new(),
-    )));
-    let infra_inspector = Arc::new(DeploymentInfraInspectorService::new(Box::new(
-        S3DeploymentRepository::new(),
-    )));
-
     let s3_config = aws_config::load_from_env().await;
     let s3_client = aws_sdk_s3::Client::new(&s3_config);
 
@@ -56,8 +46,6 @@ async fn main() -> Result<(), Error> {
                 .on_response(trace::DefaultOnResponse::new().level(Level::INFO)),
         )
         .layer(Extension(create_service))
-        .layer(Extension(contracts_inspector))
-        .layer(Extension(infra_inspector))
         .layer(DefaultBodyLimit::disable())
         .layer(RequestBodyLimitLayer::new(10 * 1024 * 1023))
         .with_state(s3_client);
