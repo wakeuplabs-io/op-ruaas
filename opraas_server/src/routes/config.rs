@@ -73,7 +73,7 @@ pub async fn create(
 
     let config = CoreConfig {
         network: NetworkConfig {
-            l1_rpc_url: "".to_string(),
+            l1_rpc_url: None,
             max_sequencer_drift: data.max_sequencer_drift,
             sequencer_window_size: data.sequencer_window_size,
             channel_timeout: data.channel_timeout,

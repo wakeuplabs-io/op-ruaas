@@ -8,7 +8,6 @@ use crate::{
 use clap::ValueEnum;
 use colored::*;
 use indicatif::ProgressBar;
-use log::info;
 use opraas_core::{
     application::deployment::{
         deploy_contracts::{ContractsDeployerService, TContractsDeployerService},
@@ -17,14 +16,13 @@ use opraas_core::{
         inspect_infra::{DeploymentInfraInspectorService, TDeploymentInfraInspectorService},
     },
     config::CoreConfig,
-    domain::{ArtifactFactory, ArtifactKind, ProjectFactory, Release, TArtifactFactory, TProjectFactory},
+    domain::{Deployment, ProjectFactory, TProjectFactory},
     infra::{
-        deployment::{InMemoryDeploymentRepository, TerraformDeployer},
+        deployment::{DockerContractsDeployer, InMemoryDeploymentRepository, TerraformDeployer},
         project::InMemoryProjectInfraRepository,
         release::{DockerReleaseRepository, DockerReleaseRunner},
     },
 };
-use std::io::Cursor;
 
 #[derive(Debug, Clone, ValueEnum)]
 pub enum DeployTarget {
@@ -40,7 +38,6 @@ pub struct DeployCommand {
     infra_deployer: Box<dyn TInfraDeployerService>,
     infra_inspector: Box<dyn TDeploymentInfraInspectorService>,
     system_requirement_checker: Box<dyn TSystemRequirementsChecker>,
-    artifacts_factory: Box<dyn TArtifactFactory>,
     project_factory: Box<dyn TProjectFactory>,
 }
 
@@ -57,21 +54,23 @@ impl DeployCommand {
             dialoguer: Box::new(Dialoguer::new()),
             contracts_deployer: Box::new(ContractsDeployerService::new(
                 Box::new(InMemoryDeploymentRepository::new(&project.root)),
-                Box::new(DockerReleaseRepository::new()),
-                Box::new(DockerReleaseRunner::new()),
+                Box::new(DockerContractsDeployer::new(
+                    Box::new(DockerReleaseRepository::new()),
+                    Box::new(DockerReleaseRunner::new()),
+                )),
             )),
             contracts_inspector: Box::new(DeploymentContractsInspectorService::new(Box::new(
                 InMemoryDeploymentRepository::new(&project.root),
             ))),
             infra_deployer: Box::new(InfraDeployerService::new(
-                Box::new(TerraformDeployer::new(&project.root)),
+                Box::new(TerraformDeployer::new()),
+                Box::new(InMemoryDeploymentRepository::new(&project.root)),
                 Box::new(InMemoryProjectInfraRepository::new()),
             )),
             infra_inspector: Box::new(DeploymentInfraInspectorService::new(Box::new(
                 InMemoryDeploymentRepository::new(&project.root),
             ))),
             system_requirement_checker: Box::new(SystemRequirementsChecker::new()),
-            artifacts_factory: Box::new(ArtifactFactory::new()),
             project_factory,
         }
     }
@@ -79,7 +78,7 @@ impl DeployCommand {
     pub fn run(
         &self,
         target: DeployTarget,
-        name: String,
+        id: String,
         deploy_deterministic_deployer: bool,
     ) -> Result<(), Box<dyn std::error::Error>> {
         self.system_requirement_checker.check(vec![
@@ -93,16 +92,16 @@ impl DeployCommand {
         let config = CoreConfig::new_from_toml(&project.config).unwrap();
 
         // dev is reserved for local deployments
-        if name == "dev" {
+        if id == "dev" {
             return Err("Name cannot be 'dev'".into());
-        } else if name.contains(" ") {
+        } else if id.contains(" ") {
             return Err("Name cannot contain spaces".into());
         }
 
-        let registry_url: String = self
+        let release_registry: String = self
             .dialoguer
             .prompt("Input Docker registry url (e.g. dockerhub.io/wakeuplabs) ");
-        let release_name: String = self.dialoguer.prompt("Input release name (e.g. v0.1.0)");
+        let release_tag: String = self.dialoguer.prompt("Input release tag (e.g. v0.1.0)");
 
         if !self
             .dialoguer
@@ -131,17 +130,17 @@ impl DeployCommand {
         if matches!(target, DeployTarget::Contracts | DeployTarget::All) {
             let contracts_deployer_spinner = style_spinner(ProgressBar::new_spinner(), "Deploying contracts...");
 
-            let contracts_release = Release::from_artifact(
-                &self
-                    .artifacts_factory
-                    .get(&ArtifactKind::Contracts, &project, &config),
-                &release_name,
-                &registry_url,
+            let mut deployment = Deployment::new(
+                &id,
+                &release_tag,
+                &release_registry,
+                config.network,
+                config.accounts,
             );
+
             self.contracts_deployer.deploy(
-                &name,
-                &contracts_release,
-                &config,
+                &project,
+                &mut deployment,
                 deploy_deterministic_deployer,
                 true,
             )?;
@@ -152,16 +151,16 @@ impl DeployCommand {
         // infra deployment ===========================================================
 
         if matches!(target, DeployTarget::Infra | DeployTarget::All) {
-            let deployment = self
+            let mut deployment = self
                 .contracts_inspector
-                .find(&name)?
+                .find(&id)?
                 .expect("Contracts deployment not found");
 
             let infra_deployer_spinner = style_spinner(ProgressBar::new_spinner(), "Deploying stack infra...");
 
             self.infra_deployer.deploy(
                 &project,
-                &deployment,
+                &mut deployment,
                 &domain,
                 enable_monitoring,
                 enable_explorer,
@@ -177,46 +176,34 @@ impl DeployCommand {
         print!("\x1B[2J\x1B[1;1H");
 
         if matches!(target, DeployTarget::Contracts | DeployTarget::All) {
-            let deployment = self.contracts_inspector.find(&name)?;
+            let deployment = self
+                .contracts_inspector
+                .find(&id)?
+                .ok_or("Deployment not found")?;
 
-            if let Some(deployment) = deployment {
-                info!("Inspecting contracts deployment: {}", deployment.name);
-
-                let artifact_cursor = Cursor::new(std::fs::read(&deployment.contracts_artifacts.unwrap())?);
-                println!(
-                    "{}",
-                    serde_json::to_string_pretty(&self.contracts_inspector.inspect(artifact_cursor)?)?
-                );
-            } else {
-                return Err("Contracts deployment not found".into());
-            }
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&self.contracts_inspector.inspect(&deployment)?)?
+            );
         }
 
         if matches!(target, DeployTarget::Infra | DeployTarget::All) {
-            let deployment = self.infra_inspector.find(&name)?;
+            let deployment = self
+                .infra_inspector
+                .find(&id)?
+                .ok_or("Deployment not found")?;
 
-            if let Some(deployment) = deployment {
-                info!("Inspecting infra deployment: {}", deployment.name);
-
-                let artifact_cursor = Cursor::new(std::fs::read(
-                    &deployment
-                        .infra_artifacts
-                        .expect("Infra deployment not found"),
-                )?);
-                println!(
-                    "{}",
-                    serde_json::to_string_pretty(&self.infra_inspector.inspect(artifact_cursor)?)?
-                );
-            } else {
-                return Err("Infra deployment not found".into());
-            }
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&self.infra_inspector.inspect(&deployment)?)?
+            );
         }
 
         // print instructions
 
         println!(
             "\n{title}\n\n\
-            You can find your deployment artifacts at ./deployments/{name}\n\n\
+            You can find your deployment artifacts at ./deployments/{id}\n\n\
             We recommend you keep these files and your keys secure as they're needed to run your deployment.\n\n\
             Some useful commands for you now:\n\n\
             - {bin_name} {command}\n\

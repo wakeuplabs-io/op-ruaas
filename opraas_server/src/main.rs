@@ -1,20 +1,20 @@
+mod infra;
 mod routes;
 mod utils;
 
 use axum::extract::DefaultBodyLimit;
-use axum::routing::{get, post, put, delete};
+use axum::routing::{delete, get, post, put};
 use axum::{Extension, Router};
+use infra::S3DeploymentRepository;
 use lambda_http::{run, Error};
 use opraas_core::application::deployment::inspect_contracts::DeploymentContractsInspectorService;
 use opraas_core::application::deployment::inspect_infra::DeploymentInfraInspectorService;
-use opraas_core::infra::deployment::InMemoryDeploymentRepository;
 use opraas_core::infra::project::InMemoryProjectInfraRepository;
 use opraas_core::{
     application::CreateProjectService,
     infra::project::{GitVersionControl, InMemoryProjectRepository},
 };
 use routes::health;
-use std::path::PathBuf;
 use std::sync::Arc;
 use tower_http::limit::RequestBodyLimitLayer;
 use tower_http::trace::{self, TraceLayer};
@@ -32,14 +32,12 @@ async fn main() -> Result<(), Error> {
         Box::new(InMemoryProjectInfraRepository::new()),
     ));
 
-    let contracts_inspector = Arc::new(DeploymentContractsInspectorService::new(
-        // TODO: replace with s3 repo
-        Box::new(InMemoryDeploymentRepository::new(PathBuf::new())),
-    ));
-    let infra_inspector = Arc::new(DeploymentInfraInspectorService::new(
-        // TODO: replace with s3 repo
-        Box::new(InMemoryDeploymentRepository::new(PathBuf::new())),
-    ));
+    let contracts_inspector = Arc::new(DeploymentContractsInspectorService::new(Box::new(
+        S3DeploymentRepository::new(),
+    )));
+    let infra_inspector = Arc::new(DeploymentInfraInspectorService::new(Box::new(
+        S3DeploymentRepository::new(),
+    )));
 
     let s3_config = aws_config::load_from_env().await;
     let s3_client = aws_sdk_s3::Client::new(&s3_config);

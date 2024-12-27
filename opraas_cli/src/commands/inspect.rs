@@ -7,7 +7,6 @@ use opraas_core::{
     domain::{ProjectFactory, TProjectFactory},
     infra::deployment::InMemoryDeploymentRepository,
 };
-use std::io::Cursor;
 
 #[derive(Debug, Clone, ValueEnum)]
 pub enum InspectTarget {
@@ -38,33 +37,29 @@ impl InspectCommand {
         }
     }
 
-    pub fn run(&self, target: InspectTarget, deployment_name: String) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn run(&self, target: InspectTarget, id: String) -> Result<(), Box<dyn std::error::Error>> {
         if matches!(target, InspectTarget::Contracts | InspectTarget::All) {
-            let deployment = self.contracts_inspector.find(&deployment_name)?;
+            let deployment = self
+                .contracts_inspector
+                .find(&id)?
+                .ok_or("Deployment not found")?;
 
-            if let Some(deployment) = deployment {
-                let artifact_cursor = Cursor::new(std::fs::read(&deployment.contracts_artifacts.unwrap())?);
-                println!(
-                    "{}",
-                    serde_json::to_string_pretty(&self.contracts_inspector.inspect(artifact_cursor)?)?
-                );
-            } else {
-                return Err("Contracts deployment not found".into());
-            }
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&self.contracts_inspector.inspect(&deployment)?)?
+            );
         }
 
         if matches!(target, InspectTarget::Infra | InspectTarget::All) {
-            let deployment = self.infra_inspector.find(&deployment_name)?;
+            let deployment = self
+                .infra_inspector
+                .find(&id)?
+                .ok_or("Deployment not found")?;
 
-            if let Some(deployment) = deployment {
-                let artifact_cursor = Cursor::new(std::fs::read(&deployment.infra_artifacts.unwrap())?);
-                println!(
-                    "{}",
-                    serde_json::to_string_pretty(&self.infra_inspector.inspect(artifact_cursor)?)?
-                );
-            } else {
-                return Err("Infra deployment not found".into());
-            }
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&self.infra_inspector.inspect(&deployment)?)?
+            );
         }
 
         Ok(())

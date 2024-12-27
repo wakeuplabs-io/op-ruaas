@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct NetworkConfig {
     #[serde(default = "defaults::l1_rpc_url", skip_serializing)]
-    pub l1_rpc_url: String,
+    pub l1_rpc_url: Option<String>,
     pub max_sequencer_drift: u32,
     pub sequencer_window_size: u32,
     pub channel_timeout: u32,
@@ -53,15 +53,15 @@ pub struct NetworkConfig {
 mod defaults {
     use std::env;
 
-    pub fn l1_rpc_url() -> String {
-        env::var("L1_RPC_URL").expect("L1_RPC_URL must be set")
+    pub fn l1_rpc_url() -> Option<String> {
+        env::var("L1_RPC_URL").ok()
     }
 }
 
 impl NetworkConfig {
     pub fn null() -> Self {
         Self {
-            l1_rpc_url: "http://127.0.0.1:8545".to_string(),
+            l1_rpc_url: None,
             l1_chain_id: 1,
             l2_chain_id: 1201101712,
             max_sequencer_drift: 600,
@@ -72,33 +72,30 @@ impl NetworkConfig {
             l2_output_oracle_submission_interval: 120,
             l2_output_oracle_starting_block_number: 0,
             finalization_period_seconds: 12,
-            base_fee_vault_minimum_withdrawal_amount: "0x8ac7230489e80000".to_string(),
-            l1_fee_vault_minimum_withdrawal_amount: "0x8ac7230489e80000".to_string(),
-            sequencer_fee_vault_minimum_withdrawal_amount: "0x8ac7230489e80000".to_string(),
+            base_fee_vault_minimum_withdrawal_amount: "0x8ac7230489e80000".into(),
+            l1_fee_vault_minimum_withdrawal_amount: "0x8ac7230489e80000".into(),
+            sequencer_fee_vault_minimum_withdrawal_amount: "0x8ac7230489e80000".into(),
             base_fee_vault_withdrawal_network: 0,
             l1_fee_vault_withdrawal_network: 0,
             sequencer_fee_vault_withdrawal_network: 0,
             enable_governance: false,
-            governance_token_symbol: "OP".to_string(),
-            governance_token_name: "Optimism".to_string(),
-            l2_genesis_block_gas_limit: "0x2faf080".to_string(),
-            l2_genesis_block_base_fee_per_gas: "0x3b9aca00".to_string(),
+            governance_token_symbol: "OP".into(),
+            governance_token_name: "Optimism".into(),
+            l2_genesis_block_gas_limit: "0x2faf080".into(),
+            l2_genesis_block_base_fee_per_gas: "0x3b9aca00".into(),
             eip1559_denominator: 50,
             eip1559_elasticity: 10,
-            l2_genesis_regolith_time_offset: "0x0".to_string(),
+            l2_genesis_regolith_time_offset: "0x0".into(),
             system_config_start_block: 0,
-            required_protocol_version: "0x0000000000000000000000000000000000000000000000000000000000000000".to_string(),
-            recommended_protocol_version: "0x0000000000000000000000000000000000000000000000000000000000000000"
-                .to_string(),
+            required_protocol_version: "0x0000000000000000000000000000000000000000000000000000000000000000".into(),
+            recommended_protocol_version: "0x0000000000000000000000000000000000000000000000000000000000000000".into(),
             fund_dev_accounts: false,
-            fault_game_absolute_prestate: "0x03c7ae758795765c6664a5d39bf63841c71ff191e9189522bad8ebff5d4eca98"
-                .to_string(),
+            fault_game_absolute_prestate: "0x03c7ae758795765c6664a5d39bf63841c71ff191e9189522bad8ebff5d4eca98".into(),
             fault_game_max_depth: 30,
             fault_game_clock_extension: 0,
             fault_game_max_clock_duration: 1200,
             fault_game_genesis_block: 0,
-            fault_game_genesis_output_root: "0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF"
-                .to_string(),
+            fault_game_genesis_output_root: "0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF".into(),
             fault_game_split_depth: 14,
             fault_game_withdrawal_delay: 604800,
             preimage_oracle_min_proposal_size: 10000,
@@ -106,9 +103,9 @@ impl NetworkConfig {
             gas_price_oracle_overhead: 2100,
             gas_price_oracle_scalar: 1000000,
             eip1559_denominator_canyon: 250,
-            l2_genesis_canyon_time_offset: "0x40".to_string(),
+            l2_genesis_canyon_time_offset: "0x40".into(),
             l1_use_clique: true,
-            batch_inbox_address: "0xff69000000000000000000000000001201101712".to_string(),
+            batch_inbox_address: "0xff69000000000000000000000000001201101712".into(),
         }
     }
 }

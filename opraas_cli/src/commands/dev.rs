@@ -12,9 +12,9 @@ use opraas_core::{
         run::{DeploymentRunnerService, TDeploymentRunnerService},
     },
     config::CoreConfig,
-    domain::{ArtifactFactory, ArtifactKind, ProjectFactory, Release, TArtifactFactory, TProjectFactory},
+    domain::{Deployment, ProjectFactory, TProjectFactory},
     infra::{
-        deployment::{HelmDeploymentRunner, InMemoryDeploymentRepository},
+        deployment::{DockerContractsDeployer, HelmDeploymentRunner, InMemoryDeploymentRepository},
         ethereum::{GethTestnetNode, TTestnetNode},
         project::InMemoryProjectInfraRepository,
         release::{DockerReleaseRepository, DockerReleaseRunner},
@@ -30,7 +30,6 @@ pub struct DevCommand {
     l1_node: Box<dyn TTestnetNode>,
     deployment_runner: Box<dyn TDeploymentRunnerService>,
     system_requirement_checker: Box<dyn TSystemRequirementsChecker>,
-    artifacts_factory: Box<dyn TArtifactFactory>,
     contracts_deployer: Box<dyn TContractsDeployerService>,
     project_factory: Box<dyn TProjectFactory>,
 }
@@ -53,11 +52,12 @@ impl DevCommand {
                 Box::new(InMemoryProjectInfraRepository::new()),
             )),
             system_requirement_checker: Box::new(SystemRequirementsChecker::new()),
-            artifacts_factory: Box::new(ArtifactFactory::new()),
             contracts_deployer: Box::new(ContractsDeployerService::new(
                 Box::new(InMemoryDeploymentRepository::new(&project.root)),
-                Box::new(DockerReleaseRepository::new()),
-                Box::new(DockerReleaseRunner::new()),
+                Box::new(DockerContractsDeployer::new(
+                    Box::new(DockerReleaseRepository::new()),
+                    Box::new(DockerReleaseRunner::new()),
+                )),
             )),
             project_factory,
         }
@@ -93,16 +93,16 @@ impl DevCommand {
 
         // request release name and repository to test
 
-        let registry_url: String = match default {
-            true => DEFAULT_REGISTRY.to_string(),
+        let release_registry: String = match default {
+            true => DEFAULT_REGISTRY.into(),
             false => self
                 .dialoguer
-                .prompt("Input Docker registry url (e.g. dockerhub.io/wakeuplabs) "),
+                .prompt("Input docker registry url (e.g. dockerhub.io/wakeuplabs) "),
         };
 
-        let release_name: String = match default {
-            true => DEFAULT_RELEASE_TAG.to_string(),
-            false => self.dialoguer.prompt("Input release name (e.g. v0.1.0)"),
+        let release_tag: String = match default {
+            true => DEFAULT_RELEASE_TAG.into(),
+            false => self.dialoguer.prompt("Input release tag (e.g. v0.1.0)"),
         };
 
         // deploy monitoring and explorer
@@ -116,19 +116,19 @@ impl DevCommand {
         let wallet_address = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
         let wallet_private_key = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
         config.network.l1_chain_id = 1337;
-        config.accounts.admin_address = wallet_address.to_string();
-        config.accounts.admin_private_key = wallet_private_key.to_string();
-        config.accounts.batcher_address = wallet_address.to_string();
-        config.accounts.batcher_private_key = wallet_private_key.to_string();
-        config.accounts.proposer_address = wallet_address.to_string();
-        config.accounts.proposer_private_key = wallet_private_key.to_string();
-        config.accounts.sequencer_address = wallet_address.to_string();
-        config.accounts.sequencer_private_key = wallet_private_key.to_string();
-        config.accounts.deployer_address = wallet_address.to_string();
-        config.accounts.deployer_private_key = wallet_private_key.to_string();
-        config.accounts.challenger_address = wallet_address.to_string();
-        config.accounts.challenger_private_key = wallet_private_key.to_string();
-        config.network.l1_rpc_url = "http://host.docker.internal:8545".to_string();
+        config.accounts.admin_address = wallet_address.into();
+        config.accounts.admin_private_key = Some(wallet_private_key.into());
+        config.accounts.batcher_address = wallet_address.into();
+        config.accounts.batcher_private_key = Some(wallet_private_key.into());
+        config.accounts.proposer_address = wallet_address.into();
+        config.accounts.proposer_private_key = Some(wallet_private_key.into());
+        config.accounts.sequencer_address = wallet_address.into();
+        config.accounts.sequencer_private_key = Some(wallet_private_key.into());
+        config.accounts.deployer_address = wallet_address.into();
+        config.accounts.deployer_private_key = Some(wallet_private_key.into());
+        config.accounts.challenger_address = wallet_address.into();
+        config.accounts.challenger_private_key = Some(wallet_private_key.into());
+        config.network.l1_rpc_url = Some("http://host.docker.internal:8545".into());
         config.network.fund_dev_accounts = true;
 
         // start local network ===========================
@@ -146,17 +146,16 @@ impl DevCommand {
             "⏳ Deploying contracts to local network...",
         );
 
-        let contracts_release = Release::from_artifact(
-            &self
-                .artifacts_factory
-                .get(&ArtifactKind::Contracts, &project, &config),
-            &release_name,
-            &registry_url,
+        let mut deployment = Deployment::new(
+            "dev",
+            &release_tag,
+            &release_registry,
+            config.network,
+            config.accounts,
         );
 
-        let contracts_deployment = self
-            .contracts_deployer
-            .deploy("dev", &contracts_release, &config, true, false)?;
+        self.contracts_deployer
+            .deploy(&project, &mut deployment, true, false)?;
 
         contracts_spinner.finish_with_message("✔️ Contracts deployed...");
 
@@ -167,12 +166,8 @@ impl DevCommand {
             "⏳ Installing infra in local kubernetes...",
         );
 
-        self.deployment_runner.run(
-            &project,
-            &contracts_deployment,
-            enable_monitoring,
-            enable_explorer,
-        )?;
+        self.deployment_runner
+            .run(&project, &deployment, enable_monitoring, enable_explorer)?;
 
         infra_spinner.finish_with_message("✔️ Infra installed...");
 

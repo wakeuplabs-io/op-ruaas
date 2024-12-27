@@ -1,21 +1,22 @@
-use crate::config::{AccountsConfig, NetworkConfig};
-use serde_yaml::Value;
-use std::{
-    collections::HashMap,
-    path::{Path, PathBuf},
-};
-
 use super::Project;
+use crate::config::{AccountsConfig, NetworkConfig};
+use serde::{Deserialize, Serialize};
+use serde_yaml::Value;
+use std::collections::HashMap;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Deployment {
-    pub name: String,
-    pub release_name: String,
-    pub registry_url: String,
+    pub id: String,
+    pub release_tag: String,
+    pub release_registry: String,
     pub network_config: NetworkConfig,
     pub accounts_config: AccountsConfig,
-    pub contracts_artifacts: Option<PathBuf>,
-    pub infra_artifacts: Option<PathBuf>,
+    pub addresses: Option<String>,
+    pub allocs: Option<String>,
+    pub genesis: Option<String>,
+    pub rollup_config: Option<String>,
+    pub jwt_secret: Option<String>,
+    pub infra_outputs: Option<String>,
 }
 
 pub trait TDeploymentRepository: Send + Sync {
@@ -23,22 +24,23 @@ pub trait TDeploymentRepository: Send + Sync {
     fn find(&self, id: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>>;
 }
 
-pub trait TInfraDeployer: Send + Sync {
+pub trait TInfraDeployerProvider: Send + Sync {
     fn deploy(
         &self,
         project: &Project,
-        deployment: &Deployment,
+        deployment: &mut Deployment,
         values: &HashMap<&str, Value>,
-    ) -> Result<Deployment, Box<dyn std::error::Error>>;
+    ) -> Result<(), Box<dyn std::error::Error>>;
 }
 
-pub trait TContractsDeployer: Send + Sync {
+pub trait TContractsDeployerProvider: Send + Sync {
     fn deploy(
         &self,
         project: &Project,
-        deployment: &Deployment,
-        values: &HashMap<&str, Value>,
-    ) -> Result<Deployment, Box<dyn std::error::Error>>;
+        deployment: &mut Deployment,
+        deploy_deterministic_deployer: bool,
+        slow: bool,
+    ) -> Result<(), Box<dyn std::error::Error>>;
 }
 
 pub trait TDeploymentRunner {
@@ -51,20 +53,13 @@ pub trait TDeploymentRunner {
     fn stop(&self) -> Result<(), Box<dyn std::error::Error>>;
 }
 
-// infra_artifacts.zip folder structure
-pub const OUT_INFRA_ARTIFACTS_OUTPUTS: &str = "tf_outputs.json";
-
-// infra_contracts.zip folder structure
-pub const OUT_CONTRACTS_ARTIFACTS_ADDRESSES: &str = "addresses.json";
-pub const OUT_CONTRACTS_ARTIFACTS_DEPLOY_CONFIG: &str = "deploy-config.json";
-
 // implementations ========================================================
 
 impl Deployment {
     pub fn new<T>(
-        name: T,
-        release_name: T,
-        registry_url: T,
+        id: T,
+        release_tag: T,
+        release_registry: T,
         network_config: NetworkConfig,
         accounts_config: AccountsConfig,
     ) -> Self
@@ -72,20 +67,21 @@ impl Deployment {
         T: Into<String>,
     {
         Self {
-            name: name.into(),
-            release_name: release_name.into(),
-            registry_url: registry_url.into(),
+            id: id.into(),
+            release_tag: release_tag.into(),
+            release_registry: release_registry.into(),
             network_config,
             accounts_config,
-            contracts_artifacts: None,
-            infra_artifacts: None,
+            addresses: None,
+            allocs: None,
+            genesis: None,
+            rollup_config: None,
+            jwt_secret: None,
+            infra_outputs: None,
         }
     }
 
-    pub fn write_contracts_config<T>(&self, path: T) -> Result<(), Box<dyn std::error::Error>>
-    where
-        T: AsRef<Path>,
-    {
+    pub fn build_deploy_config(&self) -> Result<String, Box<dyn std::error::Error>> {
         let json = format!(
             r#"{{
                 "l1ChainID": {l1_chain_id},
@@ -208,8 +204,6 @@ impl Deployment {
             superchain_config_guardian = self.accounts_config.admin_address,
         );
 
-        std::fs::write(path.as_ref(), json.as_bytes())?;
-
-        Ok(())
+        Ok(json)
     }
 }

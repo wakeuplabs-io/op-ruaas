@@ -1,33 +1,24 @@
-use serde_yaml::Value;
-use zip::write::FileOptions;
-
 use crate::{
-    domain::{Deployment, Project, TDeploymentRepository, TInfraDeployer, OUT_INFRA_ARTIFACTS_OUTPUTS},
-    infra::deployment::InMemoryDeploymentRepository,
+    domain::{Deployment, Project, TInfraDeployerProvider},
     system, yaml,
 };
+use serde_yaml::Value;
 use std::{
     collections::HashMap,
     fs::{self, File},
     io::Write,
-    path::{Path, PathBuf},
+    path::Path,
     process::Command,
 };
+use zip::write::FileOptions;
 
-pub struct TerraformDeployer {
-    deployment_repository: Box<dyn TDeploymentRepository>,
-}
+pub struct TerraformDeployer {}
 
 // implementations ================================================
 
 impl TerraformDeployer {
-    pub fn new<T>(root: T) -> Self
-    where
-        T: Into<PathBuf>,
-    {
-        Self {
-            deployment_repository: Box::new(InMemoryDeploymentRepository::new(root)),
-        }
+    pub fn new() -> Self {
+        Self {}
     }
 
     fn create_values_file<T>(
@@ -57,6 +48,7 @@ impl TerraformDeployer {
                 .accounts_config
                 .batcher_private_key
                 .clone()
+                .ok_or("No batcher private key found")?
                 .into(),
         );
         updates.entry("wallets.proposer").or_insert(
@@ -64,6 +56,7 @@ impl TerraformDeployer {
                 .accounts_config
                 .proposer_private_key
                 .clone()
+                .ok_or("No proposer private key found")?
                 .into(),
         );
 
@@ -71,40 +64,45 @@ impl TerraformDeployer {
 
         updates
             .entry("node.image.tag")
-            .or_insert(deployment.release_name.clone().into());
+            .or_insert(deployment.release_tag.clone().into());
         updates
             .entry("node.image.repository")
-            .or_insert(format!("{}/{}", deployment.registry_url, "op-node").into());
+            .or_insert(format!("{}/{}", deployment.release_registry, "op-node").into());
 
         updates
             .entry("batcher.image.tag")
-            .or_insert(deployment.release_name.clone().into());
+            .or_insert(deployment.release_tag.clone().into());
         updates
             .entry("batcher.image.repository")
-            .or_insert(format!("{}/{}", deployment.registry_url, "op-batcher").into());
+            .or_insert(format!("{}/{}", deployment.release_registry, "op-batcher").into());
 
         updates
             .entry("proposer.image.tag")
-            .or_insert(deployment.release_name.clone().into());
+            .or_insert(deployment.release_tag.clone().into());
         updates
             .entry("proposer.image.repository")
-            .or_insert(format!("{}/{}", deployment.registry_url, "op-proposer").into());
+            .or_insert(format!("{}/{}", deployment.release_registry, "op-proposer").into());
 
         updates
             .entry("geth.image.tag")
-            .or_insert(deployment.release_name.clone().into());
+            .or_insert(deployment.release_tag.clone().into());
         updates
             .entry("geth.image.repository")
-            .or_insert(format!("{}/{}", deployment.registry_url, "op-geth").into());
+            .or_insert(format!("{}/{}", deployment.release_registry, "op-geth").into());
 
         // chain settings ================================================
 
         updates
             .entry("chain.id")
             .or_insert(deployment.network_config.l2_chain_id.to_string().into());
-        updates
-            .entry("chain.l1Rpc")
-            .or_insert(deployment.network_config.l1_rpc_url.clone().into());
+        updates.entry("chain.l1Rpc").or_insert(
+            deployment
+                .network_config
+                .l1_rpc_url
+                .clone()
+                .ok_or("No L1 RPC URL found")?
+                .into(),
+        );
 
         // ================================================
 
@@ -114,16 +112,13 @@ impl TerraformDeployer {
     }
 }
 
-impl TInfraDeployer for TerraformDeployer {
+impl TInfraDeployerProvider for TerraformDeployer {
     fn deploy(
         &self,
         project: &Project,
-        deployment: &Deployment,
+        deployment: &mut Deployment,
         values: &HashMap<&str, Value>,
-    ) -> Result<Deployment, Box<dyn std::error::Error>> {
-        let mut deployment = deployment.clone();
-        let contracts_artifacts = deployment.contracts_artifacts.as_ref().unwrap();
-
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // create .tmp folder
         let helm_tmp_folder = project.infra.helm.join(".tmp");
         let _ = fs::remove_dir_all(&helm_tmp_folder);
@@ -133,21 +128,62 @@ impl TInfraDeployer for TerraformDeployer {
         let values_file = helm_tmp_folder.join("values.yaml");
         self.create_values_file(project, &deployment, &values, &values_file)?;
 
-        let unzipped_artifacts = tempfile::TempDir::new()?;
-        zip_extract::extract(
-            File::open(contracts_artifacts)?,
-            &unzipped_artifacts.path(),
-            true,
+        // build artifacts.zip and copy addresses.json and to helm so it can be loaded by it
+        let zip_file = File::create(helm_tmp_folder.join("artifacts.zip"))?;
+        let mut zip = zip::ZipWriter::new(zip_file);
+
+        let options = FileOptions::default()
+            .compression_method(zip::CompressionMethod::Deflated)
+            .unix_permissions(0o755);
+
+        zip.start_file("addresses.json", options)?;
+        zip.write_all(
+            deployment
+                .addresses
+                .as_ref()
+                .ok_or("No deployment addresses found")?
+                .as_bytes(),
         )?;
 
-        // copy addresses.json and artifacts.zip to helm/config so it can be loaded by it
-        fs::copy(contracts_artifacts, helm_tmp_folder.join("artifacts.zip"))?;
-        fs::copy(
-            unzipped_artifacts.path().join("addresses.json"),
+        zip.start_file("genesis.json", options)?;
+        zip.write_all(
+            deployment
+                .genesis
+                .as_ref()
+                .ok_or("No deployment genesis found")?
+                .as_bytes(),
+        )?;
+
+        zip.start_file("jwt-secret.txt", options)?;
+        zip.write_all(
+            deployment
+                .jwt_secret
+                .as_ref()
+                .ok_or("No deployment jwt-secret found")?
+                .as_bytes(),
+        )?;
+
+        zip.start_file("rollup-config.json", options)?;
+        zip.write_all(
+            deployment
+                .rollup_config
+                .as_ref()
+                .ok_or("No deployment rollup-config found")?
+                .as_bytes(),
+        )?;
+
+        zip.finish()?;
+
+        fs::write(
             helm_tmp_folder.join("addresses.json"),
+            deployment
+                .addresses
+                .as_ref()
+                .ok_or("No deployment addresses found")?,
         )?;
 
-        // deploy using terraform
+        // deploy using terraform ===============================
+
         system::execute_command(
             Command::new("terraform")
                 .arg("init")
@@ -162,7 +198,7 @@ impl TInfraDeployer for TerraformDeployer {
                     "-var=values_file_path={}",
                     values_file.to_str().unwrap()
                 ))
-                .arg(format!("-var=name={}", deployment.name))
+                .arg(format!("-var=name={}", deployment.id))
                 .current_dir(&project.infra.aws),
             false,
         )?;
@@ -175,12 +211,13 @@ impl TInfraDeployer for TerraformDeployer {
                     "-var=values_file_path={}",
                     values_file.to_str().unwrap()
                 ))
-                .arg(format!("-var=name={}", deployment.name))
+                .arg(format!("-var=name={}", deployment.id))
                 .current_dir(&project.infra.aws),
             false,
         )?;
 
         // extract outputs from deployment
+
         let output = system::execute_command(
             Command::new("terraform")
                 .arg("output")
@@ -189,20 +226,9 @@ impl TInfraDeployer for TerraformDeployer {
             true,
         )?;
 
-        // create artifacts zip
-        let infra_artifacts = tempfile::NamedTempFile::new()?;
-        let mut zip = zip::ZipWriter::new(&infra_artifacts);
-        let options = FileOptions::default()
-            .compression_method(zip::CompressionMethod::Stored)
-            .unix_permissions(0o755);
-        zip.start_file(OUT_INFRA_ARTIFACTS_OUTPUTS, options)?;
-        zip.write_all(output.as_bytes())?;
-        zip.finish()?;
-
         // save it in the deployment repository
-        deployment.infra_artifacts = Some(infra_artifacts.path().to_path_buf());
-        self.deployment_repository.save(&mut deployment)?;
+        deployment.infra_outputs = Some(output);
 
-        Ok(deployment)
+        Ok(())
     }
 }

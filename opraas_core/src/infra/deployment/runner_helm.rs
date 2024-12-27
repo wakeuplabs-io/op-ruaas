@@ -7,20 +7,22 @@ use serde_yaml::Value;
 use std::{
     collections::HashMap,
     fs::{self, File},
+    io::Write,
     process::Command,
 };
+use zip::write::FileOptions;
 
 pub struct HelmDeploymentRunner {
-    release_name: String,
+    release_tag: String,
     namespace: String,
 }
 
 // implementations ============================================================
 
 impl HelmDeploymentRunner {
-    pub fn new(release_name: &str, namespace: &str) -> Self {
+    pub fn new(release_tag: &str, namespace: &str) -> Self {
         Self {
-            release_name: release_name.to_string(),
+            release_tag: release_tag.to_string(),
             namespace: namespace.to_string(),
         }
     }
@@ -128,6 +130,7 @@ impl HelmDeploymentRunner {
                 .accounts_config
                 .batcher_private_key
                 .clone()
+                .ok_or("No batcher private key found")?
                 .into(),
         );
         updates.entry("wallets.proposer").or_insert(
@@ -135,6 +138,7 @@ impl HelmDeploymentRunner {
                 .accounts_config
                 .proposer_private_key
                 .clone()
+                .ok_or("No proposer private key found")?
                 .into(),
         );
 
@@ -142,40 +146,45 @@ impl HelmDeploymentRunner {
 
         updates
             .entry("node.image.tag")
-            .or_insert(deployment.release_name.clone().into());
+            .or_insert(deployment.release_tag.clone().into());
         updates
             .entry("node.image.repository")
-            .or_insert(format!("{}/{}", deployment.registry_url, "op-node").into());
+            .or_insert(format!("{}/{}", deployment.release_registry, "op-node").into());
 
         updates
             .entry("batcher.image.tag")
-            .or_insert(deployment.release_name.clone().into());
+            .or_insert(deployment.release_tag.clone().into());
         updates
             .entry("batcher.image.repository")
-            .or_insert(format!("{}/{}", deployment.registry_url, "op-batcher").into());
+            .or_insert(format!("{}/{}", deployment.release_registry, "op-batcher").into());
 
         updates
             .entry("proposer.image.tag")
-            .or_insert(deployment.release_name.clone().into());
+            .or_insert(deployment.release_tag.clone().into());
         updates
             .entry("proposer.image.repository")
-            .or_insert(format!("{}/{}", deployment.registry_url, "op-proposer").into());
+            .or_insert(format!("{}/{}", deployment.release_registry, "op-proposer").into());
 
         updates
             .entry("geth.image.tag")
-            .or_insert(deployment.release_name.clone().into());
+            .or_insert(deployment.release_tag.clone().into());
         updates
             .entry("geth.image.repository")
-            .or_insert(format!("{}/{}", deployment.registry_url, "op-geth").into());
+            .or_insert(format!("{}/{}", deployment.release_registry, "op-geth").into());
 
         // chain settings ================================================
 
         updates
             .entry("chain.id")
             .or_insert(deployment.network_config.l2_chain_id.to_string().into());
-        updates
-            .entry("chain.l1Rpc")
-            .or_insert(deployment.network_config.l1_rpc_url.clone().into());
+        updates.entry("chain.l1Rpc").or_insert(
+            deployment
+                .network_config
+                .l1_rpc_url
+                .clone()
+                .ok_or("Missing l1_rpc_url")?
+                .into(),
+        );
 
         // ================================================
 
@@ -216,8 +225,6 @@ impl TDeploymentRunner for HelmDeploymentRunner {
         deployment: &Deployment,
         values: &HashMap<&str, Value>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let contracts_artifacts = deployment.contracts_artifacts.as_ref().unwrap();
-
         // add repos, install pre-requisites and build dependencies
         self.build_dependencies(project)?;
 
@@ -230,18 +237,58 @@ impl TDeploymentRunner for HelmDeploymentRunner {
         let values_file = helm_tmp_folder.join("values.yaml");
         self.create_values_file(project, deployment, &values, &values_file)?;
 
-        let unzipped_artifacts = tempfile::TempDir::new()?;
-        zip_extract::extract(
-            File::open(contracts_artifacts)?,
-            &unzipped_artifacts.path(),
-            true,
+        // build artifacts.zip and copy addresses.json and to helm so it can be loaded by it
+        let zip_file = File::create(helm_tmp_folder.join("artifacts.zip"))?;
+        let mut zip = zip::ZipWriter::new(zip_file);
+
+        let options = FileOptions::default()
+            .compression_method(zip::CompressionMethod::Deflated)
+            .unix_permissions(0o755);
+
+        zip.start_file("addresses.json", options)?;
+        zip.write_all(
+            deployment
+                .addresses
+                .as_ref()
+                .ok_or("No deployment addresses found")?
+                .as_bytes(),
         )?;
 
-        // copy addresses.json and artifacts.zip to helm/.tmp so it can be loaded by it
-        fs::copy(contracts_artifacts, helm_tmp_folder.join("artifacts.zip"))?;
-        fs::copy(
-            unzipped_artifacts.path().join("addresses.json"),
+        zip.start_file("genesis.json", options)?;
+        zip.write_all(
+            deployment
+                .genesis
+                .as_ref()
+                .ok_or("No deployment genesis found")?
+                .as_bytes(),
+        )?;
+
+        zip.start_file("jwt-secret.txt", options)?;
+        zip.write_all(
+            deployment
+                .jwt_secret
+                .as_ref()
+                .ok_or("No deployment jwt-secret found")?
+                .as_bytes(),
+        )?;
+
+        zip.start_file("rollup-config.json", options)?;
+        zip.write_all(
+            deployment
+                .rollup_config
+                .as_ref()
+                .ok_or("No deployment rollup-config found")?
+                .as_bytes(),
+        )?;
+
+        zip.finish()?;
+
+        fs::write(
             helm_tmp_folder.join("addresses.json"),
+            deployment
+                .addresses
+                .as_ref()
+                .ok_or("No deployment addresses found")?,
         )?;
 
         // install core infrastructure
@@ -249,7 +296,7 @@ impl TDeploymentRunner for HelmDeploymentRunner {
         system::execute_command(
             Command::new("helm")
                 .arg("install")
-                .arg(format!("op-ruaas-runner-{}", &self.release_name))
+                .arg(format!("op-ruaas-runner-{}", &self.release_tag))
                 .arg("-f")
                 .arg(values_file.to_str().unwrap())
                 .arg("--namespace")
@@ -273,14 +320,14 @@ impl TDeploymentRunner for HelmDeploymentRunner {
                 .arg(&self.namespace),
             true,
         )?;
-        if running_releases.contains(&format!("op-ruaas-runner-{}", &self.release_name)) == false {
+        if running_releases.contains(&format!("op-ruaas-runner-{}", &self.release_tag)) == false {
             return Ok(());
         }
 
         system::execute_command(
             Command::new("helm")
                 .arg("uninstall")
-                .arg(format!("op-ruaas-runner-{}", &self.release_name))
+                .arg(format!("op-ruaas-runner-{}", &self.release_tag))
                 .arg("--namespace")
                 .arg(&self.namespace),
             false,
