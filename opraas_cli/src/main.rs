@@ -99,13 +99,17 @@ async fn main() {
         Commands::Init { target } => InitCommand::new().run(target),
         Commands::Build { target } => BuildCommand::new().run(target),
         Commands::Release { target } => ReleaseCommand::new().run(target),
-        Commands::Dev { default } => DevCommand::new().run(default),
+        Commands::Dev { default } => DevCommand::new().run(default).await,
         Commands::Deploy {
             target,
             name,
             deterministic_deployer,
-        } => DeployCommand::new().run(target, name, deterministic_deployer),
-        Commands::Inspect { target, name } => InspectCommand::new().run(target, name),
+        } => {
+            DeployCommand::new()
+                .run(target, name, deterministic_deployer)
+                .await
+        }
+        Commands::Inspect { target, name } => InspectCommand::new().run(target, name).await,
         // Commands::Monitor { target } => MonitorCommand::new(target).run(&config).await,
     } {
         print_error(&format!("\n\nError: {}\n\n", e));

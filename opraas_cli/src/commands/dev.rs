@@ -63,7 +63,7 @@ impl DevCommand {
         }
     }
 
-    pub fn run(&self, default: bool) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn run(&self, default: bool) -> Result<(), Box<dyn std::error::Error>> {
         self.system_requirement_checker
             .check(vec![DOCKER_REQUIREMENT, K8S_REQUIREMENT, HELM_REQUIREMENT])?;
 
@@ -155,7 +155,8 @@ impl DevCommand {
         );
 
         self.contracts_deployer
-            .deploy(&project, &mut deployment, true, false)?;
+            .deploy(&project, &mut deployment, true, false)
+            .await?;
 
         contracts_spinner.finish_with_message("✔️ Contracts deployed...");
 

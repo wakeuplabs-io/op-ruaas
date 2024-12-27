@@ -5,9 +5,10 @@ pub struct DeploymentInfraInspectorService {
     deployment_repository: Box<dyn TDeploymentRepository>,
 }
 
+#[async_trait::async_trait]
 pub trait TDeploymentInfraInspectorService: Send + Sync {
-    fn find(&self, id: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>>;
-    fn inspect(&self, deployment: &Deployment) -> Result<Value, Box<dyn std::error::Error>>;
+    async fn find(&self, id: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>>;
+    async fn inspect(&self, deployment: &Deployment) -> Result<Value, Box<dyn std::error::Error>>;
 }
 
 // implementations ===================================================
@@ -20,12 +21,13 @@ impl DeploymentInfraInspectorService {
     }
 }
 
+#[async_trait::async_trait]
 impl TDeploymentInfraInspectorService for DeploymentInfraInspectorService {
-    fn find(&self, id: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>> {
-        self.deployment_repository.find(id)
+    async fn find(&self, id: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>> {
+        self.deployment_repository.find(id).await
     }
 
-    fn inspect(&self, deployment: &Deployment) -> Result<Value, Box<dyn std::error::Error>> {
+    async fn inspect(&self, deployment: &Deployment) -> Result<Value, Box<dyn std::error::Error>> {
         if let Some(outputs) = deployment.infra_outputs.as_ref() {
             let outputs_json: Value = serde_json::from_str(&outputs).map_err(|e| e.to_string())?;
 

@@ -37,28 +37,30 @@ impl InspectCommand {
         }
     }
 
-    pub fn run(&self, target: InspectTarget, id: String) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn run(&self, target: InspectTarget, id: String) -> Result<(), Box<dyn std::error::Error>> {
         if matches!(target, InspectTarget::Contracts | InspectTarget::All) {
             let deployment = self
                 .contracts_inspector
-                .find(&id)?
+                .find(&id)
+                .await?
                 .ok_or("Deployment not found")?;
 
             println!(
                 "{}",
-                serde_json::to_string_pretty(&self.contracts_inspector.inspect(&deployment)?)?
+                serde_json::to_string_pretty(&self.contracts_inspector.inspect(&deployment).await?)?
             );
         }
 
         if matches!(target, InspectTarget::Infra | InspectTarget::All) {
             let deployment = self
                 .infra_inspector
-                .find(&id)?
+                .find(&id)
+                .await?
                 .ok_or("Deployment not found")?;
 
             println!(
                 "{}",
-                serde_json::to_string_pretty(&self.infra_inspector.inspect(&deployment)?)?
+                serde_json::to_string_pretty(&self.infra_inspector.inspect(&deployment).await?)?
             );
         }
 

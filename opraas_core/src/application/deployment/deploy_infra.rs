@@ -7,8 +7,9 @@ pub struct InfraDeployerService {
     project_infra_repository: Box<dyn domain::project::TProjectInfraRepository>,
 }
 
+#[async_trait::async_trait]
 pub trait TInfraDeployerService: Send + Sync {
-    fn deploy(
+    async fn deploy(
         &self,
         project: &Project,
         deployment: &mut Deployment,
@@ -34,8 +35,9 @@ impl InfraDeployerService {
     }
 }
 
+#[async_trait::async_trait]
 impl TInfraDeployerService for InfraDeployerService {
-    fn deploy(
+    async fn deploy(
         &self,
         project: &Project,
         deployment: &mut Deployment,
@@ -52,7 +54,7 @@ impl TInfraDeployerService for InfraDeployerService {
 
         self.infra_deployer.deploy(project, deployment, &values)?;
 
-        self.deployment_repository.save(deployment)?;
+        self.deployment_repository.save(deployment).await?;
 
         Ok(())
     }

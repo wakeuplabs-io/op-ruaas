@@ -75,7 +75,7 @@ impl DeployCommand {
         }
     }
 
-    pub fn run(
+    pub async fn run(
         &self,
         target: DeployTarget,
         id: String,
@@ -138,12 +138,14 @@ impl DeployCommand {
                 config.accounts,
             );
 
-            self.contracts_deployer.deploy(
-                &project,
-                &mut deployment,
-                deploy_deterministic_deployer,
-                true,
-            )?;
+            self.contracts_deployer
+                .deploy(
+                    &project,
+                    &mut deployment,
+                    deploy_deterministic_deployer,
+                    true,
+                )
+                .await?;
 
             contracts_deployer_spinner.finish_with_message("✔️ Contracts deployed...");
         }
@@ -153,18 +155,21 @@ impl DeployCommand {
         if matches!(target, DeployTarget::Infra | DeployTarget::All) {
             let mut deployment = self
                 .contracts_inspector
-                .find(&id)?
+                .find(&id)
+                .await?
                 .expect("Contracts deployment not found");
 
             let infra_deployer_spinner = style_spinner(ProgressBar::new_spinner(), "Deploying stack infra...");
 
-            self.infra_deployer.deploy(
-                &project,
-                &mut deployment,
-                &domain,
-                enable_monitoring,
-                enable_explorer,
-            )?;
+            self.infra_deployer
+                .deploy(
+                    &project,
+                    &mut deployment,
+                    &domain,
+                    enable_monitoring,
+                    enable_explorer,
+                )
+                .await?;
 
             infra_deployer_spinner.finish_with_message("✔️ Infra deployed, your chain is live!");
 
@@ -178,24 +183,26 @@ impl DeployCommand {
         if matches!(target, DeployTarget::Contracts | DeployTarget::All) {
             let deployment = self
                 .contracts_inspector
-                .find(&id)?
+                .find(&id)
+                .await?
                 .ok_or("Deployment not found")?;
 
             println!(
                 "{}",
-                serde_json::to_string_pretty(&self.contracts_inspector.inspect(&deployment)?)?
+                serde_json::to_string_pretty(&self.contracts_inspector.inspect(&deployment).await?)?
             );
         }
 
         if matches!(target, DeployTarget::Infra | DeployTarget::All) {
             let deployment = self
                 .infra_inspector
-                .find(&id)?
+                .find(&id)
+                .await?
                 .ok_or("Deployment not found")?;
 
             println!(
                 "{}",
-                serde_json::to_string_pretty(&self.infra_inspector.inspect(&deployment)?)?
+                serde_json::to_string_pretty(&self.infra_inspector.inspect(&deployment).await?)?
             );
         }
 

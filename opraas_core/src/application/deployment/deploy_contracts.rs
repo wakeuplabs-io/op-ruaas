@@ -5,8 +5,9 @@ pub struct ContractsDeployerService {
     contracts_deployer: Box<dyn domain::deployment::TContractsDeployerProvider>,
 }
 
+#[async_trait::async_trait]
 pub trait TContractsDeployerService: Send + Sync {
-    fn deploy(
+    async fn deploy(
         &self,
         project: &Project,
         deployment: &mut Deployment,
@@ -29,8 +30,9 @@ impl ContractsDeployerService {
     }
 }
 
+#[async_trait::async_trait]
 impl TContractsDeployerService for ContractsDeployerService {
-    fn deploy(
+    async fn deploy(
         &self,
         project: &Project,
         deployment: &mut Deployment,
@@ -40,7 +42,7 @@ impl TContractsDeployerService for ContractsDeployerService {
         self.contracts_deployer
             .deploy(project, deployment, deploy_deterministic_deployer, slow)?;
 
-        self.deployment_repository.save(deployment)?;
+        self.deployment_repository.save(deployment).await?;
 
         Ok(())
     }

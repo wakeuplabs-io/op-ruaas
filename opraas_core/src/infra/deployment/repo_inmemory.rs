@@ -14,8 +14,9 @@ struct ReleaseMetadata {
 
 // implementations ====================================
 
+#[async_trait::async_trait]
 impl domain::deployment::TDeploymentRepository for InMemoryDeploymentRepository {
-    fn find(&self, id: &str) -> Result<Option<domain::Deployment>, Box<dyn std::error::Error>> {
+    async fn find(&self, id: &str) -> Result<Option<domain::Deployment>, Box<dyn std::error::Error>> {
         let depl_path = self.root.join(format!("{}.json", id));
         let exists = std::fs::exists(&depl_path).unwrap_or(false);
         if !exists {
@@ -28,7 +29,7 @@ impl domain::deployment::TDeploymentRepository for InMemoryDeploymentRepository 
         Ok(Some(deployment))
     }
 
-    fn save(&self, deployment: &mut Deployment) -> Result<(), Box<dyn std::error::Error>> {
+    async fn save(&self, deployment: &mut Deployment) -> Result<(), Box<dyn std::error::Error>> {
         let serialized = serde_json::to_string_pretty(&deployment)?;
         fs::write(
             self.root.join(format!("{}.json", deployment.id)),

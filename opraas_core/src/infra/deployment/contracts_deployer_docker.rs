@@ -29,6 +29,7 @@ impl DockerContractsDeployer {
     }
 }
 
+#[async_trait::async_trait]
 impl TContractsDeployerProvider for DockerContractsDeployer {
     fn deploy(
         &self,

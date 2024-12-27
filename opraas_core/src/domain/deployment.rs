@@ -19,9 +19,10 @@ pub struct Deployment {
     pub infra_outputs: Option<String>,
 }
 
+#[async_trait::async_trait]
 pub trait TDeploymentRepository: Send + Sync {
-    fn save(&self, deployment: &mut Deployment) -> Result<(), Box<dyn std::error::Error>>;
-    fn find(&self, id: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>>;
+    async fn save(&self, deployment: &mut Deployment) -> Result<(), Box<dyn std::error::Error>>;
+    async fn find(&self, id: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>>;
 }
 
 pub trait TInfraDeployerProvider: Send + Sync {
