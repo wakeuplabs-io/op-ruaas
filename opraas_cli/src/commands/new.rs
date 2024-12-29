@@ -2,14 +2,14 @@ use crate::infra::console::style_spinner;
 use colored::*;
 use indicatif::ProgressBar;
 use opraas_core::{
-    application::{CreateProjectService, TCreateProjectService},
+    application::CreateProjectService,
     config::CoreConfig,
     infra::project::{GitVersionControl, InMemoryProjectInfraRepository, InMemoryProjectRepository},
 };
 use std::{env, path::PathBuf};
 
 pub struct NewCommand {
-    project_creator: Box<dyn TCreateProjectService>,
+    project_creator: CreateProjectService<InMemoryProjectRepository, GitVersionControl, InMemoryProjectInfraRepository>,
 }
 
 // implementations ================================================
@@ -17,11 +17,11 @@ pub struct NewCommand {
 impl NewCommand {
     pub fn new() -> Self {
         Self {
-            project_creator: Box::new(CreateProjectService::new(
-                Box::new(InMemoryProjectRepository::new()),
-                Box::new(GitVersionControl::new()),
-                Box::new(InMemoryProjectInfraRepository::new()),
-            )),
+            project_creator: CreateProjectService::new(
+                InMemoryProjectRepository::new(),
+                GitVersionControl::new(),
+                InMemoryProjectInfraRepository::new(),
+            ),
         }
     }
 

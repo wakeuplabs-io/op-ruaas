@@ -4,37 +4,32 @@ use crate::{
 };
 use std::path::PathBuf;
 
-pub struct CreateProjectService {
-    repository: Box<dyn domain::project::TProjectRepository>,
-    version_control: Box<dyn domain::project::TProjectVersionControl>,
-    project_infra_repository: Box<dyn TProjectInfraRepository>,
+pub struct CreateProjectService<PR, VC, PIR>
+where
+    PR: domain::project::TProjectRepository,
+    VC: domain::project::TProjectVersionControl,
+    PIR: TProjectInfraRepository,
+{
+    repository: PR,
+    version_control: VC,
+    project_infra_repository: PIR,
 }
 
-pub trait TCreateProjectService {
-    fn create(
-        &self,
-        root: &PathBuf,
-        config: &CoreConfig,
-        init_git: bool,
-    ) -> Result<Project, Box<dyn std::error::Error>>;
-}
-
-impl CreateProjectService {
-    pub fn new(
-        repository: Box<dyn domain::project::TProjectRepository>,
-        version_control: Box<dyn domain::project::TProjectVersionControl>,
-        project_infra_repository: Box<dyn TProjectInfraRepository>,
-    ) -> Self {
+impl<PR, VC, PIR> CreateProjectService<PR, VC, PIR>
+where
+    PR: domain::project::TProjectRepository,
+    VC: domain::project::TProjectVersionControl,
+    PIR: TProjectInfraRepository,
+{
+    pub fn new(repository: PR, version_control: VC, project_infra_repository: PIR) -> Self {
         Self {
             repository,
             version_control,
             project_infra_repository,
         }
     }
-}
 
-impl TCreateProjectService for CreateProjectService {
-    fn create(
+    pub fn create(
         &self,
         root: &PathBuf,
         config: &CoreConfig,

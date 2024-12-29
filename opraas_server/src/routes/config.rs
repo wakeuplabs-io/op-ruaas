@@ -5,8 +5,9 @@ use axum::{
     Extension, Json,
 };
 use opraas_core::{
-    application::{CreateProjectService, TCreateProjectService},
+    application::CreateProjectService,
     config::{AccountsConfig, ArtifactsConfig, CoreConfig, NetworkConfig},
+    infra::project::{GitVersionControl, InMemoryProjectInfraRepository, InMemoryProjectRepository},
 };
 use serde::Deserialize;
 use std::{path::PathBuf, sync::Arc};
@@ -61,7 +62,9 @@ pub struct ConfigurePayload {
 }
 
 pub async fn create(
-    Extension(create_service): Extension<Arc<CreateProjectService>>,
+    Extension(create_service): Extension<
+        Arc<CreateProjectService<InMemoryProjectRepository, GitVersionControl, InMemoryProjectInfraRepository>>,
+    >,
     Json(data): Json<ConfigurePayload>,
 ) -> Result<impl IntoResponse, (StatusCode, &'static str)> {
     let mut headers = HeaderMap::new();

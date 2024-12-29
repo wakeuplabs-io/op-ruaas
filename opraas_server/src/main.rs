@@ -24,9 +24,9 @@ async fn main() -> Result<(), Error> {
         .init();
 
     let create_service = Arc::new(CreateProjectService::new(
-        Box::new(InMemoryProjectRepository::new()),
-        Box::new(GitVersionControl::new()),
-        Box::new(InMemoryProjectInfraRepository::new()),
+        InMemoryProjectRepository::new(),
+        GitVersionControl::new(),
+        InMemoryProjectInfraRepository::new(),
     ));
 
     let s3_config = aws_config::load_from_env().await;
