@@ -14,7 +14,7 @@ use opraas_core::{
         manager::DeploymentManagerService,
     },
     config::CoreConfig,
-    domain::{Deployment, ProjectFactory, TProjectFactory},
+    domain::{Deployment, Project},
     infra::{
         deployment::{DockerContractsDeployer, InMemoryDeploymentRepository, TerraformDeployer},
         project::InMemoryProjectInfraRepository,
@@ -30,12 +30,11 @@ pub enum DeployTarget {
 }
 
 pub struct DeployCommand {
-    dialoguer: Box<dyn TDialoguer>,
+    dialoguer: Dialoguer,
     contracts_deployer: ContractsDeployerService<InMemoryDeploymentRepository, DockerContractsDeployer>,
     infra_deployer:
         InfraDeployerService<TerraformDeployer, InMemoryDeploymentRepository, InMemoryProjectInfraRepository>,
-    system_requirement_checker: Box<dyn TSystemRequirementsChecker>,
-    project_factory: Box<dyn TProjectFactory>,
+    system_requirement_checker: SystemRequirementsChecker,
     deployments_manager: DeploymentManagerService<InMemoryDeploymentRepository>,
 }
 
@@ -43,13 +42,10 @@ pub struct DeployCommand {
 
 impl DeployCommand {
     pub fn new() -> Self {
-        let project_factory = Box::new(ProjectFactory::new());
-        let project = project_factory
-            .from_cwd()
-            .expect("No project found in current directory");
+        let project = Project::try_from(std::env::current_dir().unwrap()).unwrap();
 
         Self {
-            dialoguer: Box::new(Dialoguer::new()),
+            dialoguer: Dialoguer::new(),
             contracts_deployer: ContractsDeployerService::new(
                 InMemoryDeploymentRepository::new(&project.root),
                 DockerContractsDeployer::new(
@@ -63,8 +59,7 @@ impl DeployCommand {
                 InMemoryProjectInfraRepository::new(),
             ),
             deployments_manager: DeploymentManagerService::new(InMemoryDeploymentRepository::new(&project.root)),
-            system_requirement_checker: Box::new(SystemRequirementsChecker::new()),
-            project_factory,
+            system_requirement_checker: SystemRequirementsChecker::new(),
         }
     }
 
@@ -81,7 +76,7 @@ impl DeployCommand {
             TERRAFORM_REQUIREMENT,
         ])?;
 
-        let project = self.project_factory.from_cwd().unwrap();
+        let project = Project::try_from(std::env::current_dir()?)?;
         let config = CoreConfig::new_from_toml(&project.config).unwrap();
 
         // dev is reserved for local deployments

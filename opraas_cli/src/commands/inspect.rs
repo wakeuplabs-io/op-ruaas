@@ -1,7 +1,6 @@
 use clap::ValueEnum;
 use opraas_core::{
-    application::deployment::manager::DeploymentManagerService,
-    domain::{ProjectFactory, TProjectFactory},
+    application::deployment::manager::DeploymentManagerService, domain::Project,
     infra::deployment::InMemoryDeploymentRepository,
 };
 
@@ -20,7 +19,7 @@ pub struct InspectCommand {
 
 impl InspectCommand {
     pub fn new() -> Self {
-        let project = ProjectFactory::new().from_cwd().unwrap();
+        let project = Project::try_from(std::env::current_dir().unwrap()).unwrap();
 
         Self {
             deployments_manager: DeploymentManagerService::new(InMemoryDeploymentRepository::new(&project.root)),

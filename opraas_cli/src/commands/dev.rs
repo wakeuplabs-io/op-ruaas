@@ -9,7 +9,7 @@ use indicatif::ProgressBar;
 use opraas_core::{
     application::deployment::{deploy_contracts::ContractsDeployerService, run::DeploymentRunnerService},
     config::CoreConfig,
-    domain::{Deployment, ProjectFactory, TProjectFactory},
+    domain::{Deployment, Project},
     infra::{
         deployment::{DockerContractsDeployer, HelmDeploymentRunner, InMemoryDeploymentRepository},
         ethereum::{GethTestnetNode, TTestnetNode},
@@ -23,12 +23,11 @@ use std::thread;
 use std::time::Duration;
 
 pub struct DevCommand {
-    dialoguer: Box<dyn TDialoguer>,
+    dialoguer: Dialoguer,
     l1_node: Box<dyn TTestnetNode>,
     deployment_runner: DeploymentRunnerService<HelmDeploymentRunner, InMemoryProjectInfraRepository>,
-    system_requirement_checker: Box<dyn TSystemRequirementsChecker>,
+    system_requirement_checker: SystemRequirementsChecker,
     contracts_deployer: ContractsDeployerService<InMemoryDeploymentRepository, DockerContractsDeployer>,
-    project_factory: Box<dyn TProjectFactory>,
 }
 
 const DEFAULT_REGISTRY: &str = "wakeuplabs";
@@ -38,17 +37,16 @@ const DEFAULT_RELEASE_TAG: &str = "v0.0.4";
 
 impl DevCommand {
     pub fn new() -> Self {
-        let project_factory = Box::new(ProjectFactory::new());
-        let project = project_factory.from_cwd().unwrap();
+        let project = Project::try_from(std::env::current_dir().unwrap()).unwrap();
 
         Self {
-            dialoguer: Box::new(Dialoguer::new()),
+            dialoguer: Dialoguer::new(),
             l1_node: Box::new(GethTestnetNode::new()),
             deployment_runner: DeploymentRunnerService::new(
                 HelmDeploymentRunner::new("opruaas-dev", "opruaas-dev"),
                 InMemoryProjectInfraRepository::new(),
             ),
-            system_requirement_checker: Box::new(SystemRequirementsChecker::new()),
+            system_requirement_checker: SystemRequirementsChecker::new(),
             contracts_deployer: ContractsDeployerService::new(
                 InMemoryDeploymentRepository::new(&project.root),
                 DockerContractsDeployer::new(
@@ -56,7 +54,6 @@ impl DevCommand {
                     Box::new(DockerReleaseRunner::new()),
                 ),
             ),
-            project_factory,
         }
     }
 
@@ -64,7 +61,7 @@ impl DevCommand {
         self.system_requirement_checker
             .check(vec![DOCKER_REQUIREMENT, K8S_REQUIREMENT, HELM_REQUIREMENT])?;
 
-        let project = self.project_factory.from_cwd().unwrap();
+        let project = Project::try_from(std::env::current_dir()?)?;
         let mut config = CoreConfig::new_from_toml(&project.config)?;
 
         print_info("Dev command will run a local l1 node, deploy contracts to it and then install the infra in your local network.");

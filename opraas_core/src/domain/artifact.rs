@@ -74,8 +74,6 @@ pub trait TArtifactRepository: Send + Sync {
     fn create(&self, artifact: &Artifact) -> Result<(), Box<dyn std::error::Error>>;
 }
 
-// implementations ==========================================
-
 impl ArtifactData {
     pub fn new(name: &str, context: &PathBuf, dockerfile: &PathBuf, config: &ArtifactConfig) -> Self {
         Self {
@@ -146,13 +144,7 @@ impl Artifact {
 }
 
 impl ArtifactFactory {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
-
-impl TArtifactFactory for ArtifactFactory {
-    fn get(&self, kind: &ArtifactKind, project: &Project, config: &CoreConfig) -> Arc<Artifact> {
+    pub fn get(kind: &ArtifactKind, project: &Project, config: &CoreConfig) -> Arc<Artifact> {
         match kind {
             ArtifactKind::Batcher => Arc::new(Artifact::new(
                 ArtifactKind::Batcher,
@@ -187,10 +179,10 @@ impl TArtifactFactory for ArtifactFactory {
         }
     }
 
-    fn get_all(&self, project: &Project, config: &CoreConfig) -> Vec<Arc<Artifact>> {
+    pub fn get_all(project: &Project, config: &CoreConfig) -> Vec<Arc<Artifact>> {
         ArtifactKind::all()
             .iter()
-            .map(|kind| self.get(kind, project, config))
+            .map(|kind| ArtifactFactory::get(kind, project, config))
             .collect()
     }
 }

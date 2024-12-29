@@ -1,7 +1,6 @@
-use std::{
-    env,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
+
+use crate::config::CoreConfig;
 
 #[derive(Debug, Clone)]
 pub struct Project {
@@ -10,8 +9,6 @@ pub struct Project {
     pub infra: Infra,
     pub src: Src,
 }
-
-pub struct ProjectFactory;
 
 #[derive(Debug, Clone)]
 pub struct Infra {
@@ -43,89 +40,74 @@ pub struct Src {
     pub explorer: PathBuf,
 }
 
-pub trait TProjectRepository: Send + Sync {
+pub trait TProjectRepository {
+    fn create(&self, root: &Path, config: &CoreConfig) -> Result<Project, Box<dyn std::error::Error>>;
     fn write(&self, project: &Project, filepath: &Path, content: &str) -> Result<(), Box<dyn std::error::Error>>;
     fn exists(&self, project: &Project) -> bool;
     fn has(&self, project: &Project, filepath: &Path) -> bool;
 }
 
-pub trait TProjectInfraRepository: Send + Sync {
+pub trait TProjectInfraRepository {
     fn pull(&self, project: &Project) -> Result<(), Box<dyn std::error::Error>>;
 }
 
-pub trait TProjectVersionControl: Send + Sync {
+pub trait TProjectVersionControl {
     fn init(&self, root: &Path) -> Result<(), Box<dyn std::error::Error>>;
     fn stage(&self, root: &Path) -> Result<(), Box<dyn std::error::Error>>;
     fn commit(&self, root: &Path, message: &str, initial: bool) -> Result<(), Box<dyn std::error::Error>>;
     fn tag(&self, root: &Path, tag: &str) -> Result<(), Box<dyn std::error::Error>>;
 }
 
-pub trait TProjectFactory: Send + Sync {
-    fn from_cwd(&self) -> Option<Project>;
-    fn from_root(&self, root: PathBuf) -> Project;
-}
+impl TryFrom<PathBuf> for Project {
+    type Error = &'static str;
 
-// implementations =================================================================
-
-impl ProjectFactory {
-    pub fn new() -> Self {
-        Self
-    }
-}
-
-impl TProjectFactory for ProjectFactory {
     /// walk back to find config.toml
-    fn from_cwd(&self) -> Option<Project> {
-        let mut current = env::current_dir().unwrap();
+    fn try_from(path: PathBuf) -> Result<Self, Self::Error> {
+        let mut root = path;
 
         for _ in 0..10 {
-            if current.join("config.toml").exists() {
-                return Some(self.from_root(current));
+            if root.join("config.toml").exists() {
+                return Ok(Project {
+                    root: root.clone(),
+                    config: root.join("config.toml"),
+                    infra: Infra {
+                        root: root.join("infra"),
+                        aws: root.join("infra").join("aws"),
+                        helm: root.join("infra").join("helm"),
+                        docker: Dockerfiles {
+                            root: root.join("infra").join("docker"),
+                            node: root.join("infra").join("docker").join("node.dockerfile"),
+                            geth: root.join("infra").join("docker").join("geth.dockerfile"),
+                            batcher: root.join("infra").join("docker").join("batcher.dockerfile"),
+                            proposer: root
+                                .join("infra")
+                                .join("docker")
+                                .join("proposer.dockerfile"),
+                            explorer: root
+                                .join("infra")
+                                .join("docker")
+                                .join("explorer.dockerfile"),
+                            contracts: root
+                                .join("infra")
+                                .join("docker")
+                                .join("contracts.dockerfile"),
+                        },
+                    },
+                    src: Src {
+                        root: root.join("src"),
+                        contracts: root.join("src").join("contracts"),
+                        node: root.join("src").join("node"),
+                        geth: root.join("src").join("geth"),
+                        batcher: root.join("src").join("batcher"),
+                        proposer: root.join("src").join("proposer"),
+                        explorer: root.join("src").join("explorer"),
+                    },
+                });
             }
 
-            current = current.parent().unwrap().to_path_buf()
+            root = root.parent().unwrap().to_path_buf()
         }
 
-        None
-    }
-
-    /// creates from given root
-    fn from_root(&self, root: PathBuf) -> Project {
-        Project {
-            root: root.clone(),
-            config: root.join("config.toml"),
-            infra: Infra {
-                root: root.join("infra"),
-                aws: root.join("infra").join("aws"),
-                helm: root.join("infra").join("helm"),
-                docker: Dockerfiles {
-                    root: root.join("infra").join("docker"),
-                    node: root.join("infra").join("docker").join("node.dockerfile"),
-                    geth: root.join("infra").join("docker").join("geth.dockerfile"),
-                    batcher: root.join("infra").join("docker").join("batcher.dockerfile"),
-                    proposer: root
-                        .join("infra")
-                        .join("docker")
-                        .join("proposer.dockerfile"),
-                    explorer: root
-                        .join("infra")
-                        .join("docker")
-                        .join("explorer.dockerfile"),
-                    contracts: root
-                        .join("infra")
-                        .join("docker")
-                        .join("contracts.dockerfile"),
-                },
-            },
-            src: Src {
-                root: root.join("src"),
-                contracts: root.join("src").join("contracts"),
-                node: root.join("src").join("node"),
-                geth: root.join("src").join("geth"),
-                batcher: root.join("src").join("batcher"),
-                proposer: root.join("src").join("proposer"),
-                explorer: root.join("src").join("explorer"),
-            },
-        }
+        Err("Could not find config.toml")
     }
 }

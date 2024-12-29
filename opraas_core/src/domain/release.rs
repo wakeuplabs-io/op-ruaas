@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Release {
-    pub artifact_name: String,
+    pub artifact_name: String, // TODO: rename as component?
     pub artifact_tag: String,
     pub registry_url: String,
 }
