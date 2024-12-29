@@ -6,7 +6,10 @@ use std::collections::HashMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Deployment {
-    pub id: String,
+    pub id: String, // deployment id, holensky, sepolia, mumbai, etc
+    pub owner_id: String,
+
+    // maybe this is a separate object? like metadata, so we load on demand from storage?
     pub release_tag: String,
     pub release_registry: String,
     pub network_config: NetworkConfig,
@@ -16,17 +19,20 @@ pub struct Deployment {
     pub genesis: Option<String>,
     pub rollup_config: Option<String>,
     pub jwt_secret: Option<String>,
-    pub infra_outputs: Option<String>,
+    pub infra_outputs: Option<String>, // TODO: replace with relevant outputs
 }
 
 #[async_trait::async_trait]
 pub trait TDeploymentRepository: Send + Sync {
-    async fn save(&self, deployment: &mut Deployment) -> Result<(), Box<dyn std::error::Error>>;
-    async fn find(&self, id: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>>;
+    async fn find_one(&self, owner_id: &str, id: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>>;
+    async fn list(&self, owner_id: &str) -> Result<Vec<String>, Box<dyn std::error::Error>>;
+    async fn save(&self, deployment: &Deployment) -> Result<(), Box<dyn std::error::Error>>;
+    async fn delete(&self, deployment: &Deployment) -> Result<(), Box<dyn std::error::Error>>;
 }
 
+#[async_trait::async_trait]
 pub trait TInfraDeployerProvider: Send + Sync {
-    fn deploy(
+    async fn deploy(
         &self,
         project: &Project,
         deployment: &mut Deployment,
@@ -59,6 +65,7 @@ pub trait TDeploymentRunner {
 impl Deployment {
     pub fn new<T>(
         id: T,
+        owner_id: T,
         release_tag: T,
         release_registry: T,
         network_config: NetworkConfig,
@@ -69,6 +76,7 @@ impl Deployment {
     {
         Self {
             id: id.into(),
+            owner_id: owner_id.into(),
             release_tag: release_tag.into(),
             release_registry: release_registry.into(),
             network_config,

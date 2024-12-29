@@ -1,43 +1,47 @@
-use axum::{extract::Multipart, http::StatusCode, response::IntoResponse, Extension, Json};
-use opraas_core::application::deployment::inspect_contracts::DeploymentContractsInspectorService;
-use std::{io::Cursor, sync::Arc};
+use axum::{
+    extract::{Multipart, Path},
+    http::StatusCode,
+    response::IntoResponse,
+    Extension,
+};
+use opraas_core::{application::deployment::manager::DeploymentManagerService, domain::Deployment};
+use std::sync::Arc;
+
+use crate::infra::S3DeploymentRepository;
 
 pub async fn create(
-    Extension(contracts_inspector): Extension<Arc<DeploymentContractsInspectorService>>,
+    Extension(deployments_manager): Extension<Arc<DeploymentManagerService<S3DeploymentRepository>>>,
     mut multipart: Multipart,
 ) -> Result<impl IntoResponse, (StatusCode, &'static str)> {
     // takes, chain id and name and stores in user db
     // also stores the infra and contracts artifacts
 
-    // while let Some(field) = multipart
-    //     .next_field()
-    //     .await
-    //     .map_err(|_| (StatusCode::BAD_REQUEST, "Could not find a valid ZIP file"))?
-    // {
-    //     if let Some(filename) = field.file_name() {
-    //         if filename.ends_with(".zip") {
-    //             let data = field
-    //                 .bytes()
-    //                 .await
-    //                 .map_err(|_| (StatusCode::BAD_REQUEST, "Could not find a valid ZIP file"))?;
+    while let Some(field) = multipart.next_field().await.unwrap() {
+        if let Some(_filename) = field.file_name() {
+            let data = field.bytes().await.map_err(|_| {
+                (
+                    StatusCode::BAD_REQUEST,
+                    "Could not find a valid deployment file",
+                )
+            })?;
 
-    //             let result = contracts_inspector
-    //                 .inspect(Cursor::new(data.to_vec()))
-    //                 .map_err(|_| {
-    //                     (
-    //                         StatusCode::INTERNAL_SERVER_ERROR,
-    //                         "Could not find a valid ZIP file",
-    //                     )
-    //                 })?;
+            let mut deployment: Deployment = serde_json::from_slice(&data)
+                .map_err(|_| (StatusCode::BAD_REQUEST, "Could not decode deployment file"))?;
 
-    //             return Ok(Json(result));
-    //         }
-    //     }
-    // }
+            // TODO: set id and store in db as well
+            deployments_manager
+                .save(&mut deployment)
+                .await
+                .map_err(|_| (StatusCode::BAD_REQUEST, "Could not save deployment"))?;
 
-    // Err((StatusCode::BAD_REQUEST, "Could not find a valid ZIP file"))
+            return Ok((StatusCode::OK, "Ok"));
+        }
+    }
 
-    Ok((StatusCode::OK, "Ok"))
+    Err((
+        StatusCode::BAD_REQUEST,
+        "Could not find a valid deployment file",
+    ))
 }
 
 pub async fn get_all() -> Result<impl IntoResponse, (StatusCode, &'static str)> {
@@ -46,10 +50,27 @@ pub async fn get_all() -> Result<impl IntoResponse, (StatusCode, &'static str)> 
     Ok((StatusCode::OK, "Ok"))
 }
 
-pub async fn get_by_id() -> Result<impl IntoResponse, (StatusCode, &'static str)> {
+pub async fn get_by_id(
+    Path(id): Path<String>,
+    Extension(deployments_manager): Extension<Arc<DeploymentManagerService<S3DeploymentRepository>>>,
+) -> Result<impl IntoResponse, (StatusCode, &'static str)> {
     // given chain id returns id, name, inspect result and artifacts download links
 
-    // inspect chain id
+    // let deployment = deployments_manager
+    //     .find(&id)
+    //     .await
+    //     .map_err(|_| {
+    //         (
+    //             StatusCode::NOT_FOUND,
+    //             "Could not find deployment with given id",
+    //         )
+    //     })?
+    //     .ok_or((
+    //         StatusCode::NOT_FOUND,
+    //         "Could not find deployment with given id",
+    //     ))?;
+
+    // turn deployment in json and return
 
     Ok((StatusCode::OK, "Ok"))
 }
@@ -60,8 +81,18 @@ pub async fn update() -> Result<impl IntoResponse, (StatusCode, &'static str)> {
     Ok((StatusCode::OK, "Ok"))
 }
 
-pub async fn delete() -> Result<impl IntoResponse, (StatusCode, &'static str)> {
+pub async fn delete(
+    Path(id): Path<String>,
+    Extension(deployments_manager): Extension<Arc<DeploymentManagerService<S3DeploymentRepository>>>,
+) -> Result<impl IntoResponse, (StatusCode, &'static str)> {
     // deletes chain and all associated data
+
+    // verify deployment is owned by user
+
+    // deployments_manager
+    //     .delete(&id)
+    //     .await
+    //     .map_err(|_| (StatusCode::BAD_REQUEST, "Could not delete deployment"))?;
 
     Ok((StatusCode::OK, "Ok"))
 }

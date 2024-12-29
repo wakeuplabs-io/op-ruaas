@@ -10,10 +10,8 @@ use colored::*;
 use indicatif::ProgressBar;
 use opraas_core::{
     application::deployment::{
-        deploy_contracts::{ContractsDeployerService, TContractsDeployerService},
-        deploy_infra::{InfraDeployerService, TInfraDeployerService},
-        inspect_contracts::{DeploymentContractsInspectorService, TDeploymentContractsInspectorService},
-        inspect_infra::{DeploymentInfraInspectorService, TDeploymentInfraInspectorService},
+        deploy_contracts::ContractsDeployerService, deploy_infra::InfraDeployerService,
+        manager::DeploymentManagerService,
     },
     config::CoreConfig,
     domain::{Deployment, ProjectFactory, TProjectFactory},
@@ -33,12 +31,12 @@ pub enum DeployTarget {
 
 pub struct DeployCommand {
     dialoguer: Box<dyn TDialoguer>,
-    contracts_deployer: Box<dyn TContractsDeployerService>,
-    contracts_inspector: Box<dyn TDeploymentContractsInspectorService>,
-    infra_deployer: Box<dyn TInfraDeployerService>,
-    infra_inspector: Box<dyn TDeploymentInfraInspectorService>,
+    contracts_deployer: ContractsDeployerService<InMemoryDeploymentRepository, DockerContractsDeployer>,
+    infra_deployer:
+        InfraDeployerService<TerraformDeployer, InMemoryDeploymentRepository, InMemoryProjectInfraRepository>,
     system_requirement_checker: Box<dyn TSystemRequirementsChecker>,
     project_factory: Box<dyn TProjectFactory>,
+    deployments_manager: DeploymentManagerService<InMemoryDeploymentRepository>,
 }
 
 // implementations ================================================
@@ -52,24 +50,19 @@ impl DeployCommand {
 
         Self {
             dialoguer: Box::new(Dialoguer::new()),
-            contracts_deployer: Box::new(ContractsDeployerService::new(
-                Box::new(InMemoryDeploymentRepository::new(&project.root)),
-                Box::new(DockerContractsDeployer::new(
+            contracts_deployer: ContractsDeployerService::new(
+                InMemoryDeploymentRepository::new(&project.root),
+                DockerContractsDeployer::new(
                     Box::new(DockerReleaseRepository::new()),
                     Box::new(DockerReleaseRunner::new()),
-                )),
-            )),
-            contracts_inspector: Box::new(DeploymentContractsInspectorService::new(Box::new(
+                ),
+            ),
+            infra_deployer: InfraDeployerService::new(
+                TerraformDeployer::new(),
                 InMemoryDeploymentRepository::new(&project.root),
-            ))),
-            infra_deployer: Box::new(InfraDeployerService::new(
-                Box::new(TerraformDeployer::new()),
-                Box::new(InMemoryDeploymentRepository::new(&project.root)),
-                Box::new(InMemoryProjectInfraRepository::new()),
-            )),
-            infra_inspector: Box::new(DeploymentInfraInspectorService::new(Box::new(
-                InMemoryDeploymentRepository::new(&project.root),
-            ))),
+                InMemoryProjectInfraRepository::new(),
+            ),
+            deployments_manager: DeploymentManagerService::new(InMemoryDeploymentRepository::new(&project.root)),
             system_requirement_checker: Box::new(SystemRequirementsChecker::new()),
             project_factory,
         }
@@ -131,7 +124,8 @@ impl DeployCommand {
             let contracts_deployer_spinner = style_spinner(ProgressBar::new_spinner(), "Deploying contracts...");
 
             let mut deployment = Deployment::new(
-                &id,
+                id.as_ref(),
+                "root",
                 &release_tag,
                 &release_registry,
                 config.network,
@@ -154,8 +148,8 @@ impl DeployCommand {
 
         if matches!(target, DeployTarget::Infra | DeployTarget::All) {
             let mut deployment = self
-                .contracts_inspector
-                .find(&id)
+                .deployments_manager
+                .find_one("root", &id)
                 .await?
                 .expect("Contracts deployment not found");
 
@@ -180,31 +174,31 @@ impl DeployCommand {
 
         print!("\x1B[2J\x1B[1;1H");
 
-        if matches!(target, DeployTarget::Contracts | DeployTarget::All) {
-            let deployment = self
-                .contracts_inspector
-                .find(&id)
-                .await?
-                .ok_or("Deployment not found")?;
+        // if matches!(target, DeployTarget::Contracts | DeployTarget::All) {
+        //     let deployment = self
+        //         .deployments_manager
+        //         .find_one("root", &id)
+        //         .await?
+        //         .ok_or("Deployment not found")?;
 
-            println!(
-                "{}",
-                serde_json::to_string_pretty(&self.contracts_inspector.inspect(&deployment).await?)?
-            );
-        }
+        //     println!(
+        //         "{}",
+        //         serde_json::to_string_pretty(&self.contracts_inspector.inspect(&deployment).await?)?
+        //     );
+        // }
 
-        if matches!(target, DeployTarget::Infra | DeployTarget::All) {
-            let deployment = self
-                .infra_inspector
-                .find(&id)
-                .await?
-                .ok_or("Deployment not found")?;
+        // if matches!(target, DeployTarget::Infra | DeployTarget::All) {
+        //     let deployment = self
+        //         .infra_inspector
+        //         .find(&id)
+        //         .await?
+        //         .ok_or("Deployment not found")?;
 
-            println!(
-                "{}",
-                serde_json::to_string_pretty(&self.infra_inspector.inspect(&deployment).await?)?
-            );
-        }
+        //     println!(
+        //         "{}",
+        //         serde_json::to_string_pretty(&self.infra_inspector.inspect(&deployment).await?)?
+        //     );
+        // }
 
         // print instructions
 

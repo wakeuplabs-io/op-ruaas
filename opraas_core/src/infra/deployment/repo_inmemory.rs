@@ -16,8 +16,12 @@ struct ReleaseMetadata {
 
 #[async_trait::async_trait]
 impl domain::deployment::TDeploymentRepository for InMemoryDeploymentRepository {
-    async fn find(&self, id: &str) -> Result<Option<domain::Deployment>, Box<dyn std::error::Error>> {
-        let depl_path = self.root.join(format!("{}.json", id));
+    async fn find_one(
+        &self,
+        owner_id: &str,
+        id: &str,
+    ) -> Result<Option<domain::Deployment>, Box<dyn std::error::Error>> {
+        let depl_path = self.root.join(format!("{}-{}.json", owner_id, id));
         let exists = std::fs::exists(&depl_path).unwrap_or(false);
         if !exists {
             return Ok(None);
@@ -29,13 +33,42 @@ impl domain::deployment::TDeploymentRepository for InMemoryDeploymentRepository 
         Ok(Some(deployment))
     }
 
-    async fn save(&self, deployment: &mut Deployment) -> Result<(), Box<dyn std::error::Error>> {
+    async fn list(&self, owner_id: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+        let mut deployments = Vec::new();
+
+        for entry in fs::read_dir(&self.root)? {
+            let entry = entry?;
+            let path = entry.path();
+
+            if !path.is_file() {
+                continue;
+            }
+
+            let filename = path.file_name().unwrap().to_str().unwrap();
+            if filename.starts_with(format!("{}-", owner_id).as_str()) {
+                deployments.push(String::from(filename));
+            }
+        }
+
+        Ok(deployments)
+    }
+
+    async fn save(&self, deployment: &Deployment) -> Result<(), Box<dyn std::error::Error>> {
         let serialized = serde_json::to_string_pretty(&deployment)?;
         fs::write(
-            self.root.join(format!("{}.json", deployment.id)),
+            self.root
+                .join(format!("{}-{}.json", deployment.owner_id, deployment.id)),
             serialized,
         )?;
 
+        Ok(())
+    }
+
+    async fn delete(&self, deployment: &Deployment) -> Result<(), Box<dyn std::error::Error>> {
+        fs::remove_file(
+            self.root
+                .join(format!("{}-{}.json", deployment.owner_id, deployment.id)),
+        )?;
         Ok(())
     }
 }

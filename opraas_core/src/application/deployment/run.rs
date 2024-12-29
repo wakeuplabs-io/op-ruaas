@@ -2,38 +2,28 @@ use crate::domain::{Deployment, Project, TDeploymentRunner, TProjectInfraReposit
 use serde_yaml::Value;
 use std::collections::HashMap;
 
-pub struct DeploymentRunnerService {
-    deployment_runner: Box<dyn TDeploymentRunner>,
-    project_infra_repository: Box<dyn TProjectInfraRepository>,
+pub struct DeploymentRunnerService<DR, PIR>
+where
+    DR: TDeploymentRunner,
+    PIR: TProjectInfraRepository,
+{
+    deployment_runner: DR,
+    project_infra_repository: PIR,
 }
 
-pub trait TDeploymentRunnerService {
-    fn run(
-        &self,
-        project: &Project,
-        deployment: &Deployment,
-        monitoring: bool,
-        explorer: bool,
-    ) -> Result<(), Box<dyn std::error::Error>>;
-    fn stop(&self) -> Result<(), Box<dyn std::error::Error>>;
-}
-
-// implementations ===================================================
-
-impl DeploymentRunnerService {
-    pub fn new(
-        deployment_runner: Box<dyn TDeploymentRunner>,
-        project_infra_repository: Box<dyn TProjectInfraRepository>,
-    ) -> Self {
+impl<DR, PIR> DeploymentRunnerService<DR, PIR>
+where
+    DR: TDeploymentRunner,
+    PIR: TProjectInfraRepository,
+{
+    pub fn new(deployment_runner: DR, project_infra_repository: PIR) -> Self {
         Self {
-            deployment_runner: deployment_runner,
-            project_infra_repository: project_infra_repository,
+            deployment_runner,
+            project_infra_repository,
         }
     }
-}
 
-impl TDeploymentRunnerService for DeploymentRunnerService {
-    fn run(
+    pub fn run(
         &self,
         project: &Project,
         deployment: &Deployment,
@@ -51,7 +41,7 @@ impl TDeploymentRunnerService for DeploymentRunnerService {
         Ok(())
     }
 
-    fn stop(&self) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn stop(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.deployment_runner.stop()?;
 
         Ok(())

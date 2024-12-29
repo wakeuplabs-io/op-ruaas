@@ -7,10 +7,7 @@ use crate::{
 use assert_cmd::Command;
 use indicatif::ProgressBar;
 use opraas_core::{
-    application::deployment::{
-        deploy_contracts::{ContractsDeployerService, TContractsDeployerService},
-        run::{DeploymentRunnerService, TDeploymentRunnerService},
-    },
+    application::deployment::{deploy_contracts::ContractsDeployerService, run::DeploymentRunnerService},
     config::CoreConfig,
     domain::{Deployment, ProjectFactory, TProjectFactory},
     infra::{
@@ -28,9 +25,9 @@ use std::time::Duration;
 pub struct DevCommand {
     dialoguer: Box<dyn TDialoguer>,
     l1_node: Box<dyn TTestnetNode>,
-    deployment_runner: Box<dyn TDeploymentRunnerService>,
+    deployment_runner: DeploymentRunnerService<HelmDeploymentRunner, InMemoryProjectInfraRepository>,
     system_requirement_checker: Box<dyn TSystemRequirementsChecker>,
-    contracts_deployer: Box<dyn TContractsDeployerService>,
+    contracts_deployer: ContractsDeployerService<InMemoryDeploymentRepository, DockerContractsDeployer>,
     project_factory: Box<dyn TProjectFactory>,
 }
 
@@ -47,18 +44,18 @@ impl DevCommand {
         Self {
             dialoguer: Box::new(Dialoguer::new()),
             l1_node: Box::new(GethTestnetNode::new()),
-            deployment_runner: Box::new(DeploymentRunnerService::new(
-                Box::new(HelmDeploymentRunner::new("opruaas-dev", "opruaas-dev")),
-                Box::new(InMemoryProjectInfraRepository::new()),
-            )),
+            deployment_runner: DeploymentRunnerService::new(
+                HelmDeploymentRunner::new("opruaas-dev", "opruaas-dev"),
+                InMemoryProjectInfraRepository::new(),
+            ),
             system_requirement_checker: Box::new(SystemRequirementsChecker::new()),
-            contracts_deployer: Box::new(ContractsDeployerService::new(
-                Box::new(InMemoryDeploymentRepository::new(&project.root)),
-                Box::new(DockerContractsDeployer::new(
+            contracts_deployer: ContractsDeployerService::new(
+                InMemoryDeploymentRepository::new(&project.root),
+                DockerContractsDeployer::new(
                     Box::new(DockerReleaseRepository::new()),
                     Box::new(DockerReleaseRunner::new()),
-                )),
-            )),
+                ),
+            ),
             project_factory,
         }
     }
@@ -148,6 +145,7 @@ impl DevCommand {
 
         let mut deployment = Deployment::new(
             "dev",
+            "root",
             &release_tag,
             &release_registry,
             config.network,

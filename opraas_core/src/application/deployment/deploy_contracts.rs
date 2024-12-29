@@ -1,38 +1,27 @@
 use crate::domain::{self, Deployment, Project};
 
-pub struct ContractsDeployerService {
-    deployment_repository: Box<dyn domain::deployment::TDeploymentRepository>,
-    contracts_deployer: Box<dyn domain::deployment::TContractsDeployerProvider>,
+pub struct ContractsDeployerService<R, T>
+where
+    R: domain::deployment::TDeploymentRepository,
+    T: domain::deployment::TContractsDeployerProvider,
+{
+    deployment_repository: R,
+    contracts_deployer: T,
 }
 
-#[async_trait::async_trait]
-pub trait TContractsDeployerService: Send + Sync {
-    async fn deploy(
-        &self,
-        project: &Project,
-        deployment: &mut Deployment,
-        deploy_deterministic_deployer: bool,
-        slow: bool,
-    ) -> Result<(), Box<dyn std::error::Error>>;
-}
-
-// implementations ===================================================
-
-impl ContractsDeployerService {
-    pub fn new(
-        deployment_repository: Box<dyn domain::deployment::TDeploymentRepository>,
-        contracts_deployer: Box<dyn domain::deployment::TContractsDeployerProvider>,
-    ) -> Self {
+impl<R, T> ContractsDeployerService<R, T>
+where
+    R: domain::deployment::TDeploymentRepository,
+    T: domain::deployment::TContractsDeployerProvider,
+{
+    pub fn new(deployment_repository: R, contracts_deployer: T) -> Self {
         Self {
             contracts_deployer,
             deployment_repository,
         }
     }
-}
 
-#[async_trait::async_trait]
-impl TContractsDeployerService for ContractsDeployerService {
-    async fn deploy(
+    pub async fn deploy(
         &self,
         project: &Project,
         deployment: &mut Deployment,

@@ -112,8 +112,9 @@ impl TerraformDeployer {
     }
 }
 
+#[async_trait::async_trait]
 impl TInfraDeployerProvider for TerraformDeployer {
-    fn deploy(
+    async fn deploy(
         &self,
         project: &Project,
         deployment: &mut Deployment,
