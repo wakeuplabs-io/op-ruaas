@@ -3,7 +3,7 @@ use crate::infra::console::{print_error, style_spinner};
 use clap::ValueEnum;
 use colored::*;
 use indicatif::{HumanDuration, ProgressBar};
-use opraas_core::application::initialize::{ArtifactInitializer, TArtifactInitializerService};
+use opraas_core::application::initialize::ArtifactInitializer;
 use opraas_core::config::CoreConfig;
 use opraas_core::domain::{ArtifactFactory, ArtifactKind, ProjectFactory, TArtifactFactory, TProjectFactory};
 use opraas_core::infra::artifact::GitArtifactSourceRepository;
@@ -22,7 +22,7 @@ pub enum InitTargets {
 pub struct InitCommand {
     artifacts_factory: Box<dyn TArtifactFactory>,
     system_requirement_checker: Box<dyn TSystemRequirementsChecker>,
-    artifact_initializer: Arc<dyn TArtifactInitializerService>,
+    artifact_initializer: Arc<ArtifactInitializer<GitArtifactSourceRepository>>,
     project_factory: Box<dyn TProjectFactory>,
 }
 
@@ -33,9 +33,7 @@ impl InitCommand {
         Self {
             artifacts_factory: Box::new(ArtifactFactory::new()),
             system_requirement_checker: Box::new(SystemRequirementsChecker::new()),
-            artifact_initializer: Arc::new(ArtifactInitializer::new(Box::new(
-                GitArtifactSourceRepository::new(),
-            ))),
+            artifact_initializer: Arc::new(ArtifactInitializer::new(GitArtifactSourceRepository::new())),
             project_factory: Box::new(ProjectFactory::new()),
         }
     }

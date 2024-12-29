@@ -1,24 +1,22 @@
 use crate::domain;
 use crate::domain::artifact::Artifact;
 
-pub struct ArtifactInitializer {
-    source_repository: Box<dyn domain::artifact::TArtifactSourceRepository>,
+pub struct ArtifactInitializer<SR>
+where
+    SR: domain::artifact::TArtifactSourceRepository,
+{
+    source_repository: SR,
 }
 
-pub trait TArtifactInitializerService: Send + Sync {
-    fn initialize(&self, artifact: &Artifact) -> Result<(), Box<dyn std::error::Error>>;
-}
-
-// implementations =================================================
-
-impl ArtifactInitializer {
-    pub fn new(source_repository: Box<dyn domain::artifact::TArtifactSourceRepository>) -> Self {
+impl<SR> ArtifactInitializer<SR>
+where
+    SR: domain::artifact::TArtifactSourceRepository,
+{
+    pub fn new(source_repository: SR) -> Self {
         Self { source_repository }
     }
-}
 
-impl TArtifactInitializerService for ArtifactInitializer {
-    fn initialize(&self, artifact: &Artifact) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn initialize(&self, artifact: &Artifact) -> Result<(), Box<dyn std::error::Error>> {
         if self.source_repository.exists(artifact) {
             return Ok(());
         }
@@ -32,7 +30,7 @@ impl TArtifactInitializerService for ArtifactInitializer {
 #[cfg(test)]
 mod tests {
     use crate::{
-        application::{ArtifactInitializer, TArtifactInitializerService},
+        application::ArtifactInitializer,
         domain::{Artifact, ArtifactData, MockTArtifactSourceRepository},
     };
     use std::path::PathBuf;
@@ -54,7 +52,7 @@ mod tests {
         mock_source_repo.expect_pull().never();
 
         let service = ArtifactInitializer {
-            source_repository: Box::new(mock_source_repo),
+            source_repository: mock_source_repo,
         };
 
         let result = service.initialize(&artifact);
@@ -78,7 +76,7 @@ mod tests {
         mock_source_repo.expect_pull().returning(|_| Ok(()));
 
         let service = ArtifactInitializer {
-            source_repository: Box::new(mock_source_repo),
+            source_repository: mock_source_repo,
         };
 
         let result = service.initialize(&artifact);

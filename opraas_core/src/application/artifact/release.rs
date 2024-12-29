@@ -1,28 +1,21 @@
 use crate::domain::{self, artifact::Artifact, Release};
 
-pub struct ArtifactReleaserService {
-    release_repository: Box<dyn domain::release::TReleaseRepository>,
+pub struct ArtifactReleaserService<T>
+where
+    T: domain::release::TReleaseRepository,
+{
+    release_repository: T,
 }
 
-pub trait TArtifactReleaserService: Send + Sync {
-    fn release(
-        &self,
-        artifact: &Artifact,
-        release_name: &str,
-        registry_url: &str,
-    ) -> Result<Release, Box<dyn std::error::Error>>;
-}
-
-// implementations ======================================================
-
-impl ArtifactReleaserService {
-    pub fn new(release_repository: Box<dyn domain::release::TReleaseRepository>) -> Self {
+impl<T> ArtifactReleaserService<T>
+where
+    T: domain::release::TReleaseRepository,
+{
+    pub fn new(release_repository: T) -> Self {
         Self { release_repository }
     }
-}
 
-impl TArtifactReleaserService for ArtifactReleaserService {
-    fn release(
+    pub fn release(
         &self,
         artifact: &Artifact,
         release_name: &str,
@@ -35,7 +28,7 @@ impl TArtifactReleaserService for ArtifactReleaserService {
 
 #[cfg(test)]
 mod test {
-    use super::{ArtifactReleaserService, TArtifactReleaserService};
+    use super::ArtifactReleaserService;
     use crate::domain::{Artifact, ArtifactData, MockTReleaseRepository, Release};
     use std::path::PathBuf;
 
@@ -62,7 +55,7 @@ mod test {
             });
 
         let service = ArtifactReleaserService {
-            release_repository: Box::new(mock_release_repository),
+            release_repository: mock_release_repository,
         };
 
         let result = service.release(&artifact, "release_name", "wakeuplabs");

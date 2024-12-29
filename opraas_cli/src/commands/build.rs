@@ -5,7 +5,7 @@ use crate::{
 use colored::*;
 use indicatif::{HumanDuration, ProgressBar};
 use opraas_core::{
-    application::build::{ArtifactBuilderService, TArtifactBuilderService},
+    application::build::ArtifactBuilderService,
     config::CoreConfig,
     domain::{ArtifactFactory, ArtifactKind, ProjectFactory, TArtifactFactory, TProjectFactory},
     infra::artifact::{DockerArtifactRepository, GitArtifactSourceRepository},
@@ -14,7 +14,7 @@ use std::{sync::Arc, thread, time::Instant};
 
 pub struct BuildCommand {
     artifacts_factory: Box<dyn TArtifactFactory>,
-    artifacts_builder: Arc<dyn TArtifactBuilderService>,
+    artifacts_builder: Arc<ArtifactBuilderService<DockerArtifactRepository, GitArtifactSourceRepository>>,
     system_requirements_checker: Box<dyn TSystemRequirementsChecker>,
     project_factory: Box<dyn TProjectFactory>,
 }
@@ -36,8 +36,8 @@ impl BuildCommand {
         Self {
             artifacts_factory: Box::new(ArtifactFactory::new()),
             artifacts_builder: Arc::new(ArtifactBuilderService::new(
-                Box::new(DockerArtifactRepository::new()),
-                Box::new(GitArtifactSourceRepository::new()),
+                DockerArtifactRepository::new(),
+                GitArtifactSourceRepository::new(),
             )),
             system_requirements_checker: Box::new(SystemRequirementsChecker::new()),
             project_factory: Box::new(ProjectFactory::new()),

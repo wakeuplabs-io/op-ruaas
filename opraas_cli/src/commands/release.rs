@@ -6,7 +6,7 @@ use clap::ValueEnum;
 use colored::*;
 use indicatif::{HumanDuration, ProgressBar};
 use opraas_core::{
-    application::{ArtifactReleaserService, TArtifactReleaserService},
+    application::ArtifactReleaserService,
     config::CoreConfig,
     domain::{
         ArtifactFactory, ArtifactKind, ProjectFactory, TArtifactFactory, TProjectFactory, TProjectVersionControl,
@@ -20,7 +20,7 @@ pub struct ReleaseCommand {
     dialoguer: Box<dyn TDialoguer>,
     system_requirements_checker: Box<dyn TSystemRequirementsChecker>,
     artifacts_factory: Box<dyn TArtifactFactory>,
-    artifacts_releaser: Arc<dyn TArtifactReleaserService>,
+    artifacts_releaser: Arc<ArtifactReleaserService<DockerReleaseRepository>>,
     project_factory: Box<dyn TProjectFactory>,
 }
 
@@ -43,9 +43,7 @@ impl ReleaseCommand {
             dialoguer: Box::new(Dialoguer::new()),
             system_requirements_checker: Box::new(SystemRequirementsChecker::new()),
             artifacts_factory: Box::new(ArtifactFactory::new()),
-            artifacts_releaser: Arc::new(ArtifactReleaserService::new(Box::new(
-                DockerReleaseRepository::new(),
-            ))),
+            artifacts_releaser: Arc::new(ArtifactReleaserService::new(DockerReleaseRepository::new())),
             project_factory: Box::new(ProjectFactory::new()),
         }
     }
