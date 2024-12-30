@@ -1,6 +1,12 @@
-use crate::domain::{self, Deployment, Project, Release, TContractsDeployerProvider};
+use crate::domain::{self, Deployment, DeploymentArtifact, Project, Release, TContractsDeployerProvider};
 use rand::Rng;
-use std::{collections::HashMap, fs};
+use std::{
+    collections::HashMap,
+    fs::{self, File},
+    io::Read,
+    thread::sleep,
+    time,
+};
 use tempfile::TempDir;
 
 pub struct DockerContractsDeployer {
@@ -9,11 +15,6 @@ pub struct DockerContractsDeployer {
 }
 
 const IN_NETWORK: &str = "in/deploy-config.json";
-const OUT_ADDRESSES: &str = "out/addresses.json";
-const OUT_ALLOCS: &str = "out/allocs-l2.json";
-const OUT_GENESIS: &str = "out/genesis.json";
-const OUT_ROLLUP_CONFIG: &str = "out/rollup-config.json";
-const OUT_JWT_SECRET: &str = "out/jwt-secret.txt";
 
 // implementations ===================================================
 
@@ -37,7 +38,7 @@ impl TContractsDeployerProvider for DockerContractsDeployer {
         deployment: &mut Deployment,
         deploy_deterministic_deployer: bool,
         slow: bool,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<DeploymentArtifact, Box<dyn std::error::Error>> {
         // we'll create a shared volume to share data with the contracts deployer
         let volume_dir: TempDir = TempDir::new()?; // automatically removed when dropped from scope
         std::fs::create_dir_all(volume_dir.path().join("out"))?;
@@ -50,7 +51,6 @@ impl TContractsDeployerProvider for DockerContractsDeployer {
             deployment.build_deploy_config()?,
         )?;
 
-        // create environment
         let mut env: HashMap<&str, String> = HashMap::new();
 
         #[rustfmt::skip]
@@ -65,16 +65,6 @@ impl TContractsDeployerProvider for DockerContractsDeployer {
          env.insert("DEPLOY_DETERMINISTIC_DEPLOYER",deploy_deterministic_deployer.to_string());
         #[rustfmt::skip]
          env.insert("SLOW_ARG", if slow { "--slow" } else { "" }.to_string());
-        #[rustfmt::skip]
-         env.insert("OUT_ADDRESSES", format!("/shared/{}", OUT_ADDRESSES.to_string()));
-        #[rustfmt::skip]
-         env.insert("OUT_GENESIS", format!("/shared/{}", OUT_GENESIS.to_string()));
-        #[rustfmt::skip]
-         env.insert("OUT_ALLOCS", format!("/shared/{}", OUT_ALLOCS.to_string()));
-        #[rustfmt::skip]
-         env.insert("OUT_JWT_SECRET", format!("/shared/{}", OUT_JWT_SECRET.to_string()));
-        #[rustfmt::skip]
-         env.insert("OUT_ROLLUP_CONFIG", format!("/shared/{}", OUT_ROLLUP_CONFIG.to_string()));
 
         let contracts_release = Release {
             artifact_name: "op-contracts".to_string(),
@@ -87,14 +77,12 @@ impl TContractsDeployerProvider for DockerContractsDeployer {
         self.release_runner.run(&contracts_release, volume, env)?;
 
         // Load outputs into deployment
-        deployment.addresses = Some(fs::read_to_string(&volume_dir.path().join(OUT_ADDRESSES))?);
-        deployment.allocs = Some(fs::read_to_string(&volume_dir.path().join(OUT_ALLOCS))?);
-        deployment.genesis = Some(fs::read_to_string(&volume_dir.path().join(OUT_GENESIS))?);
-        deployment.jwt_secret = Some(fs::read_to_string(&volume_dir.path().join(OUT_JWT_SECRET))?);
-        deployment.rollup_config = Some(fs::read_to_string(
-            &volume_dir.path().join(OUT_ROLLUP_CONFIG),
-        )?);
+        let mut artifacts_zip = File::open(volume_dir.path().join("out").join("artifacts.zip"))?;
+        let mut artifacts_zip_buffer = Vec::new();
+        artifacts_zip.read_to_end(&mut artifacts_zip_buffer)?;
 
-        Ok(())
+        println!("Contracts deployer output: {}", artifacts_zip_buffer.len());
+
+        Ok(artifacts_zip_buffer)
     }
 }

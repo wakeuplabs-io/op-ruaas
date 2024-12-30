@@ -16,7 +16,10 @@ use opraas_core::{
     config::CoreConfig,
     domain::{Deployment, Project},
     infra::{
-        deployment::{DockerContractsDeployer, InMemoryDeploymentRepository, TerraformDeployer},
+        deployment::{
+            DockerContractsDeployer, InMemoryDeploymentArtifactsRepository, InMemoryDeploymentRepository,
+            TerraformDeployer,
+        },
         project::InMemoryProjectInfraRepository,
         release::{DockerReleaseRepository, DockerReleaseRunner},
     },
@@ -31,7 +34,11 @@ pub enum DeployTarget {
 
 pub struct DeployCommand {
     dialoguer: Dialoguer,
-    contracts_deployer: ContractsDeployerService<InMemoryDeploymentRepository, DockerContractsDeployer>,
+    contracts_deployer: ContractsDeployerService<
+        InMemoryDeploymentRepository,
+        InMemoryDeploymentArtifactsRepository,
+        DockerContractsDeployer,
+    >,
     infra_deployer:
         InfraDeployerService<TerraformDeployer, InMemoryDeploymentRepository, InMemoryProjectInfraRepository>,
     system_requirement_checker: SystemRequirementsChecker,
@@ -48,13 +55,16 @@ impl DeployCommand {
             dialoguer: Dialoguer::new(),
             contracts_deployer: ContractsDeployerService::new(
                 InMemoryDeploymentRepository::new(&project.root),
+                InMemoryDeploymentArtifactsRepository::new(&project.root),
                 DockerContractsDeployer::new(
                     Box::new(DockerReleaseRepository::new()),
                     Box::new(DockerReleaseRunner::new()),
                 ),
             ),
             infra_deployer: InfraDeployerService::new(
-                TerraformDeployer::new(),
+                TerraformDeployer::new(Box::new(InMemoryDeploymentArtifactsRepository::new(
+                    &project.root,
+                ))),
                 InMemoryDeploymentRepository::new(&project.root),
                 InMemoryProjectInfraRepository::new(),
             ),

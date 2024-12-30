@@ -6,18 +6,18 @@ use clap::ValueEnum;
 use colored::*;
 use indicatif::{HumanDuration, ProgressBar};
 use opraas_core::{
-    application::ArtifactReleaserService,
+    application::{ArtifactReleaserService, VersionControlProjectService},
     config::CoreConfig,
-    domain::{ArtifactFactory, ArtifactKind, Project, TProjectVersionControl},
+    domain::{ArtifactFactory, ArtifactKind, Project},
     infra::{project::GitVersionControl, release::DockerReleaseRepository},
 };
 use std::{sync::Arc, thread, time::Instant};
 
 pub struct ReleaseCommand {
-    version_control: Box<dyn TProjectVersionControl>, // TODO: wrong, should come from application
     dialoguer: Dialoguer,
     system_requirements_checker: SystemRequirementsChecker,
     artifacts_releaser: Arc<ArtifactReleaserService<DockerReleaseRepository>>,
+    version_control_project: VersionControlProjectService<GitVersionControl>,
 }
 
 #[derive(Debug, Clone, ValueEnum)]
@@ -35,10 +35,10 @@ pub enum ReleaseTargets {
 impl ReleaseCommand {
     pub fn new() -> Self {
         Self {
-            version_control: Box::new(GitVersionControl::new()),
             dialoguer: Dialoguer::new(),
             system_requirements_checker: SystemRequirementsChecker::new(),
             artifacts_releaser: Arc::new(ArtifactReleaserService::new(DockerReleaseRepository::new())),
+            version_control_project: VersionControlProjectService::new(GitVersionControl::new()),
         }
     }
 
@@ -63,7 +63,7 @@ impl ReleaseCommand {
             .dialoguer
             .confirm("Would you also like to tag your local git repository?")
         {
-            self.version_control.tag(&project.root, &release_name)?;
+            self.version_control_project.tag(&project, &release_name)?;
         }
 
         // Iterate over the artifacts and release =========================

@@ -11,7 +11,10 @@ use opraas_core::{
     config::CoreConfig,
     domain::{Deployment, Project},
     infra::{
-        deployment::{DockerContractsDeployer, HelmDeploymentRunner, InMemoryDeploymentRepository},
+        deployment::{
+            DockerContractsDeployer, HelmDeploymentRunner, InMemoryDeploymentArtifactsRepository,
+            InMemoryDeploymentRepository,
+        },
         ethereum::{GethTestnetNode, TTestnetNode},
         project::InMemoryProjectInfraRepository,
         release::{DockerReleaseRepository, DockerReleaseRunner},
@@ -27,7 +30,11 @@ pub struct DevCommand {
     l1_node: Box<dyn TTestnetNode>,
     deployment_runner: DeploymentRunnerService<HelmDeploymentRunner, InMemoryProjectInfraRepository>,
     system_requirement_checker: SystemRequirementsChecker,
-    contracts_deployer: ContractsDeployerService<InMemoryDeploymentRepository, DockerContractsDeployer>,
+    contracts_deployer: ContractsDeployerService<
+        InMemoryDeploymentRepository,
+        InMemoryDeploymentArtifactsRepository,
+        DockerContractsDeployer,
+    >,
 }
 
 const DEFAULT_REGISTRY: &str = "wakeuplabs";
@@ -43,12 +50,17 @@ impl DevCommand {
             dialoguer: Dialoguer::new(),
             l1_node: Box::new(GethTestnetNode::new()),
             deployment_runner: DeploymentRunnerService::new(
-                HelmDeploymentRunner::new("opruaas-dev", "opruaas-dev"),
+                HelmDeploymentRunner::new(
+                    "opruaas-dev",
+                    "opruaas-dev",
+                    Box::new(InMemoryDeploymentArtifactsRepository::new(&project.root)),
+                ),
                 InMemoryProjectInfraRepository::new(),
             ),
             system_requirement_checker: SystemRequirementsChecker::new(),
             contracts_deployer: ContractsDeployerService::new(
                 InMemoryDeploymentRepository::new(&project.root),
+                InMemoryDeploymentArtifactsRepository::new(&project.root),
                 DockerContractsDeployer::new(
                     Box::new(DockerReleaseRepository::new()),
                     Box::new(DockerReleaseRunner::new()),
@@ -163,7 +175,8 @@ impl DevCommand {
         );
 
         self.deployment_runner
-            .run(&project, &deployment, enable_monitoring, enable_explorer)?;
+            .run(&project, &deployment, enable_monitoring, enable_explorer)
+            .await?;
 
         infra_spinner.finish_with_message("✔️ Infra installed...");
 

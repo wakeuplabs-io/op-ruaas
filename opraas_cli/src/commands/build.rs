@@ -12,11 +12,6 @@ use opraas_core::{
 };
 use std::{sync::Arc, thread, time::Instant};
 
-pub struct BuildCommand {
-    artifacts_builder: Arc<ArtifactBuilderService<DockerArtifactRepository, GitArtifactSourceRepository>>,
-    system_requirements_checker: SystemRequirementsChecker,
-}
-
 #[derive(Debug, Clone, clap::ValueEnum)]
 pub enum BuildTargets {
     Batcher,
@@ -27,7 +22,10 @@ pub enum BuildTargets {
     All,
 }
 
-// implementations ================================================
+pub struct BuildCommand {
+    artifacts_builder: Arc<ArtifactBuilderService<DockerArtifactRepository, GitArtifactSourceRepository>>,
+    system_requirements_checker: SystemRequirementsChecker,
+}
 
 impl BuildCommand {
     pub fn new() -> Self {

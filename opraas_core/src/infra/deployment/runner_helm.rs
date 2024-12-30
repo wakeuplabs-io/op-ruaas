@@ -10,20 +10,106 @@ use std::{
     io::Write,
     process::Command,
 };
-use zip::write::FileOptions;
 
 pub struct HelmDeploymentRunner {
     release_tag: String,
     namespace: String,
+    deployment_artifact_repository: Box<dyn crate::domain::TDeploymentArtifactsRepository>,
 }
 
-// implementations ============================================================
+#[async_trait::async_trait]
+impl TDeploymentRunner for HelmDeploymentRunner {
+    async fn run(
+        &self,
+        project: &Project,
+        deployment: &Deployment,
+        values: &HashMap<&str, Value>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        // add repos, install pre-requisites and build dependencies
+        self.build_dependencies(project)?;
+
+        // create .tmp folder
+        let helm_tmp_folder = project.infra.helm.join(".tmp");
+        let _ = fs::remove_dir_all(&helm_tmp_folder);
+        fs::create_dir_all(&helm_tmp_folder)?;
+
+        // create values file from stack
+        let values_file = helm_tmp_folder.join("values.yaml");
+        self.create_values_file(project, deployment, &values, &values_file)?;
+
+        // create artifacts.zip and addresses.json in helm so it can be loaded by it
+        let deployment_artifacts = self
+            .deployment_artifact_repository
+            .find_one(deployment)
+            .await?
+            .ok_or("No deployment artifacts found")?;
+
+        File::create(helm_tmp_folder.join("artifacts.zip"))?.write_all(&deployment_artifacts)?;
+
+        fs::write(
+            helm_tmp_folder.join("addresses.json"),
+            deployment
+                .contracts_addresses
+                .as_ref()
+                .ok_or("No deployment addresses found")?,
+        )?;
+
+        // install core infrastructure
+
+        system::execute_command(
+            Command::new("helm")
+                .arg("install")
+                .arg(format!("op-ruaas-runner-{}", &self.release_tag))
+                .arg("-f")
+                .arg(values_file.to_str().unwrap())
+                .arg("--namespace")
+                .arg(&self.namespace)
+                .arg("--create-namespace")
+                .arg(project.infra.helm.to_str().unwrap()),
+            false,
+        )?;
+
+        self.wait_for_running_release(&self.namespace)?;
+
+        Ok(())
+    }
+
+    fn stop(&self) -> Result<(), Box<dyn std::error::Error>> {
+        let running_releases = system::execute_command(
+            Command::new("helm")
+                .arg("list")
+                .arg("--no-headers")
+                .arg("--namespace")
+                .arg(&self.namespace),
+            true,
+        )?;
+        if running_releases.contains(&format!("op-ruaas-runner-{}", &self.release_tag)) == false {
+            return Ok(());
+        }
+
+        system::execute_command(
+            Command::new("helm")
+                .arg("uninstall")
+                .arg(format!("op-ruaas-runner-{}", &self.release_tag))
+                .arg("--namespace")
+                .arg(&self.namespace),
+            false,
+        )?;
+
+        Ok(())
+    }
+}
 
 impl HelmDeploymentRunner {
-    pub fn new(release_tag: &str, namespace: &str) -> Self {
+    pub fn new(
+        release_tag: &str,
+        namespace: &str,
+        deployment_artifact_repository: Box<dyn crate::domain::TDeploymentArtifactsRepository>,
+    ) -> Self {
         Self {
             release_tag: release_tag.to_string(),
             namespace: namespace.to_string(),
+            deployment_artifact_repository,
         }
     }
 
@@ -47,8 +133,8 @@ impl HelmDeploymentRunner {
                     .arg("repo")
                     .arg("add")
                     .arg(repo)
-                    .arg(url)
-                    .arg("--force-update"),
+                    .arg(url),
+                // .arg("--force-update"),
                 false,
             )?;
         }
@@ -213,125 +299,6 @@ impl HelmDeploymentRunner {
 
             std::thread::sleep(std::time::Duration::from_secs(4));
         }
-
-        Ok(())
-    }
-}
-
-impl TDeploymentRunner for HelmDeploymentRunner {
-    fn run(
-        &self,
-        project: &Project,
-        deployment: &Deployment,
-        values: &HashMap<&str, Value>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        // add repos, install pre-requisites and build dependencies
-        self.build_dependencies(project)?;
-
-        // create .tmp folder
-        let helm_tmp_folder = project.infra.helm.join(".tmp");
-        let _ = fs::remove_dir_all(&helm_tmp_folder);
-        fs::create_dir_all(&helm_tmp_folder)?;
-
-        // create values file from stack
-        let values_file = helm_tmp_folder.join("values.yaml");
-        self.create_values_file(project, deployment, &values, &values_file)?;
-
-        // build artifacts.zip and copy addresses.json and to helm so it can be loaded by it
-        let zip_file = File::create(helm_tmp_folder.join("artifacts.zip"))?;
-        let mut zip = zip::ZipWriter::new(zip_file);
-
-        let options = FileOptions::default()
-            .compression_method(zip::CompressionMethod::Deflated)
-            .unix_permissions(0o755);
-
-        zip.start_file("addresses.json", options)?;
-        zip.write_all(
-            deployment
-                .addresses
-                .as_ref()
-                .ok_or("No deployment addresses found")?
-                .as_bytes(),
-        )?;
-
-        zip.start_file("genesis.json", options)?;
-        zip.write_all(
-            deployment
-                .genesis
-                .as_ref()
-                .ok_or("No deployment genesis found")?
-                .as_bytes(),
-        )?;
-
-        zip.start_file("jwt-secret.txt", options)?;
-        zip.write_all(
-            deployment
-                .jwt_secret
-                .as_ref()
-                .ok_or("No deployment jwt-secret found")?
-                .as_bytes(),
-        )?;
-
-        zip.start_file("rollup-config.json", options)?;
-        zip.write_all(
-            deployment
-                .rollup_config
-                .as_ref()
-                .ok_or("No deployment rollup-config found")?
-                .as_bytes(),
-        )?;
-
-        zip.finish()?;
-
-        fs::write(
-            helm_tmp_folder.join("addresses.json"),
-            deployment
-                .addresses
-                .as_ref()
-                .ok_or("No deployment addresses found")?,
-        )?;
-
-        // install core infrastructure
-
-        system::execute_command(
-            Command::new("helm")
-                .arg("install")
-                .arg(format!("op-ruaas-runner-{}", &self.release_tag))
-                .arg("-f")
-                .arg(values_file.to_str().unwrap())
-                .arg("--namespace")
-                .arg(&self.namespace)
-                .arg("--create-namespace")
-                .arg(project.infra.helm.to_str().unwrap()),
-            false,
-        )?;
-
-        self.wait_for_running_release(&self.namespace)?;
-
-        Ok(())
-    }
-
-    fn stop(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let running_releases = system::execute_command(
-            Command::new("helm")
-                .arg("list")
-                .arg("--no-headers")
-                .arg("--namespace")
-                .arg(&self.namespace),
-            true,
-        )?;
-        if running_releases.contains(&format!("op-ruaas-runner-{}", &self.release_tag)) == false {
-            return Ok(());
-        }
-
-        system::execute_command(
-            Command::new("helm")
-                .arg("uninstall")
-                .arg(format!("op-ruaas-runner-{}", &self.release_tag))
-                .arg("--namespace")
-                .arg(&self.namespace),
-            false,
-        )?;
 
         Ok(())
     }

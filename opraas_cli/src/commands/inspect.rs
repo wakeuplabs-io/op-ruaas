@@ -33,19 +33,19 @@ impl InspectCommand {
             .await?
             .ok_or("Deployment not found")?;
 
-        if matches!(target, InspectTarget::Contracts | InspectTarget::All) {
-            match &deployment.addresses {
-                Some(addresses) => println!("{}", addresses),
-                None => println!("No addresses found"),
-            }
-        }
+        // if matches!(target, InspectTarget::Contracts | InspectTarget::All) {
+        //     match &deployment.addresses {
+        //         Some(addresses) => println!("{}", addresses),
+        //         None => println!("No addresses found"),
+        //     }
+        // }
 
-        if matches!(target, InspectTarget::Infra | InspectTarget::All) {
-            match &deployment.infra_outputs {
-                Some(infra) => println!("{}", infra),
-                None => println!("No infra found"),
-            }
-        }
+        // if matches!(target, InspectTarget::Infra | InspectTarget::All) {
+        //     match &deployment.infra_outputs {
+        //         Some(infra) => println!("{}", infra),
+        //         None => println!("No infra found"),
+        //     }
+        // }
 
         Ok(())
     }

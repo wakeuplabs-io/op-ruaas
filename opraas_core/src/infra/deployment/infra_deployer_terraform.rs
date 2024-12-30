@@ -1,5 +1,5 @@
 use crate::{
-    domain::{Deployment, Project, TInfraDeployerProvider},
+    domain::{self, Deployment, Project, TDeploymentArtifactsRepository, TInfraDeployerProvider},
     system, yaml,
 };
 use serde_yaml::Value;
@@ -10,15 +10,98 @@ use std::{
     path::Path,
     process::Command,
 };
-use zip::write::FileOptions;
 
-pub struct TerraformDeployer {}
+pub struct TerraformDeployer {
+    deployment_artifact_repository: Box<dyn TDeploymentArtifactsRepository>,
+}
 
-// implementations ================================================
+#[async_trait::async_trait]
+impl TInfraDeployerProvider for TerraformDeployer {
+    async fn deploy(
+        &self,
+        project: &Project,
+        deployment: &mut Deployment,
+        domain: &str,
+        monitoring: bool,
+        explorer: bool,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        // create .tmp folder
+        let helm_tmp_folder = project.infra.helm.join(".tmp");
+        let _ = fs::remove_dir_all(&helm_tmp_folder);
+        fs::create_dir_all(&helm_tmp_folder)?;
+
+        // create values file
+        let values_file = helm_tmp_folder.join("values.yaml");
+        let mut values: HashMap<&str, serde_yaml::Value> = HashMap::new();
+        values.insert("global.host", domain.into());
+        values.insert("monitoring.enabled", monitoring.into());
+        values.insert("explorer.enabled", explorer.into());
+
+        self.create_values_file(project, &deployment, &values, &values_file)?;
+
+        // create artifacts.zip and addresses.json in helm so it can be loaded by it
+        let deployment_artifacts = self
+            .deployment_artifact_repository
+            .find_one(deployment)
+            .await?
+            .ok_or("No deployment artifacts found")?;
+
+        File::create(helm_tmp_folder.join("artifacts.zip"))?.write_all(&deployment_artifacts)?;
+
+        fs::write(
+            helm_tmp_folder.join("addresses.json"),
+            deployment
+                .contracts_addresses
+                .as_ref()
+                .ok_or("No deployment addresses found")?,
+        )?;
+
+        // deploy using terraform init, plan and apply
+
+        system::execute_command(
+            Command::new("terraform")
+                .arg("init")
+                .current_dir(&project.infra.aws),
+            false,
+        )?;
+
+        system::execute_command(
+            Command::new("terraform")
+                .arg("plan")
+                .arg(format!(
+                    "-var=values_file_path={}",
+                    values_file.to_str().unwrap()
+                ))
+                .arg(format!("-var=name={}", deployment.id))
+                .current_dir(&project.infra.aws),
+            false,
+        )?;
+
+        system::execute_command(
+            Command::new("terraform")
+                .arg("apply")
+                .arg("-auto-approve")
+                .arg(format!(
+                    "-var=values_file_path={}",
+                    values_file.to_str().unwrap()
+                ))
+                .arg(format!("-var=name={}", deployment.id))
+                .current_dir(&project.infra.aws),
+            false,
+        )?;
+
+        // save it in the deployment repository
+        deployment.infra_base_url = Some(domain.to_string());
+
+        Ok(())
+    }
+}
 
 impl TerraformDeployer {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(deployment_artifact_repository: Box<dyn TDeploymentArtifactsRepository>) -> Self {
+        Self {
+            deployment_artifact_repository,
+        }
     }
 
     fn create_values_file<T>(
@@ -107,128 +190,6 @@ impl TerraformDeployer {
         // ================================================
 
         yaml::rewrite_yaml_to(project.infra.helm.join("values.yaml"), target, &values)?;
-
-        Ok(())
-    }
-}
-
-#[async_trait::async_trait]
-impl TInfraDeployerProvider for TerraformDeployer {
-    async fn deploy(
-        &self,
-        project: &Project,
-        deployment: &mut Deployment,
-        values: &HashMap<&str, Value>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        // create .tmp folder
-        let helm_tmp_folder = project.infra.helm.join(".tmp");
-        let _ = fs::remove_dir_all(&helm_tmp_folder);
-        fs::create_dir_all(&helm_tmp_folder)?;
-
-        // create values file
-        let values_file = helm_tmp_folder.join("values.yaml");
-        self.create_values_file(project, &deployment, &values, &values_file)?;
-
-        // build artifacts.zip and copy addresses.json and to helm so it can be loaded by it
-        let zip_file = File::create(helm_tmp_folder.join("artifacts.zip"))?;
-        let mut zip = zip::ZipWriter::new(zip_file);
-
-        let options = FileOptions::default()
-            .compression_method(zip::CompressionMethod::Deflated)
-            .unix_permissions(0o755);
-
-        zip.start_file("addresses.json", options)?;
-        zip.write_all(
-            deployment
-                .addresses
-                .as_ref()
-                .ok_or("No deployment addresses found")?
-                .as_bytes(),
-        )?;
-
-        zip.start_file("genesis.json", options)?;
-        zip.write_all(
-            deployment
-                .genesis
-                .as_ref()
-                .ok_or("No deployment genesis found")?
-                .as_bytes(),
-        )?;
-
-        zip.start_file("jwt-secret.txt", options)?;
-        zip.write_all(
-            deployment
-                .jwt_secret
-                .as_ref()
-                .ok_or("No deployment jwt-secret found")?
-                .as_bytes(),
-        )?;
-
-        zip.start_file("rollup-config.json", options)?;
-        zip.write_all(
-            deployment
-                .rollup_config
-                .as_ref()
-                .ok_or("No deployment rollup-config found")?
-                .as_bytes(),
-        )?;
-
-        zip.finish()?;
-
-        fs::write(
-            helm_tmp_folder.join("addresses.json"),
-            deployment
-                .addresses
-                .as_ref()
-                .ok_or("No deployment addresses found")?,
-        )?;
-
-        // deploy using terraform ===============================
-
-        system::execute_command(
-            Command::new("terraform")
-                .arg("init")
-                .current_dir(&project.infra.aws),
-            false,
-        )?;
-
-        system::execute_command(
-            Command::new("terraform")
-                .arg("plan")
-                .arg(format!(
-                    "-var=values_file_path={}",
-                    values_file.to_str().unwrap()
-                ))
-                .arg(format!("-var=name={}", deployment.id))
-                .current_dir(&project.infra.aws),
-            false,
-        )?;
-
-        system::execute_command(
-            Command::new("terraform")
-                .arg("apply")
-                .arg("-auto-approve")
-                .arg(format!(
-                    "-var=values_file_path={}",
-                    values_file.to_str().unwrap()
-                ))
-                .arg(format!("-var=name={}", deployment.id))
-                .current_dir(&project.infra.aws),
-            false,
-        )?;
-
-        // extract outputs from deployment
-
-        let output = system::execute_command(
-            Command::new("terraform")
-                .arg("output")
-                .arg("-json")
-                .current_dir(&project.infra.aws),
-            true,
-        )?;
-
-        // save it in the deployment repository
-        deployment.infra_outputs = Some(output);
 
         Ok(())
     }

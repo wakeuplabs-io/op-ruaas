@@ -1,23 +1,27 @@
 use crate::domain::{self, Deployment, Project};
 
-pub struct ContractsDeployerService<R, T>
+pub struct ContractsDeployerService<DR, DAR, CDP>
 where
-    R: domain::deployment::TDeploymentRepository,
-    T: domain::deployment::TContractsDeployerProvider,
+    DR: domain::deployment::TDeploymentRepository,
+    DAR: domain::deployment::TDeploymentArtifactsRepository,
+    CDP: domain::deployment::TContractsDeployerProvider,
 {
-    deployment_repository: R,
-    contracts_deployer: T,
+    deployment_repository: DR,
+    deployment_artifact_repository: DAR,
+    contracts_deployer: CDP,
 }
 
-impl<R, T> ContractsDeployerService<R, T>
+impl<DR, DAR, CDP> ContractsDeployerService<DR, DAR, CDP>
 where
-    R: domain::deployment::TDeploymentRepository,
-    T: domain::deployment::TContractsDeployerProvider,
+    DR: domain::deployment::TDeploymentRepository,
+    DAR: domain::deployment::TDeploymentArtifactsRepository,
+    CDP: domain::deployment::TContractsDeployerProvider,
 {
-    pub fn new(deployment_repository: R, contracts_deployer: T) -> Self {
+    pub fn new(deployment_repository: DR, deployment_artifact_repository: DAR, contracts_deployer: CDP) -> Self {
         Self {
             contracts_deployer,
             deployment_repository,
+            deployment_artifact_repository,
         }
     }
 
@@ -28,10 +32,17 @@ where
         deploy_deterministic_deployer: bool,
         slow: bool,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        self.contracts_deployer
-            .deploy(project, deployment, deploy_deterministic_deployer, slow)?;
+        let deployment_artifact =
+            self.contracts_deployer
+                .deploy(project, deployment, deploy_deterministic_deployer, slow)?;
 
+        println!("ok");
         self.deployment_repository.save(deployment).await?;
+        println!("ok");
+        self.deployment_artifact_repository
+            .save(deployment, deployment_artifact)
+            .await?;
+        println!("ok");
 
         Ok(())
     }

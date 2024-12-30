@@ -2,32 +2,35 @@ use super::Project;
 use crate::config::{AccountsConfig, NetworkConfig};
 use serde::{Deserialize, Serialize};
 use serde_yaml::Value;
-use std::collections::HashMap;
+use std::{collections::HashMap, error::Error};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Deployment {
-    pub id: String, // deployment id, holensky, sepolia, mumbai, etc
+    pub id: String, // holensky, sepolia, mumbai, etc
     pub owner_id: String,
-
-    // maybe this is a separate object? like metadata, so we load on demand from storage?
     pub release_tag: String,
     pub release_registry: String,
+    pub infra_base_url: Option<String>,
+    pub contracts_addresses: Option<String>,
     pub network_config: NetworkConfig,
     pub accounts_config: AccountsConfig,
-    pub addresses: Option<String>,
-    pub allocs: Option<String>,
-    pub genesis: Option<String>,
-    pub rollup_config: Option<String>,
-    pub jwt_secret: Option<String>,
-    pub infra_outputs: Option<String>, // TODO: replace with relevant outputs
 }
+
+pub type DeploymentArtifact = Vec<u8>;
 
 #[async_trait::async_trait]
 pub trait TDeploymentRepository: Send + Sync {
+    async fn find(&self, owner_id: &str) -> Result<Vec<Deployment>, Box<dyn std::error::Error>>;
     async fn find_one(&self, owner_id: &str, id: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>>;
-    async fn list(&self, owner_id: &str) -> Result<Vec<String>, Box<dyn std::error::Error>>;
     async fn save(&self, deployment: &Deployment) -> Result<(), Box<dyn std::error::Error>>;
     async fn delete(&self, deployment: &Deployment) -> Result<(), Box<dyn std::error::Error>>;
+}
+
+#[async_trait::async_trait]
+pub trait TDeploymentArtifactsRepository: Send + Sync {
+    async fn find_one(&self, deployment: &Deployment) -> Result<Option<DeploymentArtifact>, Box<dyn Error>>;
+    async fn save(&self, deployment: &Deployment, artifact: DeploymentArtifact) -> Result<(), Box<dyn Error>>;
+    async fn delete(&self, deployment: &Deployment) -> Result<(), Box<dyn Error>>;
 }
 
 #[async_trait::async_trait]
@@ -36,7 +39,9 @@ pub trait TInfraDeployerProvider: Send + Sync {
         &self,
         project: &Project,
         deployment: &mut Deployment,
-        values: &HashMap<&str, Value>,
+        domain: &str,
+        monitoring: bool,
+        explorer: bool,
     ) -> Result<(), Box<dyn std::error::Error>>;
 }
 
@@ -47,11 +52,12 @@ pub trait TContractsDeployerProvider: Send + Sync {
         deployment: &mut Deployment,
         deploy_deterministic_deployer: bool,
         slow: bool,
-    ) -> Result<(), Box<dyn std::error::Error>>;
+    ) -> Result<Vec<u8>, Box<dyn std::error::Error>>; // DeploymentArtifact
 }
 
+#[async_trait::async_trait]
 pub trait TDeploymentRunner {
-    fn run(
+    async fn run(
         &self,
         project: &Project,
         deployment: &Deployment,
@@ -74,6 +80,8 @@ impl Deployment {
     where
         T: Into<String>,
     {
+        // verify id TODO:
+
         Self {
             id: id.into(),
             owner_id: owner_id.into(),
@@ -81,15 +89,12 @@ impl Deployment {
             release_registry: release_registry.into(),
             network_config,
             accounts_config,
-            addresses: None,
-            allocs: None,
-            genesis: None,
-            rollup_config: None,
-            jwt_secret: None,
-            infra_outputs: None,
+            contracts_addresses: None,
+            infra_base_url: None,
         }
     }
 
+    // TODO: probably move to deployer
     pub fn build_deploy_config(&self) -> Result<String, Box<dyn std::error::Error>> {
         let json = format!(
             r#"{{

@@ -23,7 +23,7 @@ where
         }
     }
 
-    pub fn run(
+    pub async fn run(
         &self,
         project: &Project,
         deployment: &Deployment,
@@ -36,7 +36,9 @@ where
         values.insert("monitoring.enabled", monitoring.into());
         values.insert("explorer.enabled", explorer.into());
 
-        self.deployment_runner.run(project, deployment, &values)?;
+        self.deployment_runner
+            .run(project, deployment, &values)
+            .await?;
 
         Ok(())
     }

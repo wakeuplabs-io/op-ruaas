@@ -20,11 +20,12 @@ impl S3DeploymentRepository {
 #[async_trait::async_trait]
 impl TDeploymentRepository for S3DeploymentRepository {
     async fn find_one(&self, owner_id: &str, id: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>> {
+        let key = format!("{}-{}.json", owner_id, id);
         let resp = self
             .client
             .get_object()
             .bucket(&self.bucket_name)
-            .key(id)
+            .key(key)
             .send()
             .await;
 
@@ -39,9 +40,30 @@ impl TDeploymentRepository for S3DeploymentRepository {
         Ok(Some(deployment))
     }
 
-    async fn list(&self, owner_id: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
-        let result = Vec::new();
-        Ok(result)
+    async fn find(&self, owner_id: &str) -> Result<Vec<Deployment>, Box<dyn std::error::Error>> {
+        todo!();
+
+        // let resp = self
+        //     .client
+        //     .list_objects_v2()
+        //     .bucket(&self.bucket_name)
+        //     .prefix(format!("{}", owner_id))
+        //     .send()
+        //     .await;
+
+        // println!("{:?}", resp);
+
+        // if resp.is_err() {
+        //     return Err("Failed to list objects".into());
+        // }
+
+        // let resp = resp.unwrap();
+        // let mut result = Vec::new();
+        // for obj in resp.contents() {
+        //     result.push(obj.key().unwrap().to_string());
+        // }
+
+        // Ok(result)
     }
 
     async fn save(&self, deployment: &Deployment) -> Result<(), Box<dyn std::error::Error>> {
@@ -53,7 +75,7 @@ impl TDeploymentRepository for S3DeploymentRepository {
             .bucket(&self.bucket_name)
             .content_type("application/json")
             .content_length(serialized.as_bytes().len() as i64)
-            .key(format!("{}/{}.json", "username", deployment.id))
+            .key(format!("{}-{}.json", deployment.owner_id, deployment.id))
             .body(ByteStream::from(serialized.as_bytes().to_vec()))
             .send()
             .await;
@@ -69,7 +91,7 @@ impl TDeploymentRepository for S3DeploymentRepository {
         self.client
             .delete_object()
             .bucket(&self.bucket_name)
-            .key(format!("{}/{}.json", deployment.owner_id, deployment.id))
+            .key(format!("{}-{}.json", deployment.owner_id, deployment.id))
             .send()
             .await
             .map_err(|err| err.to_string())?;

@@ -36,13 +36,8 @@ where
     ) -> Result<(), Box<dyn std::error::Error>> {
         self.project_infra_repository.pull(project)?;
 
-        let mut values: HashMap<&str, serde_yaml::Value> = HashMap::new();
-        values.insert("global.host", domain.into());
-        values.insert("monitoring.enabled", monitoring.into());
-        values.insert("explorer.enabled", explorer.into());
-
         self.infra_deployer
-            .deploy(project, deployment, &values)
+            .deploy(project, deployment, domain, monitoring, explorer)
             .await?;
 
         self.deployment_repository.save(deployment).await?;

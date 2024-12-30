@@ -17,12 +17,12 @@ where
         }
     }
 
-    pub async fn find_one(&self, owner_id: &str, id: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>> {
-        self.deployment_repository.find_one(owner_id, id).await
+    pub async fn find(&self, owner_id: &str) -> Result<Vec<Deployment>, Box<dyn std::error::Error>> {
+        self.deployment_repository.find(owner_id).await
     }
 
-    pub async fn list(&self, owner_id: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
-        self.deployment_repository.list(owner_id).await
+    pub async fn find_one(&self, owner_id: &str, id: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>> {
+        self.deployment_repository.find_one(owner_id, id).await
     }
 
     pub async fn delete(&self, deployment: &Deployment) -> Result<(), Box<dyn std::error::Error>> {
