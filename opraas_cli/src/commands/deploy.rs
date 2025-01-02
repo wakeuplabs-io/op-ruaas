@@ -158,7 +158,7 @@ impl DeployCommand {
         if matches!(target, DeployTarget::Infra | DeployTarget::All) {
             let mut deployment = self
                 .deployments_manager
-                .find_one("root", &deployment_id)
+                .find_one(&owner_id, &deployment_id)
                 .await?
                 .expect("Contracts deployment not found");
 
@@ -183,31 +183,34 @@ impl DeployCommand {
 
         print!("\x1B[2J\x1B[1;1H");
 
-        // if matches!(target, DeployTarget::Contracts | DeployTarget::All) {
-        //     let deployment = self
-        //         .deployments_manager
-        //         .find_one("root", &id)
-        //         .await?
-        //         .ok_or("Deployment not found")?;
+        let deployment = self
+            .deployments_manager
+            .find_one(&owner_id, &deployment_id)
+            .await?
+            .expect("Contracts deployment not found");
 
-        //     println!(
-        //         "{}",
-        //         serde_json::to_string_pretty(&self.contracts_inspector.inspect(&deployment).await?)?
-        //     );
-        // }
+        if matches!(target, DeployTarget::Contracts | DeployTarget::All) {
+            match &deployment.contracts_addresses {
+                Some(addresses) => println!(
+                    r#"The contract addresses of your chain:
+                {}"#,
+                    addresses
+                ),
+                None => println!("No deployment addresses found"),
+            }
+        }
 
-        // if matches!(target, DeployTarget::Infra | DeployTarget::All) {
-        //     let deployment = self
-        //         .infra_inspector
-        //         .find(&id)
-        //         .await?
-        //         .ok_or("Deployment not found")?;
-
-        //     println!(
-        //         "{}",
-        //         serde_json::to_string_pretty(&self.infra_inspector.inspect(&deployment).await?)?
-        //     );
-        // }
+        if matches!(target, DeployTarget::Infra | DeployTarget::All) {
+            match &deployment.infra_base_url {
+                Some(base_url) => println!(
+                    r#"Relevant endpoints from your infra:
+                - Explorer: {base_url}
+                - Rpc: {base_url}/rpc
+                - Monitoring: {base_url}/monitoring"#
+                ),
+                None => println!("No infra found"),
+            }
+        }
 
         // print instructions
 

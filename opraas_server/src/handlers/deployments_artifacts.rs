@@ -85,7 +85,7 @@ pub async fn head(
         .map_err(ApiError::from)?;
 
     if !exists {
-         Ok((StatusCode::OK, [("X-Resource-Exist", "true")]))
+        Ok((StatusCode::OK, [("X-Resource-Exist", "true")]))
     } else {
         Ok((StatusCode::NOT_FOUND, [("X-Resource-Exist", "false")]))
     }
