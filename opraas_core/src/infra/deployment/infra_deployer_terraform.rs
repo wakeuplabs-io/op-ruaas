@@ -189,7 +189,7 @@ impl TerraformDeployer {
 
         // ================================================
 
-        yaml::rewrite_yaml_to(project.infra.helm.join("values.yaml"), target, &values)?;
+        yaml::rewrite_yaml_to(project.infra.helm.join("values.yaml"), target, &updates)?;
 
         Ok(())
     }
