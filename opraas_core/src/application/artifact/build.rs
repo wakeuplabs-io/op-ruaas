@@ -1,30 +1,27 @@
 use crate::domain::{self, artifact::Artifact};
 
-pub struct ArtifactBuilderService {
-    artifact_repository: Box<dyn domain::artifact::TArtifactRepository>,
-    artifact_source_repository: Box<dyn domain::artifact::TArtifactSourceRepository>,
+pub struct ArtifactBuilderService<AR, ASR>
+where
+    AR: domain::artifact::TArtifactRepository,
+    ASR: domain::artifact::TArtifactSourceRepository,
+{
+    artifact_repository: AR,
+    artifact_source_repository: ASR,
 }
 
-pub trait TArtifactBuilderService: Send + Sync {
-    fn build(&self, artifact: &Artifact) -> Result<(), Box<dyn std::error::Error>>;
-}
-
-// implementations ======================================================
-
-impl ArtifactBuilderService {
-    pub fn new(
-        artifact_repository: Box<dyn domain::artifact::TArtifactRepository>,
-        artifact_source_repository: Box<dyn domain::artifact::TArtifactSourceRepository>,
-    ) -> Self {
+impl<AR, ASR> ArtifactBuilderService<AR, ASR>
+where
+    AR: domain::artifact::TArtifactRepository,
+    ASR: domain::artifact::TArtifactSourceRepository,
+{
+    pub fn new(artifact_repository: AR, artifact_source_repository: ASR) -> Self {
         Self {
             artifact_repository,
             artifact_source_repository,
         }
     }
-}
 
-impl TArtifactBuilderService for ArtifactBuilderService {
-    fn build(&self, artifact: &Artifact) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn build(&self, artifact: &Artifact) -> Result<(), Box<dyn std::error::Error>> {
         if !self.artifact_source_repository.exists(artifact) {
             self.artifact_source_repository.pull(artifact)?;
         }
@@ -37,7 +34,6 @@ impl TArtifactBuilderService for ArtifactBuilderService {
 
 #[cfg(test)]
 mod tests {
-    use super::TArtifactBuilderService;
     use crate::{
         application::ArtifactBuilderService,
         domain::{Artifact, ArtifactData, MockTArtifactRepository, MockTArtifactSourceRepository},
@@ -65,8 +61,8 @@ mod tests {
         mock_artifact_repo.expect_create().returning(|_| Ok(()));
 
         let service = ArtifactBuilderService {
-            artifact_repository: Box::new(mock_artifact_repo),
-            artifact_source_repository: Box::new(mock_source_repo),
+            artifact_repository: mock_artifact_repo,
+            artifact_source_repository: mock_source_repo,
         };
 
         let result = service.build(&artifact);
@@ -94,8 +90,8 @@ mod tests {
         mock_artifact_repo.expect_create().returning(|_| Ok(()));
 
         let service = ArtifactBuilderService {
-            artifact_repository: Box::new(mock_artifact_repo),
-            artifact_source_repository: Box::new(mock_source_repo),
+            artifact_repository: mock_artifact_repo,
+            artifact_source_repository: mock_source_repo,
         };
 
         let result = service.build(&artifact);

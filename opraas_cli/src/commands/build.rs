@@ -1,23 +1,17 @@
 use crate::{
     config::{SystemRequirementsChecker, TSystemRequirementsChecker, DOCKER_REQUIREMENT, GIT_REQUIREMENT},
     infra::console::{print_error, style_spinner},
+    AppContext,
 };
 use colored::*;
 use indicatif::{HumanDuration, ProgressBar};
 use opraas_core::{
-    application::build::{ArtifactBuilderService, TArtifactBuilderService},
+    application::build::ArtifactBuilderService,
     config::CoreConfig,
-    domain::{ArtifactFactory, ArtifactKind, ProjectFactory, TArtifactFactory, TProjectFactory},
+    domain::{ArtifactFactory, ArtifactKind, Project},
     infra::artifact::{DockerArtifactRepository, GitArtifactSourceRepository},
 };
 use std::{sync::Arc, thread, time::Instant};
-
-pub struct BuildCommand {
-    artifacts_factory: Box<dyn TArtifactFactory>,
-    artifacts_builder: Arc<dyn TArtifactBuilderService>,
-    system_requirements_checker: Box<dyn TSystemRequirementsChecker>,
-    project_factory: Box<dyn TProjectFactory>,
-}
 
 #[derive(Debug, Clone, clap::ValueEnum)]
 pub enum BuildTargets {
@@ -29,49 +23,49 @@ pub enum BuildTargets {
     All,
 }
 
-// implementations ================================================
+pub struct BuildCommand {
+    artifacts_builder: Arc<ArtifactBuilderService<DockerArtifactRepository, GitArtifactSourceRepository>>,
+    system_requirements_checker: SystemRequirementsChecker,
+}
 
 impl BuildCommand {
     pub fn new() -> Self {
         Self {
-            artifacts_factory: Box::new(ArtifactFactory::new()),
             artifacts_builder: Arc::new(ArtifactBuilderService::new(
-                Box::new(DockerArtifactRepository::new()),
-                Box::new(GitArtifactSourceRepository::new()),
+                DockerArtifactRepository::new(),
+                GitArtifactSourceRepository::new(),
             )),
-            system_requirements_checker: Box::new(SystemRequirementsChecker::new()),
-            project_factory: Box::new(ProjectFactory::new()),
+            system_requirements_checker: SystemRequirementsChecker::new(),
         }
     }
 
-    pub fn run(&self, target: BuildTargets) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn run(&self, _ctx: &AppContext, target: &BuildTargets) -> Result<(), Box<dyn std::error::Error>> {
         self.system_requirements_checker
             .check(vec![GIT_REQUIREMENT, DOCKER_REQUIREMENT])?;
 
-        let project = self
-            .project_factory
-            .from_cwd()
-            .expect("No project found in current directory");
+        let project = Project::try_from(std::env::current_dir()?)?;
         let config = CoreConfig::new_from_toml(&project.config).expect("Invalid project configuration");
 
         // assemble list of artifacts to build
         let artifacts = match target {
-            BuildTargets::All => self.artifacts_factory.get_all(&project, &config),
-            BuildTargets::Batcher => vec![self
-                .artifacts_factory
-                .get(&ArtifactKind::Batcher, &project, &config)],
-            BuildTargets::Node => vec![self
-                .artifacts_factory
-                .get(&ArtifactKind::Node, &project, &config)],
-            BuildTargets::Contracts => vec![self
-                .artifacts_factory
-                .get(&ArtifactKind::Contracts, &project, &config)],
-            BuildTargets::Proposer => vec![self
-                .artifacts_factory
-                .get(&ArtifactKind::Proposer, &project, &config)],
-            BuildTargets::Geth => vec![self
-                .artifacts_factory
-                .get(&ArtifactKind::Geth, &project, &config)],
+            BuildTargets::All => ArtifactFactory::get_all(&project, &config),
+            BuildTargets::Batcher => vec![ArtifactFactory::get(
+                &ArtifactKind::Batcher,
+                &project,
+                &config,
+            )],
+            BuildTargets::Node => vec![ArtifactFactory::get(&ArtifactKind::Node, &project, &config)],
+            BuildTargets::Contracts => vec![ArtifactFactory::get(
+                &ArtifactKind::Contracts,
+                &project,
+                &config,
+            )],
+            BuildTargets::Proposer => vec![ArtifactFactory::get(
+                &ArtifactKind::Proposer,
+                &project,
+                &config,
+            )],
+            BuildTargets::Geth => vec![ArtifactFactory::get(&ArtifactKind::Geth, &project, &config)],
         };
 
         // start time count and spinner

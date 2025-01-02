@@ -1,27 +1,24 @@
 use crate::{
     config::{SystemRequirementsChecker, TSystemRequirementsChecker, DOCKER_REQUIREMENT, GIT_REQUIREMENT},
     infra::console::{print_error, print_info, print_warning, style_spinner, Dialoguer, TDialoguer},
+    AppContext,
 };
 use clap::ValueEnum;
 use colored::*;
 use indicatif::{HumanDuration, ProgressBar};
 use opraas_core::{
-    application::{ArtifactReleaserService, TArtifactReleaserService},
+    application::{ArtifactReleaserService, VersionControlProjectService},
     config::CoreConfig,
-    domain::{
-        ArtifactFactory, ArtifactKind, ProjectFactory, TArtifactFactory, TProjectFactory, TProjectVersionControl,
-    },
+    domain::{ArtifactFactory, ArtifactKind, Project},
     infra::{project::GitVersionControl, release::DockerReleaseRepository},
 };
 use std::{sync::Arc, thread, time::Instant};
 
 pub struct ReleaseCommand {
-    version_control: Box<dyn TProjectVersionControl>,
-    dialoguer: Box<dyn TDialoguer>,
-    system_requirements_checker: Box<dyn TSystemRequirementsChecker>,
-    artifacts_factory: Box<dyn TArtifactFactory>,
-    artifacts_releaser: Arc<dyn TArtifactReleaserService>,
-    project_factory: Box<dyn TProjectFactory>,
+    dialoguer: Dialoguer,
+    system_requirements_checker: SystemRequirementsChecker,
+    artifacts_releaser: Arc<ArtifactReleaserService<DockerReleaseRepository>>,
+    version_control_project: VersionControlProjectService<GitVersionControl>,
 }
 
 #[derive(Debug, Clone, ValueEnum)]
@@ -34,27 +31,21 @@ pub enum ReleaseTargets {
     All,
 }
 
-// implementations ================================================
-
 impl ReleaseCommand {
     pub fn new() -> Self {
         Self {
-            version_control: Box::new(GitVersionControl::new()),
-            dialoguer: Box::new(Dialoguer::new()),
-            system_requirements_checker: Box::new(SystemRequirementsChecker::new()),
-            artifacts_factory: Box::new(ArtifactFactory::new()),
-            artifacts_releaser: Arc::new(ArtifactReleaserService::new(Box::new(
-                DockerReleaseRepository::new(),
-            ))),
-            project_factory: Box::new(ProjectFactory::new()),
+            dialoguer: Dialoguer::new(),
+            system_requirements_checker: SystemRequirementsChecker::new(),
+            artifacts_releaser: Arc::new(ArtifactReleaserService::new(DockerReleaseRepository::new())),
+            version_control_project: VersionControlProjectService::new(GitVersionControl::new()),
         }
     }
 
-    pub fn run(&self, target: ReleaseTargets) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn run(&self, _ctx: &AppContext, target: ReleaseTargets) -> Result<(), Box<dyn std::error::Error>> {
         self.system_requirements_checker
             .check(vec![GIT_REQUIREMENT, DOCKER_REQUIREMENT])?;
 
-        let project = self.project_factory.from_cwd().unwrap();
+        let project = Project::try_from(std::env::current_dir()?)?;
         let config = CoreConfig::new_from_toml(&project.config).unwrap();
 
         // request release name and repository
@@ -71,29 +62,31 @@ impl ReleaseCommand {
             .dialoguer
             .confirm("Would you also like to tag your local git repository?")
         {
-            self.version_control.tag(&project.root, &release_name)?;
+            self.version_control_project.tag(&project, &release_name)?;
         }
 
         // Iterate over the artifacts and release =========================
 
         // assemble list of artifacts to build
         let artifacts = match target {
-            ReleaseTargets::All => self.artifacts_factory.get_all(&project, &config),
-            ReleaseTargets::Batcher => vec![self
-                .artifacts_factory
-                .get(&ArtifactKind::Batcher, &project, &config)],
-            ReleaseTargets::Node => vec![self
-                .artifacts_factory
-                .get(&ArtifactKind::Node, &project, &config)],
-            ReleaseTargets::Contracts => vec![self
-                .artifacts_factory
-                .get(&ArtifactKind::Contracts, &project, &config)],
-            ReleaseTargets::Proposer => vec![self
-                .artifacts_factory
-                .get(&ArtifactKind::Proposer, &project, &config)],
-            ReleaseTargets::Geth => vec![self
-                .artifacts_factory
-                .get(&ArtifactKind::Geth, &project, &config)],
+            ReleaseTargets::All => ArtifactFactory::get_all(&project, &config),
+            ReleaseTargets::Batcher => vec![ArtifactFactory::get(
+                &ArtifactKind::Batcher,
+                &project,
+                &config,
+            )],
+            ReleaseTargets::Node => vec![ArtifactFactory::get(&ArtifactKind::Node, &project, &config)],
+            ReleaseTargets::Contracts => vec![ArtifactFactory::get(
+                &ArtifactKind::Contracts,
+                &project,
+                &config,
+            )],
+            ReleaseTargets::Proposer => vec![ArtifactFactory::get(
+                &ArtifactKind::Proposer,
+                &project,
+                &config,
+            )],
+            ReleaseTargets::Geth => vec![ArtifactFactory::get(&ArtifactKind::Geth, &project, &config)],
         };
 
         let started = Instant::now();

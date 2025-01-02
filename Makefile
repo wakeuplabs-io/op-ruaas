@@ -24,8 +24,14 @@ lint:
 build-windows:
 	cargo zigbuild --target=${WINDOWS_TARGET} --release
 
+zip-windows:
+	(cd target/${WINDOW_TARGET}/release && mkdir opruaas-v${VERSION}-${WINDOW_TARGET} && mv opruaas.exe opruaas-v${VERSION}-${WINDOW_TARGET} && zip -r opruaas-v${VERSION}-${WINDOW_TARGET}.zip opruaas-v${VERSION}-${WINDOW_TARGET})
+
 build-linux:
 	cargo zigbuild --target=${LINUX_TARGET} --release
+
+zip-linux:
+	(cd target/${LINUX_TARGET}/release && mkdir opruaas-v${VERSION}-${LINUX_TARGET} && mv opruaas opruaas-v${VERSION}-${LINUX_TARGET} && tar -czf opruaas-v${VERSION}-${LINUX_TARGET}.tar.gz opruaas-v${VERSION}-${LINUX_TARGET})
 
 build-apple:
 	cargo zigbuild --target=${APPLE_TARGET} --release

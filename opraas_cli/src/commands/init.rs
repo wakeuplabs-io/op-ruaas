@@ -1,11 +1,12 @@
 use crate::config::{SystemRequirementsChecker, TSystemRequirementsChecker, GIT_REQUIREMENT};
 use crate::infra::console::{print_error, style_spinner};
+use crate::AppContext;
 use clap::ValueEnum;
 use colored::*;
 use indicatif::{HumanDuration, ProgressBar};
-use opraas_core::application::initialize::{ArtifactInitializer, TArtifactInitializerService};
+use opraas_core::application::initialize::ArtifactInitializer;
 use opraas_core::config::CoreConfig;
-use opraas_core::domain::{ArtifactFactory, ArtifactKind, ProjectFactory, TArtifactFactory, TProjectFactory};
+use opraas_core::domain::{ArtifactFactory, ArtifactKind, Project};
 use opraas_core::infra::artifact::GitArtifactSourceRepository;
 use std::{sync::Arc, thread, time::Instant};
 
@@ -20,51 +21,45 @@ pub enum InitTargets {
 }
 
 pub struct InitCommand {
-    artifacts_factory: Box<dyn TArtifactFactory>,
-    system_requirement_checker: Box<dyn TSystemRequirementsChecker>,
-    artifact_initializer: Arc<dyn TArtifactInitializerService>,
-    project_factory: Box<dyn TProjectFactory>,
+    system_requirement_checker: SystemRequirementsChecker,
+    artifact_initializer: Arc<ArtifactInitializer<GitArtifactSourceRepository>>,
 }
-
-// implementations ================================================
 
 impl InitCommand {
     pub fn new() -> Self {
         Self {
-            artifacts_factory: Box::new(ArtifactFactory::new()),
-            system_requirement_checker: Box::new(SystemRequirementsChecker::new()),
-            artifact_initializer: Arc::new(ArtifactInitializer::new(Box::new(
-                GitArtifactSourceRepository::new(),
-            ))),
-            project_factory: Box::new(ProjectFactory::new()),
+            system_requirement_checker: SystemRequirementsChecker::new(),
+            artifact_initializer: Arc::new(ArtifactInitializer::new(GitArtifactSourceRepository::new())),
         }
     }
 
-    pub fn run(&self, target: InitTargets) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn run(&self, _ctx: &AppContext, target: &InitTargets) -> Result<(), Box<dyn std::error::Error>> {
         self.system_requirement_checker
             .check(vec![GIT_REQUIREMENT])?;
 
-        let project = self.project_factory.from_cwd().unwrap();
+        let project = Project::try_from(std::env::current_dir()?)?;
         let config = CoreConfig::new_from_toml(&project.config).unwrap();
 
         // assemble list of artifacts to build
         let artifacts = match target {
-            InitTargets::All => self.artifacts_factory.get_all(&project, &config),
-            InitTargets::Batcher => vec![self
-                .artifacts_factory
-                .get(&ArtifactKind::Batcher, &project, &config)],
-            InitTargets::Node => vec![self
-                .artifacts_factory
-                .get(&ArtifactKind::Node, &project, &config)],
-            InitTargets::Contracts => vec![self
-                .artifacts_factory
-                .get(&ArtifactKind::Contracts, &project, &config)],
-            InitTargets::Proposer => vec![self
-                .artifacts_factory
-                .get(&ArtifactKind::Proposer, &project, &config)],
-            InitTargets::Geth => vec![self
-                .artifacts_factory
-                .get(&ArtifactKind::Geth, &project, &config)],
+            InitTargets::All => ArtifactFactory::get_all(&project, &config),
+            InitTargets::Batcher => vec![ArtifactFactory::get(
+                &ArtifactKind::Batcher,
+                &project,
+                &config,
+            )],
+            InitTargets::Node => vec![ArtifactFactory::get(&ArtifactKind::Node, &project, &config)],
+            InitTargets::Contracts => vec![ArtifactFactory::get(
+                &ArtifactKind::Contracts,
+                &project,
+                &config,
+            )],
+            InitTargets::Proposer => vec![ArtifactFactory::get(
+                &ArtifactKind::Proposer,
+                &project,
+                &config,
+            )],
+            InitTargets::Geth => vec![ArtifactFactory::get(&ArtifactKind::Geth, &project, &config)],
         };
 
         // start timer and spinner

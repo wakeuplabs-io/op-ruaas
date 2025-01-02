@@ -5,15 +5,16 @@ use axum::{
     Extension, Json,
 };
 use opraas_core::{
-    application::{CreateProjectService, TCreateProjectService},
+    application::CreateProjectService,
     config::{AccountsConfig, ArtifactsConfig, CoreConfig, NetworkConfig},
+    infra::project::{GitVersionControl, InMemoryProjectInfraRepository, InMemoryProjectRepository},
 };
 use serde::Deserialize;
 use std::{path::PathBuf, sync::Arc};
 use tempfile::TempDir;
 
 #[derive(Deserialize)]
-pub struct Payload {
+pub struct ConfigurePayload {
     pub max_sequencer_drift: u32,
     pub sequencer_window_size: u32,
     pub channel_timeout: u32,
@@ -60,9 +61,11 @@ pub struct Payload {
     pub batch_inbox_address: String,
 }
 
-pub async fn build_handler(
-    Extension(create_service): Extension<Arc<CreateProjectService>>,
-    Json(data): Json<Payload>,
+pub async fn create(
+    Extension(create_service): Extension<
+        Arc<CreateProjectService<InMemoryProjectRepository, GitVersionControl, InMemoryProjectInfraRepository>>,
+    >,
+    Json(data): Json<ConfigurePayload>,
 ) -> Result<impl IntoResponse, (StatusCode, &'static str)> {
     let mut headers = HeaderMap::new();
     headers.insert("Content-Type", HeaderValue::from_static("application/zip"));
@@ -73,7 +76,7 @@ pub async fn build_handler(
 
     let config = CoreConfig {
         network: NetworkConfig {
-            l1_rpc_url: "".to_string(),
+            l1_rpc_url: None,
             max_sequencer_drift: data.max_sequencer_drift,
             sequencer_window_size: data.sequencer_window_size,
             channel_timeout: data.channel_timeout,

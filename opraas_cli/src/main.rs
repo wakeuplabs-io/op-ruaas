@@ -47,7 +47,7 @@ enum Commands {
         target: DeployTarget,
 
         #[arg(long)]
-        name: String,
+        deployment_id: String,
 
         #[arg(long, default_value_t = false)]
         deterministic_deployer: bool,
@@ -57,10 +57,14 @@ enum Commands {
         target: InspectTarget,
 
         #[arg(long)]
-        name: String,
+        deployment_id: String,
     },
     // /// Monitor your chain. Target must be one of: onchain, offchain
     // Monitor { target: MonitorTarget },
+}
+
+pub struct AppContext {
+    pub user_id: Option<String>,
 }
 
 #[tokio::main]
@@ -93,20 +97,34 @@ async fn main() {
         .filter_module("opraas_core", log_level)
         .init();
 
+    let ctx = AppContext {
+        user_id: Some("root".into()),
+    };
+
     // run commands
     if let Err(e) = match args.cmd {
-        Commands::New { name } => NewCommand::new().run(name),
-        Commands::Init { target } => InitCommand::new().run(target),
-        Commands::Build { target } => BuildCommand::new().run(target),
-        Commands::Release { target } => ReleaseCommand::new().run(target),
-        Commands::Dev { default } => DevCommand::new().run(default),
+        Commands::New { name } => NewCommand::new().run(&ctx, &name),
+        Commands::Init { target } => InitCommand::new().run(&ctx, &target),
+        Commands::Build { target } => BuildCommand::new().run(&ctx, &target),
+        Commands::Release { target } => ReleaseCommand::new().run(&ctx, target),
+        Commands::Dev { default } => DevCommand::new().run(&ctx, default).await,
         Commands::Deploy {
             target,
-            name,
+            deployment_id,
             deterministic_deployer,
-        } => DeployCommand::new().run(target, name, deterministic_deployer),
-        Commands::Inspect { target, name } => InspectCommand::new().run(target, name),
-        // Commands::Monitor { target } => MonitorCommand::new(target).run(&config).await,
+        } => {
+            DeployCommand::new()
+                .run(&ctx, &target, &deployment_id, deterministic_deployer)
+                .await
+        }
+        Commands::Inspect {
+            target,
+            deployment_id,
+        } => {
+            InspectCommand::new()
+                .run(&ctx, &target, &deployment_id)
+                .await
+        } // Commands::Monitor { target } => MonitorCommand::new(target).run(&config).await,
     } {
         print_error(&format!("\n\nError: {}\n\n", e));
         std::process::exit(1);

@@ -1,34 +1,29 @@
-use crate::infra::console::style_spinner;
+use crate::{infra::console::style_spinner, AppContext};
 use colored::*;
 use indicatif::ProgressBar;
 use opraas_core::{
-    application::{CreateProjectService, TCreateProjectService},
+    application::CreateProjectService,
     config::CoreConfig,
-    infra::{
-        project::{GitVersionControl, InMemoryProjectRepository},
-        stack::repo_inmemory::GitStackInfraRepository,
-    },
+    infra::project::{GitVersionControl, InMemoryProjectInfraRepository, InMemoryProjectRepository},
 };
 use std::{env, path::PathBuf};
 
 pub struct NewCommand {
-    project_creator: Box<dyn TCreateProjectService>,
+    project_creator: CreateProjectService<InMemoryProjectRepository, GitVersionControl, InMemoryProjectInfraRepository>,
 }
-
-// implementations ================================================
 
 impl NewCommand {
     pub fn new() -> Self {
         Self {
-            project_creator: Box::new(CreateProjectService::new(
-                Box::new(InMemoryProjectRepository::new()),
-                Box::new(GitVersionControl::new()),
-                Box::new(GitStackInfraRepository::new()),
-            )),
+            project_creator: CreateProjectService::new(
+                InMemoryProjectRepository::new(),
+                GitVersionControl::new(),
+                InMemoryProjectInfraRepository::new(),
+            ),
         }
     }
 
-    pub fn run(&self, name: String) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn run(&self, _ctx: &AppContext, name: &str) -> Result<(), Box<dyn std::error::Error>> {
         let mut root = PathBuf::from(&name);
         if !root.is_absolute() {
             root = env::current_dir()?.join(root)
