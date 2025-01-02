@@ -37,6 +37,16 @@ impl domain::deployment::TDeploymentArtifactsRepository for InMemoryDeploymentAr
         Ok(Some(deserialized))
     }
 
+    async fn exists(&self, deployment: &Deployment) -> Result<bool, Box<dyn Error>> {
+        let depl_path = self
+            .root
+            .join(&deployment.owner_id)
+            .join(&deployment.id)
+            .join("artifact.zip");
+
+        Ok(std::fs::exists(&depl_path).unwrap_or(false))
+    }
+
     async fn save(&self, deployment: &Deployment, artifact: DeploymentArtifact) -> Result<(), Box<dyn Error>> {
         let depl_path = self
             .root

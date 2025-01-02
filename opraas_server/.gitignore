@@ -1,4 +1,4 @@
 
-# sst
 .sst
 node_modules
+.sqlx

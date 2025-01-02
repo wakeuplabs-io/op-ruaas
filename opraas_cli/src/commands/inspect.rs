@@ -1,7 +1,8 @@
 use clap::ValueEnum;
 use opraas_core::{
-    application::deployment::manager::DeploymentManagerService, domain::Project,
-    infra::deployment::InMemoryDeploymentRepository,
+    application::deployment::manager::DeploymentManagerService,
+    domain::Project,
+    infra::deployment::{InMemoryDeploymentArtifactsRepository, InMemoryDeploymentRepository},
 };
 
 use crate::AppContext;
@@ -14,7 +15,7 @@ pub enum InspectTarget {
 }
 
 pub struct InspectCommand {
-    deployments_manager: DeploymentManagerService<InMemoryDeploymentRepository>,
+    deployments_manager: DeploymentManagerService<InMemoryDeploymentRepository, InMemoryDeploymentArtifactsRepository>,
 }
 
 impl InspectCommand {
@@ -22,7 +23,10 @@ impl InspectCommand {
         let project = Project::try_from(std::env::current_dir().unwrap()).unwrap();
 
         Self {
-            deployments_manager: DeploymentManagerService::new(InMemoryDeploymentRepository::new(&project.root)),
+            deployments_manager: DeploymentManagerService::new(
+                InMemoryDeploymentRepository::new(&project.root),
+                InMemoryDeploymentArtifactsRepository::new(&project.root),
+            ),
         }
     }
 

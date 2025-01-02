@@ -43,7 +43,7 @@ pub struct DeployCommand {
     infra_deployer:
         InfraDeployerService<TerraformDeployer, InMemoryDeploymentRepository, InMemoryProjectInfraRepository>,
     system_requirement_checker: SystemRequirementsChecker,
-    deployments_manager: DeploymentManagerService<InMemoryDeploymentRepository>,
+    deployments_manager: DeploymentManagerService<InMemoryDeploymentRepository, InMemoryDeploymentArtifactsRepository>,
 }
 
 impl DeployCommand {
@@ -67,7 +67,10 @@ impl DeployCommand {
                 InMemoryDeploymentRepository::new(&project.root),
                 InMemoryProjectInfraRepository::new(),
             ),
-            deployments_manager: DeploymentManagerService::new(InMemoryDeploymentRepository::new(&project.root)),
+            deployments_manager: DeploymentManagerService::new(
+                InMemoryDeploymentRepository::new(&project.root),
+                InMemoryDeploymentArtifactsRepository::new(&project.root),
+            ),
             system_requirement_checker: SystemRequirementsChecker::new(),
         }
     }

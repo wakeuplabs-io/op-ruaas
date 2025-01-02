@@ -9,10 +9,11 @@ use axum::{
     response::IntoResponse,
     Extension,
 };
-use opraas_core::{application::deployment::manager::DeploymentManagerService, domain::Deployment};
+use opraas_core::application::deployment::manager::DeploymentManagerService;
 use std::sync::Arc;
 
 pub async fn create(
+    Path(deployment_id): Path<String>,
     Extension(user): Extension<AuthCurrentUser>,
     Extension(deployments_manager): Extension<
         Arc<DeploymentManagerService<SqlDeploymentRepository, S3DeploymentArtifactsRepository>>,
@@ -30,34 +31,64 @@ pub async fn create(
         );
     }
 
-    let Some(data) = field else {
+    let Some(deployment_artifact) = field else {
         return Err(ApiError::BadRequest("No deployment file provided".into()));
     };
 
-    let mut deployment: Deployment = serde_json::from_slice(&data).unwrap();
-    deployment.owner_id = user.id.clone();
+    let deployment = deployments_manager
+        .find_one(&user.id, &deployment_id)
+        .await
+        .map_err(ApiError::from)?
+        .ok_or(ApiError::BadRequest(
+            "Could not find deployment with given id".into(),
+        ))?;
+
+    // verify deployment is owned by user
+    if deployment.owner_id != user.id {
+        return Err(ApiError::AuthError(
+            "Deployment is not owned by user".into(),
+        ));
+    }
 
     deployments_manager
-        .save(&deployment)
+        .save_artifact(&deployment, deployment_artifact)
         .await
         .map_err(ApiError::from)?;
 
     return Ok((StatusCode::OK, "Ok"));
 }
 
-pub async fn list(
+pub async fn head(
+    Path(id): Path<String>,
     Extension(user): Extension<AuthCurrentUser>,
     Extension(deployments_manager): Extension<
         Arc<DeploymentManagerService<SqlDeploymentRepository, S3DeploymentArtifactsRepository>>,
     >,
 ) -> Result<impl IntoResponse, ApiError> {
-    let deployments = deployments_manager
-        .find(&user.id)
+    let deployment = deployments_manager
+        .find_one(&user.id, &id)
         .await
-        .map_err(|_| ApiError::InternalServerError("Could not list deployments".into()))?;
+        .map_err(ApiError::from)?
+        .ok_or(ApiError::BadRequest(
+            "Could not find deployment with given id".into(),
+        ))?;
 
-    let deployments_json = serde_json::to_string(&deployments).unwrap();
-    Ok((StatusCode::OK, deployments_json))
+    if deployment.owner_id != user.id {
+        return Err(ApiError::AuthError(
+            "Deployment is not owned by user".into(),
+        ));
+    }
+
+    let exists = deployments_manager
+        .exists_artifact(&deployment)
+        .await
+        .map_err(ApiError::from)?;
+
+    if !exists {
+         Ok((StatusCode::OK, [("X-Resource-Exist", "true")]))
+    } else {
+        Ok((StatusCode::NOT_FOUND, [("X-Resource-Exist", "false")]))
+    }
 }
 
 pub async fn get_by_id(
@@ -94,16 +125,15 @@ pub async fn delete(
             "Could not find deployment with given id".into(),
         ))?;
 
+    // verify deployment is owned by user
     if deployment.owner_id != user.id {
         return Err(ApiError::AuthError(
             "Deployment is not owned by user".into(),
         ));
     }
 
-    let _ = deployments_manager.delete_artifact(&deployment).await;
-
     deployments_manager
-        .delete(&deployment)
+        .delete_artifact(&deployment)
         .await
         .map_err(ApiError::from)?;
 

@@ -29,6 +29,7 @@ pub trait TDeploymentRepository: Send + Sync {
 #[async_trait::async_trait]
 pub trait TDeploymentArtifactsRepository: Send + Sync {
     async fn find_one(&self, deployment: &Deployment) -> Result<Option<DeploymentArtifact>, Box<dyn Error>>;
+    async fn exists(&self, deployment: &Deployment) -> Result<bool, Box<dyn Error>>;
     async fn save(&self, deployment: &Deployment, artifact: DeploymentArtifact) -> Result<(), Box<dyn Error>>;
     async fn delete(&self, deployment: &Deployment) -> Result<(), Box<dyn Error>>;
 }

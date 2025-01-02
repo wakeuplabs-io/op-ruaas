@@ -1,5 +1,5 @@
 use crate::{
-    domain::{self, Deployment, Project, TDeploymentArtifactsRepository, TInfraDeployerProvider},
+    domain::{Deployment, Project, TDeploymentArtifactsRepository, TInfraDeployerProvider},
     system, yaml,
 };
 use serde_yaml::Value;

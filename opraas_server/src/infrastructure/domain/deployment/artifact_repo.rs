@@ -1,5 +1,5 @@
 use aws_sdk_s3::primitives::ByteStream;
-use opraas_core::domain::{Deployment, DeploymentArtifact, TDeploymentArtifactsRepository, TDeploymentRepository};
+use opraas_core::domain::{Deployment, DeploymentArtifact, TDeploymentArtifactsRepository};
 
 pub struct S3DeploymentArtifactsRepository {
     client: aws_sdk_s3::Client,
@@ -33,6 +33,19 @@ impl TDeploymentArtifactsRepository for S3DeploymentArtifactsRepository {
         let deployment_artifact: Vec<u8> = resp.body.collect().await?.to_vec();
 
         Ok(Some(deployment_artifact))
+    }
+
+    async fn exists(&self, deployment: &Deployment) -> Result<bool, Box<dyn std::error::Error>> {
+        let key = format!("{}-{}.zip", &deployment.owner_id, &deployment.id);
+        let resp = self
+            .client
+            .head_object()
+            .bucket(&self.bucket_name)
+            .key(key)
+            .send()
+            .await;
+
+        Ok(resp.is_ok())
     }
 
     async fn save(
