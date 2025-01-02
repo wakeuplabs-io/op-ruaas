@@ -35,7 +35,7 @@ async fn main() -> Result<(), Error> {
 
     let access_key_id = std::env::var("AWS_ACCESS_KEY_ID").expect("AWS_ACCESS_KEY_ID not set");
     let secret_access_key = std::env::var("AWS_SECRET_ACCESS_KEY").expect("AWS_SECRET_ACCESS_KEY not set");
-    let aws_bucket = std::env::var("AWS_BUCKET").expect("AWS_BUCKET not set");
+    let aws_bucket = std::env::var("BUCKET").expect("BUCKET not set");
 
     let creds = Credentials::new(access_key_id, secret_access_key, None, None, "aws-creds");
     let cfg = aws_config::from_env()
