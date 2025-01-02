@@ -1,1 +1,3 @@
+/target
+*.bak
 node_modules

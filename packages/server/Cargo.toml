@@ -16,7 +16,7 @@ tower-http = { version = "0.6.2", features = ["trace", "limit"] }
 lambda_http = "0.14.0"
 lambda_runtime = "0.13.0"
 tempfile = "3.14.0"
-opraas_core = { path = "../opraas_core" }
+opraas_core = { path = "../core" }
 aws-config = { version = "1.5.0", features = ["behavior-version-latest"] }
 aws-sdk-s3 = "1.32.0"
 async-trait = "0.1.83"
