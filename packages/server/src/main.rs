@@ -17,10 +17,10 @@ use infrastructure::database::get_db_pool;
 use infrastructure::domain::deployment::{S3DeploymentArtifactsRepository, SqlDeploymentRepository};
 use lambda_http::{run, Error};
 use opraas_core::application::deployment::manager::DeploymentManagerService;
-use opraas_core::infra::project::InMemoryProjectInfraRepository;
+use opraas_core::infrastructure::project::InMemoryProjectInfraRepository;
 use opraas_core::{
     application::CreateProjectService,
-    infra::project::{GitVersionControl, InMemoryProjectRepository},
+    infrastructure::project::{GitVersionControl, InMemoryProjectRepository},
 };
 use std::sync::Arc;
 use tower_http::limit::RequestBodyLimitLayer;

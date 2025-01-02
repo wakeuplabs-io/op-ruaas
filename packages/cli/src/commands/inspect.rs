@@ -2,7 +2,7 @@ use clap::ValueEnum;
 use opraas_core::{
     application::deployment::manager::DeploymentManagerService,
     domain::Project,
-    infra::deployment::{InMemoryDeploymentArtifactsRepository, InMemoryDeploymentRepository},
+    infrastructure::deployment::{InMemoryDeploymentArtifactsRepository, InMemoryDeploymentRepository},
 };
 
 use crate::AppContext;

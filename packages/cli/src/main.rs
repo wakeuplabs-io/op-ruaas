@@ -1,6 +1,6 @@
 mod commands;
 mod config;
-mod infra;
+mod infrastructure;
 
 use build::BuildTargets;
 use clap::{Parser, Subcommand};
@@ -8,7 +8,7 @@ use colored::Colorize;
 use commands::*;
 use deploy::DeployTarget;
 use dotenv::dotenv;
-use infra::console::print_error;
+use infrastructure::console::print_error;
 use init::InitTargets;
 use inspect::InspectTarget;
 use log::{Level, LevelFilter};

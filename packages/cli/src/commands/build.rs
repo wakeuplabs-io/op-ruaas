@@ -1,6 +1,6 @@
 use crate::{
     config::{SystemRequirementsChecker, TSystemRequirementsChecker, DOCKER_REQUIREMENT, GIT_REQUIREMENT},
-    infra::console::{print_error, style_spinner},
+    infrastructure::console::{print_error, style_spinner},
     AppContext,
 };
 use colored::*;
@@ -9,7 +9,7 @@ use opraas_core::{
     application::build::ArtifactBuilderService,
     config::CoreConfig,
     domain::{ArtifactFactory, ArtifactKind, Project},
-    infra::artifact::{DockerArtifactRepository, GitArtifactSourceRepository},
+    infrastructure::artifact::{DockerArtifactRepository, GitArtifactSourceRepository},
 };
 use std::{sync::Arc, thread, time::Instant};
 
