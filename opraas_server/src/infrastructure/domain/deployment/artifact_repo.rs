@@ -44,7 +44,6 @@ impl TDeploymentArtifactsRepository for S3DeploymentArtifactsRepository {
         self.client
             .put_object()
             .bucket(&self.bucket_name)
-            .content_type("application/json")
             .content_length(artifact.len() as i64)
             .key(key)
             .body(ByteStream::from(artifact))

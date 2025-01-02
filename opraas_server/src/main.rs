@@ -1,14 +1,20 @@
+#[macro_use]
+extern crate log;
+
 mod error;
-mod infra;
-mod routes;
+mod handlers;
+mod infrastructure;
+mod middlewares;
 mod utils;
 
 use aws_config::Region;
 use aws_credential_types::Credentials;
 use axum::extract::DefaultBodyLimit;
 use axum::routing::{delete, get, post};
-use axum::{Extension, Router};
-use infra::S3DeploymentRepository;
+use axum::{middleware, Extension, Router};
+use handlers::health;
+use infrastructure::database::get_db_pool;
+use infrastructure::domain::deployment::SqlDeploymentRepository;
 use lambda_http::{run, Error};
 use opraas_core::application::deployment::manager::DeploymentManagerService;
 use opraas_core::infra::project::InMemoryProjectInfraRepository;
@@ -16,7 +22,6 @@ use opraas_core::{
     application::CreateProjectService,
     infra::project::{GitVersionControl, InMemoryProjectRepository},
 };
-use routes::health;
 use std::sync::Arc;
 use tower_http::limit::RequestBodyLimitLayer;
 use tower_http::trace::{self, TraceLayer};
@@ -40,24 +45,39 @@ async fn main() -> Result<(), Error> {
         .await;
     let s3_client = aws_sdk_s3::Client::new(&cfg);
 
+    let db_pool = get_db_pool()
+        .await
+        .expect("Unable to connect to the database");
+
     let create_service = Arc::new(CreateProjectService::new(
         InMemoryProjectRepository::new(),
         GitVersionControl::new(),
         InMemoryProjectInfraRepository::new(),
     ));
 
-    let deployment_manager_service = Arc::new(DeploymentManagerService::new(S3DeploymentRepository::new(
-        s3_client.clone(),
-        aws_bucket,
+    let deployment_manager_service = Arc::new(DeploymentManagerService::new(SqlDeploymentRepository::new(
+        db_pool,
     )));
 
     let router = Router::new()
         .route("/health", get(health::health))
-        .route("/config", post(routes::config::create))
-        .route("/deployments", get(routes::deployments::list))
-        .route("/deployments/:id", post(routes::deployments::create))
-        .route("/deployments/:id", get(routes::deployments::get_by_id))
-        .route("/deployments/:id", delete(routes::deployments::delete))
+        .route("/config", post(handlers::deployments_config::create))
+        .route(
+            "/deployments",
+            get(handlers::deployments::list).layer(middleware::from_fn(middlewares::auth::authorize)),
+        )
+        .route(
+            "/deployments/:id",
+            post(handlers::deployments::create).layer(middleware::from_fn(middlewares::auth::authorize)),
+        )
+        .route(
+            "/deployments/:id",
+            get(handlers::deployments::get_by_id).layer(middleware::from_fn(middlewares::auth::authorize)),
+        )
+        .route(
+            "/deployments/:id",
+            delete(handlers::deployments::delete).layer(middleware::from_fn(middlewares::auth::authorize)),
+        )
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))

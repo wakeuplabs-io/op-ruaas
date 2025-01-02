@@ -4,8 +4,6 @@ use std::{
     collections::HashMap,
     fs::{self, File},
     io::Read,
-    thread::sleep,
-    time,
 };
 use tempfile::TempDir;
 
@@ -65,6 +63,7 @@ impl TContractsDeployerProvider for DockerContractsDeployer {
          env.insert("DEPLOY_DETERMINISTIC_DEPLOYER",deploy_deterministic_deployer.to_string());
         #[rustfmt::skip]
          env.insert("SLOW_ARG", if slow { "--slow" } else { "" }.to_string());
+        //  TODO: env vars with in and out paths
 
         let contracts_release = Release {
             artifact_name: "op-contracts".to_string(),
@@ -80,8 +79,6 @@ impl TContractsDeployerProvider for DockerContractsDeployer {
         let mut artifacts_zip = File::open(volume_dir.path().join("out").join("artifacts.zip"))?;
         let mut artifacts_zip_buffer = Vec::new();
         artifacts_zip.read_to_end(&mut artifacts_zip_buffer)?;
-
-        println!("Contracts deployer output: {}", artifacts_zip_buffer.len());
 
         Ok(artifacts_zip_buffer)
     }
