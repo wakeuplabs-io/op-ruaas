@@ -1,5 +1,4 @@
 use crate::domain::{self, Deployment, Project};
-use std::collections::HashMap;
 
 pub struct InfraDeployerService<ID, DR, PIR>
 where

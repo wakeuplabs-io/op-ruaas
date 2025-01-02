@@ -3,6 +3,7 @@ use crate::{
         SystemRequirementsChecker, TSystemRequirementsChecker, DOCKER_REQUIREMENT, HELM_REQUIREMENT, K8S_REQUIREMENT,
     },
     infra::console::{print_info, print_warning, style_spinner, Dialoguer, TDialoguer},
+    AppContext,
 };
 use assert_cmd::Command;
 use indicatif::ProgressBar;
@@ -40,8 +41,6 @@ pub struct DevCommand {
 const DEFAULT_REGISTRY: &str = "wakeuplabs";
 const DEFAULT_RELEASE_TAG: &str = "v0.0.4";
 
-// implementations ================================================
-
 impl DevCommand {
     pub fn new() -> Self {
         let project = Project::try_from(std::env::current_dir().unwrap()).unwrap();
@@ -69,15 +68,18 @@ impl DevCommand {
         }
     }
 
-    pub async fn run(&self, default: bool) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn run(&self, ctx: &AppContext, default: bool) -> Result<(), Box<dyn std::error::Error>> {
         self.system_requirement_checker
             .check(vec![DOCKER_REQUIREMENT, K8S_REQUIREMENT, HELM_REQUIREMENT])?;
 
         let project = Project::try_from(std::env::current_dir()?)?;
         let mut config = CoreConfig::new_from_toml(&project.config)?;
+        let owner_id = ctx.user_id.clone().ok_or("User not found")?;
 
-        print_info("Dev command will run a local l1 node, deploy contracts to it and then install the infra in your local network.");
-        print_info("You can use a release you build with build and release command or a third-party release");
+        print_info(
+            r#"Dev command will run a local l1 node, deploy contracts to it and then install the infra in your local network.
+            You can use a release you build with build and release command or a third-party release."#,
+        );
 
         // confirm kubernetes context point to local
 
@@ -92,8 +94,10 @@ impl DevCommand {
             current_context
         )) {
             print_warning("Aborting...");
-            print_info("We need you to switch your kubernetes context to local");
-            print_info("You can change your kubernetes context with kubectl config use-context");
+            print_info(
+                r#"We need you to switch your kubernetes context to local.
+                You can change your kubernetes context with kubectl config use-context."#,
+            );
             return Ok(());
         }
 
@@ -111,10 +115,9 @@ impl DevCommand {
             false => self.dialoguer.prompt("Input release tag (e.g. v0.1.0)"),
         };
 
-        // deploy monitoring and explorer
+        // deploy monitoring and explorer?
 
         let enable_monitoring = self.dialoguer.confirm("Do you want to enable monitoring?");
-
         let enable_explorer = self.dialoguer.confirm("Do you want to enable explorer?");
 
         // update config for devnet mode
@@ -154,12 +157,12 @@ impl DevCommand {
 
         let mut deployment = Deployment::new(
             "dev",
-            "root",
+            &owner_id,
             &release_tag,
             &release_registry,
             config.network,
             config.accounts,
-        );
+        )?;
 
         self.contracts_deployer
             .deploy(&project, &mut deployment, true, false)

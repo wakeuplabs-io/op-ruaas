@@ -1,6 +1,7 @@
 use crate::{
     config::{SystemRequirementsChecker, TSystemRequirementsChecker, DOCKER_REQUIREMENT, GIT_REQUIREMENT},
     infra::console::{print_error, style_spinner},
+    AppContext,
 };
 use colored::*;
 use indicatif::{HumanDuration, ProgressBar};
@@ -38,7 +39,7 @@ impl BuildCommand {
         }
     }
 
-    pub fn run(&self, target: BuildTargets) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn run(&self, _ctx: &AppContext, target: &BuildTargets) -> Result<(), Box<dyn std::error::Error>> {
         self.system_requirements_checker
             .check(vec![GIT_REQUIREMENT, DOCKER_REQUIREMENT])?;
 

@@ -1,6 +1,7 @@
 use crate::{
     config::{SystemRequirementsChecker, TSystemRequirementsChecker, DOCKER_REQUIREMENT, GIT_REQUIREMENT},
     infra::console::{print_error, print_info, print_warning, style_spinner, Dialoguer, TDialoguer},
+    AppContext,
 };
 use clap::ValueEnum;
 use colored::*;
@@ -30,8 +31,6 @@ pub enum ReleaseTargets {
     All,
 }
 
-// implementations ================================================
-
 impl ReleaseCommand {
     pub fn new() -> Self {
         Self {
@@ -42,7 +41,7 @@ impl ReleaseCommand {
         }
     }
 
-    pub fn run(&self, target: ReleaseTargets) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn run(&self, _ctx: &AppContext, target: ReleaseTargets) -> Result<(), Box<dyn std::error::Error>> {
         self.system_requirements_checker
             .check(vec![GIT_REQUIREMENT, DOCKER_REQUIREMENT])?;
 

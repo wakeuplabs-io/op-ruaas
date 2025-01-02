@@ -4,6 +4,7 @@ use crate::{
         TERRAFORM_REQUIREMENT,
     },
     infra::console::{print_info, style_spinner, Dialoguer, TDialoguer},
+    AppContext,
 };
 use clap::ValueEnum;
 use colored::*;
@@ -45,8 +46,6 @@ pub struct DeployCommand {
     deployments_manager: DeploymentManagerService<InMemoryDeploymentRepository>,
 }
 
-// implementations ================================================
-
 impl DeployCommand {
     pub fn new() -> Self {
         let project = Project::try_from(std::env::current_dir().unwrap()).unwrap();
@@ -75,8 +74,9 @@ impl DeployCommand {
 
     pub async fn run(
         &self,
-        target: DeployTarget,
-        id: String,
+        ctx: &AppContext,
+        target: &DeployTarget,
+        deployment_id: &str,
         deploy_deterministic_deployer: bool,
     ) -> Result<(), Box<dyn std::error::Error>> {
         self.system_requirement_checker.check(vec![
@@ -88,11 +88,12 @@ impl DeployCommand {
 
         let project = Project::try_from(std::env::current_dir()?)?;
         let config = CoreConfig::new_from_toml(&project.config).unwrap();
+        let owner_id = ctx.user_id.clone().ok_or("User not found")?;
 
         // dev is reserved for local deployments
-        if id == "dev" {
+        if deployment_id == "dev" {
             return Err("Name cannot be 'dev'".into());
-        } else if id.contains(" ") {
+        } else if deployment_id.contains(" ") {
             return Err("Name cannot contain spaces".into());
         }
 
@@ -129,13 +130,13 @@ impl DeployCommand {
             let contracts_deployer_spinner = style_spinner(ProgressBar::new_spinner(), "Deploying contracts...");
 
             let mut deployment = Deployment::new(
-                id.as_ref(),
-                "root",
+                deployment_id,
+                &owner_id,
                 &release_tag,
                 &release_registry,
                 config.network,
                 config.accounts,
-            );
+            )?;
 
             self.contracts_deployer
                 .deploy(
@@ -154,7 +155,7 @@ impl DeployCommand {
         if matches!(target, DeployTarget::Infra | DeployTarget::All) {
             let mut deployment = self
                 .deployments_manager
-                .find_one("root", &id)
+                .find_one("root", &deployment_id)
                 .await?
                 .expect("Contracts deployment not found");
 
@@ -209,7 +210,7 @@ impl DeployCommand {
 
         println!(
             "\n{title}\n\n\
-            You can find your deployment artifacts at ./deployments/{id}\n\n\
+            You can find your deployment artifacts at ./deployments/{deployment_id}\n\n\
             We recommend you keep these files and your keys secure as they're needed to run your deployment.\n\n\
             Some useful commands for you now:\n\n\
             - {bin_name} {command}\n\

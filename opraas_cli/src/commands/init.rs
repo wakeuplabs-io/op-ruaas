@@ -1,5 +1,6 @@
 use crate::config::{SystemRequirementsChecker, TSystemRequirementsChecker, GIT_REQUIREMENT};
 use crate::infra::console::{print_error, style_spinner};
+use crate::AppContext;
 use clap::ValueEnum;
 use colored::*;
 use indicatif::{HumanDuration, ProgressBar};
@@ -24,8 +25,6 @@ pub struct InitCommand {
     artifact_initializer: Arc<ArtifactInitializer<GitArtifactSourceRepository>>,
 }
 
-// implementations ================================================
-
 impl InitCommand {
     pub fn new() -> Self {
         Self {
@@ -34,7 +33,7 @@ impl InitCommand {
         }
     }
 
-    pub fn run(&self, target: InitTargets) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn run(&self, _ctx: &AppContext, target: &InitTargets) -> Result<(), Box<dyn std::error::Error>> {
         self.system_requirement_checker
             .check(vec![GIT_REQUIREMENT])?;
 

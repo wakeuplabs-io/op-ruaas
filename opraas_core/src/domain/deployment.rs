@@ -76,14 +76,19 @@ impl Deployment {
         release_registry: T,
         network_config: NetworkConfig,
         accounts_config: AccountsConfig,
-    ) -> Self
+    ) -> Result<Self, Box<dyn std::error::Error>>
     where
         T: Into<String>,
     {
-        // verify id TODO:
+        let id = id.into();
+        if id.is_empty() {
+            return Err("Deployment id can't be empty".into());
+        } else if id.contains(" ") {
+            return Err("Deployment id can't contain spaces".into());
+        }
 
-        Self {
-            id: id.into(),
+        Ok(Self {
+            id,
             owner_id: owner_id.into(),
             release_tag: release_tag.into(),
             release_registry: release_registry.into(),
@@ -91,7 +96,7 @@ impl Deployment {
             accounts_config,
             contracts_addresses: None,
             infra_base_url: None,
-        }
+        })
     }
 
     // TODO: probably move to deployer

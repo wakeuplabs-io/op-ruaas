@@ -27,16 +27,3 @@ pub async fn create_pool() -> Result<Pool<Postgres>, ApiError> {
 pub async fn get_db_pool() -> Result<DbPool, ApiError> {
     DB_POOL.get().await.clone()
 }
-
-pub async fn ping() -> Result<(), ApiError> {
-    info!("Checking on database connection...");
-    let pool = get_db_pool().await?;
-
-    sqlx::query("SELECT 1")
-        .fetch_one(&pool)
-        .await
-        .expect("Failed to PING database");
-    info!("Database PING executed successfully!");
-
-    Ok(())
-}
