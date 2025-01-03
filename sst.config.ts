@@ -15,7 +15,7 @@ export default $config({
     },
     async run() {
         // auth
-        const auth = new sst.aws.CognitoUserPool("MyUserPool", {
+        const auth = new sst.aws.CognitoUserPool("RuaasUserPool", {
             usernames: ["email"]
         });
         const authClient = auth.addClient("Web")
@@ -24,7 +24,7 @@ export default $config({
         const bucket = new sst.aws.Bucket("RuaasBucket");
 
         // vpc for api-db
-        const vpc = new sst.aws.Vpc("RuaasVpc", { bastion: true });
+        const vpc = new sst.aws.Vpc("RuaasVpc", { bastion: true, nat: "ec2" });
 
         // api db
         const rds = new sst.aws.Postgres("RuaasPostgres", { vpc });
@@ -32,8 +32,9 @@ export default $config({
 
         // api
         const api = new sst.aws.Function("RuaasConsoleApi", {
+            vpc,
             handler: "bootstrap",
-            bundle: "packages/posts-api/target/lambda/posts-api",
+            bundle: "packages/server/target/lambda/server",
             architecture: "arm64", // or x86_64
             runtime: 'provided.al2023',
             url: true,

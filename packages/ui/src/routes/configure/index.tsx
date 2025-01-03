@@ -10,7 +10,6 @@ import {
   NetworkConfig,
   networkConfigSchema,
 } from "@/config/network-config";
-import { l1BlockTimes } from "@/config/l1-block-times";
 import { ApiService } from "@/lib/api";
 
 export const Route = createFileRoute("/configure/")({
