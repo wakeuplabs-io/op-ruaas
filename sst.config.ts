@@ -26,7 +26,10 @@ export default $config({
         const bucket = new sst.aws.Bucket("RuaasBucket");
 
         // vpc for api-db
-        const vpc = new sst.aws.Vpc("RuaasVpc", { bastion: true, nat: "ec2" });
+        const vpc = new sst.aws.Vpc("RuaasVpc", {
+            nat: "ec2", // Sharing vpc with api
+            bastion: true // Will let us connect to the VPC from our local machine.
+        });
 
         // api db
         const rds = new sst.aws.Postgres("RuaasPostgres", { vpc });
