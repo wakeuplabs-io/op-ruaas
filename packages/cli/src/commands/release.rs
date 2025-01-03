@@ -1,6 +1,6 @@
 use crate::{
     config::{SystemRequirementsChecker, TSystemRequirementsChecker, DOCKER_REQUIREMENT, GIT_REQUIREMENT},
-    infra::console::{print_error, print_info, print_warning, style_spinner, Dialoguer, TDialoguer},
+    infrastructure::console::{print_error, print_info, print_warning, style_spinner, Dialoguer, TDialoguer},
     AppContext,
 };
 use clap::ValueEnum;
@@ -10,7 +10,7 @@ use opraas_core::{
     application::{ArtifactReleaserService, VersionControlProjectService},
     config::CoreConfig,
     domain::{ArtifactFactory, ArtifactKind, Project},
-    infra::{project::GitVersionControl, release::DockerReleaseRepository},
+    infrastructure::{project::GitVersionControl, release::DockerReleaseRepository},
 };
 use std::{sync::Arc, thread, time::Instant};
 

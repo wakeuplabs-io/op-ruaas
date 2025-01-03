@@ -3,11 +3,11 @@
     "version": "0.1.4",
     "description": "Spin up Optimism rollups with ease",
     "bin": {
-        "opruaas": "./lib/run.js"
+        "opruaas": "./run.js"
     },
     "scripts": {
         "test": "jest",
-        "postinstall": "node ./lib/install.js"
+        "postinstall": "node ./install.js"
     },
     "repository": {
         "type": "git",

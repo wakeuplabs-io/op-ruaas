@@ -7,7 +7,7 @@ use axum::{
 use opraas_core::{
     application::CreateProjectService,
     config::{AccountsConfig, ArtifactsConfig, CoreConfig, NetworkConfig},
-    infra::project::{GitVersionControl, InMemoryProjectInfraRepository, InMemoryProjectRepository},
+    infrastructure::project::{GitVersionControl, InMemoryProjectInfraRepository, InMemoryProjectRepository},
 };
 use serde::Deserialize;
 use std::{path::PathBuf, sync::Arc};

@@ -17,10 +17,10 @@ use infrastructure::database::get_db_pool;
 use infrastructure::domain::deployment::{S3DeploymentArtifactsRepository, SqlDeploymentRepository};
 use lambda_http::{run, Error};
 use opraas_core::application::deployment::manager::DeploymentManagerService;
-use opraas_core::infra::project::InMemoryProjectInfraRepository;
+use opraas_core::infrastructure::project::InMemoryProjectInfraRepository;
 use opraas_core::{
     application::CreateProjectService,
-    infra::project::{GitVersionControl, InMemoryProjectRepository},
+    infrastructure::project::{GitVersionControl, InMemoryProjectRepository},
 };
 use std::sync::Arc;
 use tower_http::limit::RequestBodyLimitLayer;
@@ -35,7 +35,7 @@ async fn main() -> Result<(), Error> {
 
     let access_key_id = std::env::var("AWS_ACCESS_KEY_ID").expect("AWS_ACCESS_KEY_ID not set");
     let secret_access_key = std::env::var("AWS_SECRET_ACCESS_KEY").expect("AWS_SECRET_ACCESS_KEY not set");
-    let aws_bucket = std::env::var("AWS_BUCKET").expect("AWS_BUCKET not set");
+    let aws_bucket = std::env::var("BUCKET").expect("BUCKET not set");
 
     let creds = Credentials::new(access_key_id, secret_access_key, None, None, "aws-creds");
     let cfg = aws_config::from_env()

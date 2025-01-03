@@ -1,10 +1,10 @@
-use crate::{infra::console::style_spinner, AppContext};
+use crate::{infrastructure::console::style_spinner, AppContext};
 use colored::*;
 use indicatif::ProgressBar;
 use opraas_core::{
     application::CreateProjectService,
     config::CoreConfig,
-    infra::project::{GitVersionControl, InMemoryProjectInfraRepository, InMemoryProjectRepository},
+    infrastructure::project::{GitVersionControl, InMemoryProjectInfraRepository, InMemoryProjectRepository},
 };
 use std::{env, path::PathBuf};
 

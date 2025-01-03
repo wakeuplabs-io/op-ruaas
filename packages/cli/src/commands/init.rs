@@ -1,5 +1,5 @@
 use crate::config::{SystemRequirementsChecker, TSystemRequirementsChecker, GIT_REQUIREMENT};
-use crate::infra::console::{print_error, style_spinner};
+use crate::infrastructure::console::{print_error, style_spinner};
 use crate::AppContext;
 use clap::ValueEnum;
 use colored::*;
@@ -7,7 +7,7 @@ use indicatif::{HumanDuration, ProgressBar};
 use opraas_core::application::initialize::ArtifactInitializer;
 use opraas_core::config::CoreConfig;
 use opraas_core::domain::{ArtifactFactory, ArtifactKind, Project};
-use opraas_core::infra::artifact::GitArtifactSourceRepository;
+use opraas_core::infrastructure::artifact::GitArtifactSourceRepository;
 use std::{sync::Arc, thread, time::Instant};
 
 #[derive(Debug, Clone, ValueEnum)]

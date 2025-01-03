@@ -3,7 +3,7 @@ use crate::{
         SystemRequirementsChecker, TSystemRequirementsChecker, DOCKER_REQUIREMENT, HELM_REQUIREMENT, K8S_REQUIREMENT,
         TERRAFORM_REQUIREMENT,
     },
-    infra::console::{print_info, style_spinner, Dialoguer, TDialoguer},
+    infrastructure::console::{print_info, style_spinner, Dialoguer, TDialoguer},
     AppContext,
 };
 use clap::ValueEnum;
@@ -16,7 +16,7 @@ use opraas_core::{
     },
     config::CoreConfig,
     domain::{Deployment, Project},
-    infra::{
+    infrastructure::{
         deployment::{
             DockerContractsDeployer, InMemoryDeploymentArtifactsRepository, InMemoryDeploymentRepository,
             TerraformDeployer,

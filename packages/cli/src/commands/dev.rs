@@ -2,7 +2,7 @@ use crate::{
     config::{
         SystemRequirementsChecker, TSystemRequirementsChecker, DOCKER_REQUIREMENT, HELM_REQUIREMENT, K8S_REQUIREMENT,
     },
-    infra::console::{print_info, print_warning, style_spinner, Dialoguer, TDialoguer},
+    infrastructure::console::{print_info, print_warning, style_spinner, Dialoguer, TDialoguer},
     AppContext,
 };
 use assert_cmd::Command;
@@ -11,7 +11,7 @@ use opraas_core::{
     application::deployment::{deploy_contracts::ContractsDeployerService, run::DeploymentRunnerService},
     config::CoreConfig,
     domain::{Deployment, Project},
-    infra::{
+    infrastructure::{
         deployment::{
             DockerContractsDeployer, HelmDeploymentRunner, InMemoryDeploymentArtifactsRepository,
             InMemoryDeploymentRepository,
