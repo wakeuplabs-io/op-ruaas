@@ -1,5 +1,5 @@
-import { l1BlockTimes } from "@/config/l1-block-times";
-import { NetworkConfig } from "@/config/network-config";
+import { l1BlockTimes } from "@/shared/config/l1-block-times";
+import { NetworkConfig } from "@/shared/config/network-config";
 import axios from "axios";
 
 

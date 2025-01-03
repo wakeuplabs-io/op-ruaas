@@ -35,7 +35,7 @@ export const InspectInfra: React.FC = () => {
 
       <input
         type="file"
-        className="file-input block file-input-bordered file-input-sm w-full max-w-xs"
+        className="block w-full max-w-xs"
         onChange={onInfraChange}
       />
 
