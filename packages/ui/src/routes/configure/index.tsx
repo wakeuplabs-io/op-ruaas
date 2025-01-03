@@ -11,6 +11,8 @@ import {
   networkConfigSchema,
 } from "@/config/network-config";
 import { ApiService } from "@/lib/api";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 
 export const Route = createFileRoute("/configure/")({
   component: ConfigureChain,
@@ -122,124 +124,136 @@ function ConfigureChain() {
   }, []);
 
   return (
-    <div className="min-h-screen w-screen flex">
-      <aside className="w-[600px] h-screen overflow-y-scroll sticky top-0 px-6 py-10 border-r border-gray-300 space-y-2">
-        <h2 className="font-medium">Settings</h2>
-        <div>
-          <a href="#l1-chain" className="text-gray-700 font-medium text-base">
-            L1 chain
-          </a>
-        </div>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <div className="min-h-screen flex">
+          <aside className="w-[600px] h-screen overflow-y-scroll sticky top-0 px-6 py-10 border-r border-gray-300 space-y-2">
+            <h2 className="font-medium">Settings</h2>
+            <div>
+              <a
+                href="#l1-chain"
+                className="text-gray-700 font-medium text-base"
+              >
+                L1 chain
+              </a>
+            </div>
 
-        <div>
-          <a href="#advanced" className="text-gray-700 font-medium text-base">
-            Advanced Mode
-          </a>
-        </div>
+            <div>
+              <a
+                href="#advanced"
+                className="text-gray-700 font-medium text-base"
+              >
+                Advanced Mode
+              </a>
+            </div>
 
-        {filteredNetworkConfig.map((nc) => (
-          <div className="space-y-2">
-            <a
-              href={`#${nc.id}`}
-              className="font-medium text-base text-gray-700"
-            >
-              {nc.title}
-            </a>
-            <ul className="space-y-1 text-sm">
-              {nc.inputs.map((i) => (
-                <li className="pl-4">
-                  <a href={`#${i.title}`} className="text-gray-600">
-                    {i.title}
-                  </a>
-                </li>
+            {filteredNetworkConfig.map((nc) => (
+              <div className="space-y-2">
+                <a
+                  href={`#${nc.id}`}
+                  className="font-medium text-base text-gray-700"
+                >
+                  {nc.title}
+                </a>
+                <ul className="space-y-1 text-sm">
+                  {nc.inputs.map((i) => (
+                    <li className="pl-4">
+                      <a href={`#${i.title}`} className="text-gray-600">
+                        {i.title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </aside>
+
+          <div className="max-w- mx-14 w-full my-10 divide-y">
+            <div className="py-6 space-y-2">
+              <h1 className="text-xl font-bold">Setup Chain</h1>
+              <p className="text-sm">
+                Walkthrough the config parameters to generate a config for your
+                chain you can deploy.
+              </p>
+            </div>
+
+            <div className="space-y-3 py-6" id="advanced">
+              <h2 className="text-xl font-bold">Advanced mode</h2>
+              <div className="space-y-3">
+                <span className="block text-sm text-neutral">
+                  Enable advanced mode to fine tune all parameters that define
+                  your chain. If want a quick test the defaults should be enough
+                  and you can keep this as disabled
+                </span>
+
+                <select
+                  className="select select-bordered w-full"
+                  value={advanced ? "enabled" : "disabled"}
+                  onChange={(e) => setAdvanced(e.target.value === "enabled")}
+                >
+                  <option value="disabled">Disabled</option>
+                  <option value="enabled">Enabled</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-3 py-6" id="l1-chain">
+              <h2 className="text-xl font-bold">L1 chain</h2>
+              <div className="space-y-3">
+                <p className="text-sm text-neutral">
+                  The L1 chain to which your rollup will be posting
+                  transactions. Think of it as an exchange between costs and
+                  security.
+                </p>
+
+                <select
+                  value={chainId}
+                  onChange={(e) => onL1ChainSelect(Number(e.target.value))}
+                  className="select select-bordered w-full"
+                >
+                  <option value={1}>Ethereum</option>
+                </select>
+              </div>
+            </div>
+
+            <form className="py-6 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+              <h2 className="text-xl font-bold">Your chain</h2>
+
+              {filteredNetworkConfig.map((nc) => (
+                <ConfigSection
+                  id={nc.title}
+                  title={nc.title}
+                  description={nc.description}
+                >
+                  {nc.inputs.map((i) => (
+                    <ConfigInput
+                      {...register(i.id)}
+                      id={i.id}
+                      title={i.title}
+                      description={i.description}
+                      type={i.type}
+                      notes={i.notes}
+                      standardConfigRequirement={i.standardConfigRequirement}
+                      error={errors[i.id]?.message}
+                    />
+                  ))}
+                </ConfigSection>
               ))}
-            </ul>
-          </div>
-        ))}
-      </aside>
 
-      <div className="max-w- mx-14 w-full my-10 divide-y">
-        <div className="py-6 space-y-2">
-          <h1 className="text-xl font-bold">Setup Chain</h1>
-          <p className="text-sm">
-            Walkthrough the config parameters to generate a config for your
-            chain you can deploy.
-          </p>
-        </div>
-
-        <div className="space-y-3 py-6" id="advanced">
-          <h2 className="text-xl font-bold">Advanced mode</h2>
-          <div className="space-y-3">
-            <span className="block text-sm text-neutral">
-              Enable advanced mode to fine tune all parameters that define your
-              chain. If want a quick test the defaults should be enough and you
-              can keep this as disabled
-            </span>
-
-            <select
-              className="select select-bordered w-full"
-              value={advanced ? "enabled" : "disabled"}
-              onChange={(e) => setAdvanced(e.target.value === "enabled")}
-            >
-              <option value="disabled">Disabled</option>
-              <option value="enabled">Enabled</option>
-            </select>
+              <button
+                type="submit"
+                disabled={loading}
+                className={cn("btn btn-sm", {
+                  "loading loading-spinner": loading,
+                })}
+              >
+                Download zip file
+              </button>
+            </form>
           </div>
         </div>
-
-        <div className="space-y-3 py-6" id="l1-chain">
-          <h2 className="text-xl font-bold">L1 chain</h2>
-          <div className="space-y-3">
-            <p className="text-sm text-neutral">
-              The L1 chain to which your rollup will be posting transactions.
-              Think of it as an exchange between costs and security.
-            </p>
-
-            <select
-              value={chainId}
-              onChange={(e) => onL1ChainSelect(Number(e.target.value))}
-              className="select select-bordered w-full"
-            >
-              <option value={1}>Ethereum</option>
-            </select>
-          </div>
-        </div>
-
-        <form className="py-6 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <h2 className="text-xl font-bold">Your chain</h2>
-
-          {filteredNetworkConfig.map((nc) => (
-            <ConfigSection
-              id={nc.title}
-              title={nc.title}
-              description={nc.description}
-            >
-              {nc.inputs.map((i) => (
-                <ConfigInput
-                  {...register(i.id)}
-                  id={i.id}
-                  title={i.title}
-                  description={i.description}
-                  type={i.type}
-                  notes={i.notes}
-                  standardConfigRequirement={i.standardConfigRequirement}
-                  error={errors[i.id]?.message}
-                />
-              ))}
-            </ConfigSection>
-          ))}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className={cn("btn btn-sm", {
-              "loading loading-spinner": loading,
-            })}
-          >
-            Download zip file
-          </button>
-        </form>
-      </div>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
