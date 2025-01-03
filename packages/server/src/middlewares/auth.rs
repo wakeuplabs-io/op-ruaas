@@ -17,14 +17,10 @@ pub struct Authorizer {
 
 impl Authorizer {
     pub fn new(region: &str, user_pool_id: &str, client_ids: &[&str]) -> Result<Self, Box<dyn std::error::Error>> {
-
         let keyset = KeySet::new(region, user_pool_id)?;
         let verifier = keyset.new_access_token_verifier(client_ids).build()?;
 
-        Ok(Self {
-            keyset,
-            verifier,
-        })
+        Ok(Self { keyset, verifier })
     }
 
     pub async fn authorize(&self, mut req: Request, next: Next) -> Result<Response<Body>, ApiError> {
@@ -44,12 +40,16 @@ impl Authorizer {
         }
 
         let token_str = token.unwrap().to_string();
-        let res = self.keyset.verify(&token_str, &self.verifier).await.map_err(|_| ApiError::AuthError("Invalid token".to_string()))?;
+        let res = self
+            .keyset
+            .verify(&token_str, &self.verifier)
+            .await
+            .map_err(|_| ApiError::AuthError("Invalid token".to_string()))?;
 
         if let (Some(sub), Some(email)) = (
             res.get("sub").and_then(|v| v.as_str()),
             res.get("email").and_then(|v| v.as_str()),
-        )  {
+        ) {
             let current_user = AuthCurrentUser {
                 id: sub.to_string(),
                 email: email.to_string(),
@@ -59,7 +59,6 @@ impl Authorizer {
             Ok(next.run(req).await)
         } else {
             Err(ApiError::AuthError("Invalid token".to_string()))
-            
         }
     }
 }

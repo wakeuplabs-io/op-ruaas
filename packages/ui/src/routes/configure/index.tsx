@@ -9,7 +9,7 @@ import {
   networkConfig,
   NetworkConfig,
   networkConfigSchema,
-} from "@/config/network-config";
+} from "@/shared/config/network-config";
 import { ApiService } from "@/lib/api";
 
 export const Route = createFileRoute("/configure/")({

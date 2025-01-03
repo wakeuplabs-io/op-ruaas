@@ -10,7 +10,8 @@ function Index() {
   const auth = useAuth()
 
   return (
-    <div className="flex flex-1 items-center justify-center">
+    <div className="">
+      <p>{auth.user?.userId}</p>
       <Button onClick={auth.signOut}>
         Logout
       </Button>

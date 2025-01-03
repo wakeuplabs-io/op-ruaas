@@ -53,8 +53,6 @@ function RouteComponent() {
   });
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
-    window.alert(JSON.stringify(data, null, 2));
-
     auth
       .signIn(data.email, data.password)
       .then((signinStep) => {

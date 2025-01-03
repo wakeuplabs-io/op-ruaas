@@ -59,7 +59,8 @@ async fn main() -> Result<(), Error> {
         &aws_region,
         &cognito_pool_id,
         &cognito_client_ids.split(',').collect::<Vec<&str>>(),
-    ).unwrap();
+    )
+    .unwrap();
     let authorizer_layer = middleware::from_fn(move |req, next| {
         let authorizer = authorizer.clone();
         async move { authorizer.authorize(req, next).await }

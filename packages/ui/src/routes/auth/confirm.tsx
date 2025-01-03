@@ -41,17 +41,13 @@ function RouteComponent() {
   });
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
-    window.alert(JSON.stringify(data, null, 2));
-
     if (step === "CONFIRM_SIGN_UP") {
-      window.alert(JSON.stringify({ user, code: data.code }, null, 2));
       auth
         .confirmSignUp(user, data.code)
         .then(() => {
-          navigate({ to: "/" });
+          navigate({ to: "/auth/signin" });
         })
         .catch((error) => {
-          window.alert("ERROR");
           toast({
             variant: "destructive",
             title: "Uh oh! Something went wrong.",

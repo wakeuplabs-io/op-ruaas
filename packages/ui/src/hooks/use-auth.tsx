@@ -35,8 +35,6 @@ export const useAuth = () => {
     setLoading(true);
 
     return amplifyConfirmSignUp({ username: email, confirmationCode: code })
-      .then(() => getCurrentUser())
-      .then(setUser)
       .finally(() => setLoading(false));
   };
 
