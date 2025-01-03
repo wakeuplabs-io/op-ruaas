@@ -1,5 +1,7 @@
 /// <reference path="./.sst/platform/config.d.ts" />
 
+const REGION = "us-east-1";
+
 export default $config({
     app(input) {
         return {
@@ -8,7 +10,7 @@ export default $config({
             home: "aws",
             providers: {
                 aws: {
-                    region: "us-east-1",
+                    region: REGION,
                 }
             }
         };
@@ -18,7 +20,7 @@ export default $config({
         const auth = new sst.aws.CognitoUserPool("RuaasUserPool", {
             usernames: ["email"]
         });
-        const authClient = auth.addClient("Web")
+        const authClient = auth.addClient("Web");
 
         // api bucket for deployment artifacts
         const bucket = new sst.aws.Bucket("RuaasBucket");
@@ -62,9 +64,9 @@ export default $config({
             },
             environment: {
                 VITE_API_URL: api.url,
-                VITE_APP_REGION: aws.getRegionOutput().name,
-                VITE_COGNITO_USER_POOL_ID: auth.id,
-                VITE_COGNITO_CLIENT_ID: authClient.id,
+                VITE_APP_REGION: REGION,
+                VITE_USER_POOL_ID: auth.id,
+                VITE_USER_POOL_CLIENT_ID: authClient.id,
             },
         });
 

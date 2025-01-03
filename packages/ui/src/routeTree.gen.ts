@@ -17,6 +17,7 @@ import { Route as DeployIndexImport } from './routes/deploy/index'
 import { Route as ConfigureIndexImport } from './routes/configure/index'
 import { Route as AuthSignupImport } from './routes/auth/signup'
 import { Route as AuthSigninImport } from './routes/auth/signin'
+import { Route as AuthConfirmImport } from './routes/auth/confirm'
 
 // Create/Update Routes
 
@@ -56,6 +57,12 @@ const AuthSigninRoute = AuthSigninImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const AuthConfirmRoute = AuthConfirmImport.update({
+  id: '/auth/confirm',
+  path: '/auth/confirm',
+  getParentRoute: () => rootRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -65,6 +72,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/auth/confirm': {
+      id: '/auth/confirm'
+      path: '/auth/confirm'
+      fullPath: '/auth/confirm'
+      preLoaderRoute: typeof AuthConfirmImport
       parentRoute: typeof rootRoute
     }
     '/auth/signin': {
@@ -109,6 +123,7 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth/confirm': typeof AuthConfirmRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
   '/configure': typeof ConfigureIndexRoute
@@ -118,6 +133,7 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth/confirm': typeof AuthConfirmRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
   '/configure': typeof ConfigureIndexRoute
@@ -128,6 +144,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/auth/confirm': typeof AuthConfirmRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
   '/configure/': typeof ConfigureIndexRoute
@@ -139,6 +156,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth/confirm'
     | '/auth/signin'
     | '/auth/signup'
     | '/configure'
@@ -147,6 +165,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth/confirm'
     | '/auth/signin'
     | '/auth/signup'
     | '/configure'
@@ -155,6 +174,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/auth/confirm'
     | '/auth/signin'
     | '/auth/signup'
     | '/configure/'
@@ -165,6 +185,7 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthConfirmRoute: typeof AuthConfirmRoute
   AuthSigninRoute: typeof AuthSigninRoute
   AuthSignupRoute: typeof AuthSignupRoute
   ConfigureIndexRoute: typeof ConfigureIndexRoute
@@ -174,6 +195,7 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthConfirmRoute: AuthConfirmRoute,
   AuthSigninRoute: AuthSigninRoute,
   AuthSignupRoute: AuthSignupRoute,
   ConfigureIndexRoute: ConfigureIndexRoute,
@@ -192,6 +214,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/auth/confirm",
         "/auth/signin",
         "/auth/signup",
         "/configure/",
@@ -201,6 +224,9 @@ export const routeTree = rootRoute
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/auth/confirm": {
+      "filePath": "auth/confirm.tsx"
     },
     "/auth/signin": {
       "filePath": "auth/signin.tsx"

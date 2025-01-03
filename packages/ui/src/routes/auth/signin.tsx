@@ -1,4 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Link,
+  useNavigate,
+} from "@tanstack/react-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -12,21 +16,34 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/auth/signin")({
   component: RouteComponent,
 });
 
 const FormSchema = z.object({
-  email: z.string().min(2, {
-    message: "Email must be at least 2 characters.",
-  }),
-  password: z.string().min(2, {
-    message: "Password must be at least 2 characters.",
-  }),
+  email: z.string().email(),
+  password: z
+    .string()
+    .min(8, {
+      message: "Password must be at least 8 characters.",
+    })
+    .regex(/[A-Z]/, {
+      message: "Password must contain at least one uppercase letter.",
+    })
+    .regex(/[^a-zA-Z0-9]/, {
+      message: "Password must contain at least one non-alphanumeric character.",
+    }),
 });
 
 function RouteComponent() {
+  const auth = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -37,7 +54,33 @@ function RouteComponent() {
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
     window.alert(JSON.stringify(data, null, 2));
+
+    auth
+      .signIn(data.email, data.password)
+      .then((signinStep) => {
+        if (signinStep === "DONE") {
+          navigate({ to: "/" });
+        } else {
+          navigate({
+            to: "/auth/confirm",
+            search: { user: data.email, step: signinStep },
+          });
+        }
+      })
+      .catch((error) => {
+        toast({
+          variant: "destructive",
+          title: "Uh oh! Something went wrong.",
+          description: error.message,
+        });
+      });
   }
+
+  useEffect(() => {
+    if (auth.user) {
+      navigate({ to: "/" });
+    }
+  }, [auth.user, navigate]);
 
   return (
     <div className="w-[350px] mx-auto my-20">
@@ -71,15 +114,15 @@ function RouteComponent() {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input type="password" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <Button type="submit" className="w-full">
-            Login
+          <Button type="submit" className="w-full" disabled={auth.loading}>
+            {auth.loading ? "Loading..." : "Login"}
           </Button>
         </form>
 
