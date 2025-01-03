@@ -17,10 +17,10 @@ export default $config({
     },
     async run() {
         // auth
-        const auth = new sst.aws.CognitoUserPool("RuaasUserPool", {
+        const userPool = new sst.aws.CognitoUserPool("RuaasUserPool", {
             usernames: ["email"]
         });
-        const authClient = auth.addClient("Web");
+        const userPoolClient = userPool.addClient("Web");
 
         // api bucket for deployment artifacts
         const bucket = new sst.aws.Bucket("RuaasBucket");
@@ -44,7 +44,9 @@ export default $config({
             timeout: "10 seconds",
             environment: {
                 DATABASE_URL,
-                BUCKET: bucket.name,
+                ARTIFACTS_BUCKET: bucket.name,
+                COGNITO_USER_POOL_ID: userPool.id,
+                COGNITO_USER_POOL_CLIENT_ID: userPoolClient.id
             }
         });
 
@@ -65,8 +67,8 @@ export default $config({
             environment: {
                 VITE_API_URL: api.url,
                 VITE_APP_REGION: REGION,
-                VITE_USER_POOL_ID: auth.id,
-                VITE_USER_POOL_CLIENT_ID: authClient.id,
+                VITE_USER_POOL_ID: userPool.id,
+                VITE_USER_POOL_CLIENT_ID: userPoolClient.id,
             },
         });
 

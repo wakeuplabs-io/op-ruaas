@@ -33,31 +33,47 @@ async fn main() -> Result<(), Error> {
         .with_max_level(LevelFilter::INFO)
         .init();
 
+    let aws_region = std::env::var("AWS_REGION").expect("AWS_REGION not set");
     let access_key_id = std::env::var("AWS_ACCESS_KEY_ID").expect("AWS_ACCESS_KEY_ID not set");
     let secret_access_key = std::env::var("AWS_SECRET_ACCESS_KEY").expect("AWS_SECRET_ACCESS_KEY not set");
-    let aws_bucket = std::env::var("BUCKET").expect("BUCKET not set");
+    let artifacts_bucket = std::env::var("ARTIFACTS_BUCKET").expect("ARTIFACTS_BUCKET not set");
+    let cognito_pool_id = std::env::var("COGNITO_POOL_ID").expect("COGNITO_POOL_ID not set");
+    let cognito_client_ids = std::env::var("COGNITO_CLIENT_IDS").expect("COGNITO_CLIENT_IDS not set");
 
+    // s3 bucket
     let creds = Credentials::new(access_key_id, secret_access_key, None, None, "aws-creds");
     let cfg = aws_config::from_env()
-        .region(Region::new("us-east-1"))
+        .region(Region::new(aws_region.clone()))
         .credentials_provider(creds)
         .load()
         .await;
     let s3_client = aws_sdk_s3::Client::new(&cfg);
 
+    // db pool
     let db_pool = get_db_pool()
         .await
         .expect("Unable to connect to the database");
 
+    // authorizer
+    let authorizer = middlewares::auth::Authorizer::new(
+        &aws_region,
+        &cognito_pool_id,
+        &cognito_client_ids.split(',').collect::<Vec<&str>>(),
+    ).unwrap();
+    let authorizer_layer = middleware::from_fn(move |req, next| {
+        let authorizer = authorizer.clone();
+        async move { authorizer.authorize(req, next).await }
+    });
+
+    // services
     let create_service = Arc::new(CreateProjectService::new(
         InMemoryProjectRepository::new(),
         GitVersionControl::new(),
         InMemoryProjectInfraRepository::new(),
     ));
-
     let deployment_manager_service = Arc::new(DeploymentManagerService::new(
         SqlDeploymentRepository::new(db_pool),
-        S3DeploymentArtifactsRepository::new(s3_client, aws_bucket),
+        S3DeploymentArtifactsRepository::new(s3_client, artifacts_bucket),
     ));
 
     let router = Router::new()
@@ -65,27 +81,27 @@ async fn main() -> Result<(), Error> {
         .route("/config", post(handlers::deployments_config::create))
         .route(
             "/deployments",
-            get(handlers::deployments::list).layer(middleware::from_fn(middlewares::auth::authorize)),
+            get(handlers::deployments::list).layer(authorizer_layer.clone()),
         )
         .route(
             "/deployments/:id",
             post(handlers::deployments::create)
-                .layer(middleware::from_fn(middlewares::auth::authorize))
+                .layer(authorizer_layer.clone())
                 .get(handlers::deployments::get_by_id)
-                .layer(middleware::from_fn(middlewares::auth::authorize))
+                .layer(authorizer_layer.clone())
                 .delete(handlers::deployments::delete)
-                .layer(middleware::from_fn(middlewares::auth::authorize)),
+                .layer(authorizer_layer.clone()),
         )
         .route(
             "/deployments/:id/artifact",
             post(handlers::deployments_artifacts::create)
-                .layer(middleware::from_fn(middlewares::auth::authorize))
+                .layer(authorizer_layer.clone())
                 .get(handlers::deployments_artifacts::get_by_id)
-                .layer(middleware::from_fn(middlewares::auth::authorize))
+                .layer(authorizer_layer.clone())
                 .delete(handlers::deployments_artifacts::delete)
-                .layer(middleware::from_fn(middlewares::auth::authorize))
+                .layer(authorizer_layer.clone())
                 .head(handlers::deployments_artifacts::head)
-                .layer(middleware::from_fn(middlewares::auth::authorize)),
+                .layer(authorizer_layer.clone()),
         )
         .layer(
             TraceLayer::new_for_http()
