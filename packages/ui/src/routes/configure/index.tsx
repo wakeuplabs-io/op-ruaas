@@ -9,7 +9,7 @@ import {
   networkConfig,
   NetworkConfig,
   networkConfigSchema,
-} from "@/config/network-config";
+} from "@/shared/config/network-config";
 import { ApiService } from "@/lib/api";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";

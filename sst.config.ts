@@ -1,5 +1,7 @@
 /// <reference path="./.sst/platform/config.d.ts" />
 
+const REGION = "us-east-1";
+
 export default $config({
     app(input) {
         return {
@@ -8,23 +10,26 @@ export default $config({
             home: "aws",
             providers: {
                 aws: {
-                    region: "us-east-1",
+                    region: REGION,
                 }
             }
         };
     },
     async run() {
         // auth
-        const auth = new sst.aws.CognitoUserPool("RuaasUserPool", {
+        const userPool = new sst.aws.CognitoUserPool("RuaasUserPool", {
             usernames: ["email"]
         });
-        const authClient = auth.addClient("Web")
+        const userPoolClient = userPool.addClient("Web");
 
         // api bucket for deployment artifacts
         const bucket = new sst.aws.Bucket("RuaasBucket");
 
         // vpc for api-db
-        const vpc = new sst.aws.Vpc("RuaasVpc", { bastion: true, nat: "ec2" });
+        const vpc = new sst.aws.Vpc("RuaasVpc", {
+            nat: "ec2", // Sharing vpc with api
+            bastion: true // Will let us connect to the VPC from our local machine.
+        });
 
         // api db
         const rds = new sst.aws.Postgres("RuaasPostgres", { vpc });
@@ -42,7 +47,9 @@ export default $config({
             timeout: "10 seconds",
             environment: {
                 DATABASE_URL,
-                BUCKET: bucket.name,
+                ARTIFACTS_BUCKET: bucket.name,
+                COGNITO_USER_POOL_ID: userPool.id,
+                COGNITO_USER_POOL_CLIENT_ID: userPoolClient.id
             }
         });
 
@@ -62,9 +69,9 @@ export default $config({
             },
             environment: {
                 VITE_API_URL: api.url,
-                VITE_APP_REGION: aws.getRegionOutput().name,
-                VITE_COGNITO_USER_POOL_ID: auth.id,
-                VITE_COGNITO_CLIENT_ID: authClient.id,
+                VITE_APP_REGION: REGION,
+                VITE_USER_POOL_ID: userPool.id,
+                VITE_USER_POOL_CLIENT_ID: userPoolClient.id,
             },
         });
 
