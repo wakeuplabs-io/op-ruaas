@@ -1,11 +1,9 @@
-"use client"
-
 import {
   Folder,
   Forward,
   MoreHorizontal,
+  ScrollText,
   Trash2,
-  type LucideIcon,
 } from "lucide-react"
 
 import {
@@ -31,20 +29,19 @@ export function NavProjects({
   projects: {
     name: string
     url: string
-    icon: LucideIcon
   }[]
 }) {
   const { isMobile } = useSidebar()
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Projects</SidebarGroupLabel>
+      <SidebarGroupLabel>My Rollups</SidebarGroupLabel>
       <SidebarMenu>
         {projects.map((item) => (
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton asChild>
               <a href={item.url}>
-                <item.icon />
+                <ScrollText className="text-sidebar-foreground/70" />
                 <span>{item.name}</span>
               </a>
             </SidebarMenuButton>
@@ -77,12 +74,6 @@ export function NavProjects({
             </DropdownMenu>
           </SidebarMenuItem>
         ))}
-        <SidebarMenuItem>
-          <SidebarMenuButton className="text-sidebar-foreground/70">
-            <MoreHorizontal className="text-sidebar-foreground/70" />
-            <span>More</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
       </SidebarMenu>
     </SidebarGroup>
   )
