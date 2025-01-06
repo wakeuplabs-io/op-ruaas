@@ -1,4 +1,5 @@
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from '@/components/app-sidebar'
+import { Pagination } from '@/components/pagination'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -6,21 +7,19 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+} from '@/components/ui/breadcrumb'
+import { Separator } from '@/components/ui/separator'
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar";
-import { Switch } from "@/components/ui/switch";
-import { createFileRoute } from "@tanstack/react-router";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+} from '@/components/ui/sidebar'
+import { Switch } from '@/components/ui/switch'
+import { createFileRoute } from '@tanstack/react-router'
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute('/create/setup/')({
   component: Index,
-});
+})
 
 function Index() {
   return (
@@ -59,22 +58,9 @@ function Index() {
             </div>
           </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-4">
-            <Button
-              size={"lg"}
-              variant={"secondary"}
-              className="rounded-full justify-start"
-            >
-              <ChevronLeftIcon className="ml-2" />
-              <span>Previous</span>
-            </Button>
-            <Button size={"lg"} className="rounded-full justify-end">
-              <span>Next</span>
-              <ChevronRightIcon className="ml-2" />
-            </Button>
-          </div>
+          <Pagination className="mt-6" onNext={() => {}} onPrev={() => {}} />
         </main>
       </SidebarInset>
     </SidebarProvider>
-  );
+  )
 }

@@ -2,18 +2,24 @@ import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { Check, ClipboardCopy } from "lucide-react";
 import { useCallback } from "react";
 
-export const Command: React.FC<{ command: string }> = (props) => {
+export const DeploymentValue: React.FC<{
+  value: string;
+  description: string;
+}> = (props) => {
   const { isCopied, copyToClipboard } = useCopyToClipboard({});
 
   const onCopyClick = useCallback(() => {
-    copyToClipboard(props.command as string);
+    copyToClipboard(props.value as string);
   }, []);
 
   return (
-    <div className="p-2 border rounded-md h-10 relative">
-      <pre className="">{props.command}</pre>
+    <div className="py-2 px-8 border rounded-md relative">
+      <div>
+        <pre className="text-foreground text-sm">{props.value}</pre>
+        <span className="text-xs text-muted-foreground">{props.description}</span>
+      </div>
       <button
-        className="absolute right-1 top-1/2 -translate-y-1/2 rounded-md h-8 w-8 grid place-content-center bg-transparent hover:bg-white"
+        className="absolute right-1 top-1/2 -translate-y-1/2 rounded-sm h-12 w-12 grid place-content-center bg-gray-100"
         onClick={onCopyClick}
       >
         {isCopied ? (
