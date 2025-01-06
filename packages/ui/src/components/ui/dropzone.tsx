@@ -32,7 +32,7 @@ export const Dropzone: React.FC<{
       {isDragActive ? (
         <p>Drop the files here ...</p>
       ) : (
-        <div className="flex flex-col gap-4 items-center justify-center">
+        <div className="flex flex-col gap-4 p-5 text-center items-center justify-center">
           <FileUp size={32} />
           <p>
             Drag and Drop file here or{" "}

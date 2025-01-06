@@ -1,22 +1,9 @@
 import { Command } from "@/components/ui/command";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { AppSidebar } from "@/components/app-sidebar";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
 import React, { useState } from "react";
 import { Pagination } from "@/components/pagination";
-import { cn } from "@/lib/utils";
+import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { SidebarLayout } from "@/layouts/sidebar";
 
 export const Route = createFileRoute("/create/deploy/")({
   component: DeployChain,
@@ -46,7 +33,7 @@ function DeployChain() {
     if (currentStepIndex < steps.length - 1) {
       setStep(steps[currentStepIndex + 1].step);
     } else {
-      router.navigate({ to: "/create/upload" });
+      router.navigate({ to: "/create/verify" });
     }
   };
 
@@ -57,103 +44,69 @@ function DeployChain() {
   };
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="bg-gray-50 min-h-screen">
-        <header className="flex h-16 shrink-0 items-center gap-2 px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              {steps.map((s, index) => (
-                <React.Fragment key={s.step}>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink
-                      onClick={() => setStep(s.step)}
-                      className={cn("cursor-pointer", {
-                        "font-semibold": s.step === step,
-                      })}
-                    >
-                      {s.label}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  {index < steps.length - 1 && (
-                    <BreadcrumbSeparator className="hidden md:block" />
-                  )}
-                </React.Fragment>
-              ))}
-            </BreadcrumbList>
-          </Breadcrumb>
-        </header>
+    <SidebarLayout
+      title="Deploy"
+      breadcrumb={steps.map((s) => ({
+        id: s.step,
+        label: s.label,
+        active: s.step === step,
+      }))}
+      onBreadcrumbClick={(id) => setStep(id)}
+    >
+      {step === DeploymentStep.INSTALL_DEPENDENCIES && (
+        <InstallDependenciesStep />
+      )}
+      {step === DeploymentStep.RUN_DEV_MODE && <RunDevModeStep />}
+      {step === DeploymentStep.DEPLOY && <DeployStep />}
 
-        <main className="p-4 pt-0">
-          {step === DeploymentStep.INSTALL_DEPENDENCIES && (
-            <InstallDependenciesStep />
-          )}
-          {step === DeploymentStep.RUN_DEV_MODE && <RunDevModeStep />}
-          {step === DeploymentStep.DEPLOY && <DeployStep />}
-
-          <Pagination
-            disablePrev={currentStepIndex === 0}
-            className="mt-6"
-            onNext={next}
-            onPrev={previous}
-          />
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+      <Pagination
+        disablePrev={currentStepIndex === 0}
+        className="mt-6"
+        onNext={next}
+        onPrev={previous}
+      />
+    </SidebarLayout>
   );
 }
 
 const InstallDependenciesStep: React.FC = () => {
   return (
-    <section className="space-y-6 border bg-white p-12 pt-8 rounded-xl">
-      <h1 className="font-bold text-xl">Install Opruaas</h1>
+    <Card>
+      <CardTitle>Install Opruaas</CardTitle>
+      <CardDescription className="mt-4 md:mt-6">
+        Install dependencies if needed. Docker, Kubernetes, Helm, Aws. Then install opruaas cli with
+      </CardDescription>
 
-      <ol className="space-y-6">
-        <li className="space-y-2">
-          <div>Install opruaas cli with</div>
-          <Command command="npm i -g @wakeuplabs/opruaas" />
-        </li>
-        <li>
-          <div>Install dependencies if needed</div>
-          <ul className="list-disc pl-4 mt-2">
-            <li>Docker</li>
-            <li>Kubernettes</li>
-            <li>Helm</li>
-          </ul>
-        </li>
-      </ol>
-    </section>
+      <Command className="mt-10" command="npm i -g @wakeuplabs/opruaas" />
+    </Card>
   );
 };
 
 const RunDevModeStep: React.FC = () => {
   return (
-    <section className="space-y-6 border bg-white p-12 pt-8 rounded-xl">
-      <h1 className="font-bold text-xl">Run in dev mode</h1>
+    <Card>
+      <CardTitle>Run in dev mode</CardTitle>
+      <CardDescription className="mt-4 md:mt-6">
+        Run from inside the project directory
+      </CardDescription>
 
-      <ol>
-        <li className="space-y-2">
-          <div>Run from inside the project directory</div>
-          <Command command="npx opruaas dev --default" />
-        </li>
-      </ol>
-    </section>
+      <Command className="mt-10" command="npx opruaas dev --default" />
+    </Card>
   );
 };
 
 const DeployStep: React.FC = () => {
   return (
-    <section className="space-y-6 border bg-white p-12 pt-8 rounded-xl">
-      <h1 className="font-bold text-xl">Deploy</h1>
+    <Card>
+      <CardTitle>Deploy</CardTitle>
+      <CardDescription className="mt-4 md:mt-6">
+        Run from inside the project directory
+      </CardDescription>
 
-      <ol>
-        <li className="space-y-2">
-          <div>Run from inside the project directory</div>
-          <Command command="opruaas deploy --name prod --target all" />
-        </li>
-      </ol>
-    </section>
+      <Command
+        className="mt-10"
+        command="opruaas deploy --name prod --target all"
+      />
+    </Card>
   );
 };

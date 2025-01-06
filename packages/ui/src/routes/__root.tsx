@@ -12,11 +12,11 @@ const TanStackRouterDevtools =
 
 export const Route = createRootRoute({
   component: () => (
-    <div className="w-screen h-screen flex flex-col">
-      <main className="flex flex-1">
+    <>
+      <main className="">
         <Outlet />
       </main>
       <TanStackRouterDevtools />
-    </div>
+    </>
   ),
 });

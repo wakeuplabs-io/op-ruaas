@@ -5,6 +5,7 @@ import {
   SaveIcon,
   SettingsIcon,
   ShieldCheck,
+  ShieldIcon,
 } from "lucide-react";
 import { useRouter } from "@tanstack/react-router";
 import { NavMain } from "@/components/nav-main";
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/sidebar";
 import { NavProjects } from "./nav-projects";
 import { Button } from "./ui/button";
+import { useAuth } from "@/hooks/use-auth";
 
 // This is sample data.
 const data = {
@@ -116,12 +118,11 @@ const data = {
       name: "Mainnet",
       url: "#",
     },
-    
   ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const router = useRouter(); // Access the router instance
+  const router = useRouter();
   const currentPath = router.state.location.pathname;
 
   const navMain = React.useMemo(() => {
@@ -139,10 +140,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         isActive: currentPath === "/create/deploy",
       },
       {
-        title: "Upload",
-        url: "/create/upload",
-        icon: SaveIcon,
-        isActive: currentPath === "/create/upload",
+        title: "Verify",
+        url: "/create/verify",
+        icon: ShieldCheck,
+        isActive: currentPath === "/create/verify",
       },
     ];
   }, [currentPath]);
@@ -163,7 +164,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <img className="h-[45px]" src="/wakeuplabs.png" alt="logo" />
         </Button>
 
-        <Button variant={"ghost"}>
+        <Button
+          variant={"ghost"}
+          onClick={() => router.navigate({ to: "/auth/signin" })}
+        >
           <LogInIcon className="h-4 w-4" />
           <span>Login</span>
         </Button>

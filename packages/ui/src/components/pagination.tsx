@@ -10,22 +10,22 @@ export const Pagination: React.FC<{
   disableNext?: boolean;
 }> = ({ className, onNext, onPrev, disableNext, disablePrev }) => {
   return (
-    <div className={cn("grid grid-cols-2 gap-4", className)}>
+    <div className={cn("flex items-center gap-4", className)}>
       <Button
         onClick={onPrev}
         disabled={disablePrev}
         size={"lg"}
         variant={"secondary"}
-        className="rounded-full justify-start"
+        className="rounded-full justify-start md:w-full"
       >
-        <ChevronLeftIcon className="ml-2" />
-        <span>Previous</span>
+        <ChevronLeftIcon className="md:ml-2" />
+        <span className="hidden md:block">Previous</span>
       </Button>
       <Button
         disabled={disableNext}
         onClick={onNext}
         size={"lg"}
-        className="rounded-full justify-end"
+        className="rounded-full justify-end w-full"
       >
         <span>Next</span>
         <ChevronRightIcon className="ml-2" />
