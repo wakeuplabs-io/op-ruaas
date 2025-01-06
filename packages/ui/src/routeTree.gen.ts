@@ -11,6 +11,7 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as IndexImport } from './routes/index'
 import { Route as RollupsIdImport } from './routes/rollups/$id'
 import { Route as AuthSignupImport } from './routes/auth/signup'
 import { Route as AuthSigninImport } from './routes/auth/signin'
@@ -20,6 +21,12 @@ import { Route as CreateInspectIndexImport } from './routes/create/inspect/index
 import { Route as CreateDeployIndexImport } from './routes/create/deploy/index'
 
 // Create/Update Routes
+
+const IndexRoute = IndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const RollupsIdRoute = RollupsIdImport.update({
   id: '/rollups/$id',
@@ -67,6 +74,13 @@ const CreateDeployIndexRoute = CreateDeployIndexImport.update({
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
     '/auth/confirm': {
       id: '/auth/confirm'
       path: '/auth/confirm'
@@ -122,6 +136,7 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 export interface FileRoutesByFullPath {
+  '/': typeof IndexRoute
   '/auth/confirm': typeof AuthConfirmRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
@@ -132,6 +147,7 @@ export interface FileRoutesByFullPath {
 }
 
 export interface FileRoutesByTo {
+  '/': typeof IndexRoute
   '/auth/confirm': typeof AuthConfirmRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
@@ -143,6 +159,7 @@ export interface FileRoutesByTo {
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
+  '/': typeof IndexRoute
   '/auth/confirm': typeof AuthConfirmRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
@@ -155,6 +172,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/'
     | '/auth/confirm'
     | '/auth/signin'
     | '/auth/signup'
@@ -164,6 +182,7 @@ export interface FileRouteTypes {
     | '/create/setup'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/'
     | '/auth/confirm'
     | '/auth/signin'
     | '/auth/signup'
@@ -173,6 +192,7 @@ export interface FileRouteTypes {
     | '/create/setup'
   id:
     | '__root__'
+    | '/'
     | '/auth/confirm'
     | '/auth/signin'
     | '/auth/signup'
@@ -184,6 +204,7 @@ export interface FileRouteTypes {
 }
 
 export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
   AuthConfirmRoute: typeof AuthConfirmRoute
   AuthSigninRoute: typeof AuthSigninRoute
   AuthSignupRoute: typeof AuthSignupRoute
@@ -194,6 +215,7 @@ export interface RootRouteChildren {
 }
 
 const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
   AuthConfirmRoute: AuthConfirmRoute,
   AuthSigninRoute: AuthSigninRoute,
   AuthSignupRoute: AuthSignupRoute,
@@ -213,6 +235,7 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
+        "/",
         "/auth/confirm",
         "/auth/signin",
         "/auth/signup",
@@ -221,6 +244,9 @@ export const routeTree = rootRoute
         "/create/inspect/",
         "/create/setup/"
       ]
+    },
+    "/": {
+      "filePath": "index.tsx"
     },
     "/auth/confirm": {
       "filePath": "auth/confirm.tsx"

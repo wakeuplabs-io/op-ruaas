@@ -133,7 +133,7 @@ function RouteComponent() {
             </div>
           </div>
 
-          <Button type="submit" className="w-full" disabled={auth.loading}>
+          <Button type="submit" className="w-full rounded-full" disabled={auth.loading}>
             {auth.loading ? "Loading..." : "Confirm"}
           </Button>
         </form>

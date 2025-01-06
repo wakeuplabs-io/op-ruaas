@@ -1,25 +1,26 @@
-import { Command } from '@/components/ui/command'
-import { createFileRoute } from '@tanstack/react-router'
-import { AppSidebar } from '@/components/app-sidebar'
+import { Command } from "@/components/ui/command";
+import { createFileRoute } from "@tanstack/react-router";
+import { AppSidebar } from "@/components/app-sidebar";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
-import { Separator } from '@/components/ui/separator'
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from '@/components/ui/sidebar'
-import React, { useState } from 'react'
-import { Pagination } from '@/components/pagination'
+} from "@/components/ui/sidebar";
+import React, { useState } from "react";
+import { Pagination } from "@/components/pagination";
+import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute('/create/deploy/')({
+export const Route = createFileRoute("/create/deploy/")({
   component: DeployChain,
-})
+});
 
 enum DeploymentStep {
   INSTALL_DEPENDENCIES = 1,
@@ -28,31 +29,31 @@ enum DeploymentStep {
 }
 
 const steps = [
-  { step: DeploymentStep.INSTALL_DEPENDENCIES, label: 'Install Dependencies' },
-  { step: DeploymentStep.RUN_DEV_MODE, label: 'Run Dev Mode' },
-  { step: DeploymentStep.DEPLOY, label: 'Deploy' },
-]
+  { step: DeploymentStep.INSTALL_DEPENDENCIES, label: "Install Dependencies" },
+  { step: DeploymentStep.RUN_DEV_MODE, label: "Dev Mode" },
+  { step: DeploymentStep.DEPLOY, label: "Deploy" },
+];
 
 function DeployChain() {
   const [step, setStep] = useState<DeploymentStep>(
-    DeploymentStep.INSTALL_DEPENDENCIES,
-  )
+    DeploymentStep.INSTALL_DEPENDENCIES
+  );
 
-  const currentStepIndex = steps.findIndex((s) => s.step === step)
+  const currentStepIndex = steps.findIndex((s) => s.step === step);
 
   const next = () => {
     if (currentStepIndex < steps.length - 1) {
-      setStep(steps[currentStepIndex + 1].step)
+      setStep(steps[currentStepIndex + 1].step);
     } else {
       // TODO: create and navigate to inspect
     }
-  }
+  };
 
   const previous = () => {
     if (currentStepIndex > 0) {
-      setStep(steps[currentStepIndex - 1].step)
+      setStep(steps[currentStepIndex - 1].step);
     }
-  }
+  };
 
   return (
     <SidebarProvider>
@@ -67,10 +68,10 @@ function DeployChain() {
                 <React.Fragment key={s.step}>
                   <BreadcrumbItem>
                     <BreadcrumbLink
-                      href="#"
-                      className={`${
-                        index === currentStepIndex ? 'text-foreground' : ''
-                      }`}
+                      onClick={() => setStep(s.step)}
+                      className={cn("cursor-pointer", {
+                        "font-semibold": s.step === step,
+                      })}
                     >
                       {s.label}
                     </BreadcrumbLink>
@@ -100,7 +101,7 @@ function DeployChain() {
         </main>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }
 
 const InstallDependenciesStep: React.FC = () => {
@@ -123,8 +124,8 @@ const InstallDependenciesStep: React.FC = () => {
         </li>
       </ol>
     </section>
-  )
-}
+  );
+};
 
 const RunDevModeStep: React.FC = () => {
   return (
@@ -138,8 +139,8 @@ const RunDevModeStep: React.FC = () => {
         </li>
       </ol>
     </section>
-  )
-}
+  );
+};
 
 const DeployStep: React.FC = () => {
   return (
@@ -153,5 +154,5 @@ const DeployStep: React.FC = () => {
         </li>
       </ol>
     </section>
-  )
-}
+  );
+};
