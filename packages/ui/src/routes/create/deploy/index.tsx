@@ -43,14 +43,18 @@ function DeployChain() {
     }
   };
 
+  const breadcrumb = steps.reduce(
+    (acc, s) => {
+      if (s.step >= step) return acc;
+      else return [...acc, { id: s.step, label: s.label }];
+    },
+    [] as { id: number; label: string }[]
+  );
+
   return (
     <SidebarLayout
       title="Deploy"
-      breadcrumb={steps.map((s) => ({
-        id: s.step,
-        label: s.label,
-        active: s.step === step,
-      }))}
+      breadcrumb={breadcrumb}
       onBreadcrumbClick={(id) => setStep(id)}
     >
       {step === DeploymentStep.INSTALL_DEPENDENCIES && (
@@ -74,7 +78,8 @@ const InstallDependenciesStep: React.FC = () => {
     <Card>
       <CardTitle>Install Opruaas</CardTitle>
       <CardDescription className="mt-4 md:mt-6">
-        Install dependencies if needed. Docker, Kubernetes, Helm, Aws. Then install opruaas cli with
+        Install dependencies if needed. Docker, Kubernetes, Helm, Aws. Then
+        install opruaas cli with
       </CardDescription>
 
       <Command className="mt-10" command="npm i -g @wakeuplabs/opruaas" />

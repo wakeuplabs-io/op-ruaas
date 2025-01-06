@@ -39,16 +39,7 @@ export const Route = createFileRoute("/rollups/$id")({
 
 function RouteComponent() {
   return (
-    <SidebarLayout
-      title="Rollups"
-      breadcrumb={[
-        {
-          id: 0,
-          label: "Holensky",
-          active: true,
-        },
-      ]}
-    >
+    <SidebarLayout title="Rollups" breadcrumb={[{ id: 0, label: "Holensky" }]}>
       <Card className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="font-bold text-xl">Holensky</h1>

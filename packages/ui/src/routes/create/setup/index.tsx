@@ -46,14 +46,18 @@ function Index() {
     }
   };
 
+  const breadcrumb = steps.reduce(
+    (acc, s) => {
+      if (s.step >= step) return acc;
+      else return [...acc, { id: s.step, label: s.label }];
+    },
+    [] as { id: number; label: string }[]
+  );
+
   return (
     <SidebarLayout
       title="Setup"
-      breadcrumb={steps.map((s) => ({
-        id: s.step,
-        label: s.label,
-        active: s.step === step,
-      }))}
+      breadcrumb={breadcrumb}
       onBreadcrumbClick={(id) => setStep(id)}
     >
       {step == SetupStep.L1_CHAIN && <L1ChainStep />}

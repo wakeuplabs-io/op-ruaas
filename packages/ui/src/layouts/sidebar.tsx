@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 export const SidebarLayout: React.FC<{
   children: React.ReactNode;
   title: string;
-  breadcrumb?: { id: number; label: string; active: boolean }[];
+  breadcrumb?: { id: number; label: string }[];
   onBreadcrumbClick?: (id: number) => void;
 }> = ({ children, title, breadcrumb, onBreadcrumbClick }) => {
   breadcrumb = breadcrumb || [];
@@ -37,17 +37,22 @@ export const SidebarLayout: React.FC<{
                   {title}
                 </BreadcrumbLink>
               </BreadcrumbItem>
-              <BreadcrumbSeparator />
+
+              {breadcrumb.length ? <BreadcrumbSeparator /> : null}
 
               {breadcrumb.map((s, index) => (
                 <React.Fragment key={s.id}>
                   <BreadcrumbItem
-                    className={cn({ "hidden md:block": !s.active })}
+                    className={cn({
+                      "hidden md:block": index !== breadcrumb.length - 1,
+                    })}
                   >
                     <BreadcrumbLink
-                      onClick={() => onBreadcrumbClick && onBreadcrumbClick(s.id)}
+                      onClick={() =>
+                        onBreadcrumbClick && onBreadcrumbClick(s.id)
+                      }
                       className={cn("cursor-pointer", {
-                        "font-semibold": s.active,
+                        "font-semibold": index === breadcrumb.length - 1,
                       })}
                     >
                       {s.label}
