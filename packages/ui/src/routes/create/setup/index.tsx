@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { DownloadIcon } from "lucide-react";
 import React, { useState } from "react";
 
@@ -41,6 +41,7 @@ const steps = [
 ];
 
 function Index() {
+  const router = useRouter();
   const [step, setStep] = useState<SetupStep>(SetupStep.L1_CHAIN);
 
   const currentStepIndex = steps.findIndex((s) => s.step === step);
@@ -49,7 +50,7 @@ function Index() {
     if (currentStepIndex < steps.length - 1) {
       setStep(steps[currentStepIndex + 1].step);
     } else {
-      // TODO: create and navigate to inspect
+      router.navigate({ to: "/create/deploy" });
     }
   };
 
@@ -111,8 +112,8 @@ const L1ChainStep: React.FC = () => {
         it as an exchange between costs and security.
       </p>
 
-      <div className="flex items-center justify-between mt-10 px-4 py-3 border rounded-lg">
-        <span>Ethereum testnet</span>
+      <div className="flex items-center justify-between mt-10 px-4 h-12 text-sm border rounded-lg">
+        <span className="text-sm">Ethereum testnet</span>
         <Switch />
       </div>
     </div>
@@ -128,7 +129,7 @@ const L2ChainStep: React.FC = () => {
         tune the generated config file before deployment.
       </p>
 
-      <Input className="mt-10 h-12" placeholder="L2 chain id" />
+      <Input className="mt-10" placeholder="L2 chain id" />
     </div>
   );
 };
@@ -142,9 +143,9 @@ const L2GovernanceStep: React.FC = () => {
         tune the generated config file before deployment.
       </p>
 
-      <Input className="mt-10 h-12" placeholder="Token name" />
+      <Input className="mt-10" placeholder="Token name" />
 
-      <Input className="mt-4 h-12" placeholder="Token symbol" />
+      <Input className="mt-2" placeholder="Token symbol" />
     </div>
   );
 };
@@ -159,7 +160,11 @@ const DownloadStep: React.FC = () => {
           instructions.
         </p>
       </div>
-      <Button variant="secondary" size={"lg"} className="w-full rounded-full mt-4">
+      <Button
+        variant="secondary"
+        size={"lg"}
+        className="w-full rounded-full mt-4"
+      >
         Download <DownloadIcon />
       </Button>
     </div>

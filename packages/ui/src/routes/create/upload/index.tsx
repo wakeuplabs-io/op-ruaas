@@ -7,6 +7,7 @@ import {
   BreadcrumbList,
 } from '@/components/ui/breadcrumb'
 import { Dropzone } from '@/components/ui/dropzone'
+import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import {
   SidebarInset,
@@ -15,12 +16,17 @@ import {
 } from '@/components/ui/sidebar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { createFileRoute } from '@tanstack/react-router'
+import { Check, Upload } from 'lucide-react'
+import { useState } from 'react'
 
-export const Route = createFileRoute('/create/inspect/')({
+export const Route = createFileRoute('/create/upload/')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
+  const [deployment, setDeployment] = useState<File | null>(null)
+  const [artifact, setArtifact] = useState<File | null>(null)
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -31,30 +37,48 @@ function RouteComponent() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="#">Manage</BreadcrumbLink>
+                <BreadcrumbLink href="#">Upload</BreadcrumbLink>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         </header>
 
         <main className="p-4 pt-0">
-          <div className="space-y-6 border bg-white p-12 pt-8 rounded-xl">
-            <h1 className="font-bold text-xl">Manage your chain</h1>
+          <div className="border bg-white p-12 pt-8 rounded-xl">
+            <h1 className="font-bold text-xl">Upload chain artifacts</h1>
 
-            <Tabs defaultValue="deployment" className="w-full">
+            <Input placeholder="Name" className="mt-6" />
+
+            <Tabs defaultValue="deployment" className="w-full mt-4">
               <TabsList className="w-full">
-                <TabsTrigger className="w-full" value="deployment">
+                <TabsTrigger
+                  className="w-full justify-between"
+                  value="deployment"
+                >
                   Deployment.json
+                  {deployment ? (
+                    <Check className="h-4 w-4 text-primary" />
+                  ) : (
+                    <Upload className="h-4 w-4" />
+                  )}
                 </TabsTrigger>
-                <TabsTrigger className="w-full" value="artifact">
+                <TabsTrigger
+                  className="w-full justify-between"
+                  value="artifact"
+                >
                   Artifact.zip
+                  {artifact ? (
+                    <Check className="h-4 w-4 text-primary" />
+                  ) : (
+                    <Upload className="h-4 w-4" />
+                  )}
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="deployment">
-                <Dropzone />
+                <Dropzone file={deployment} setFile={setDeployment} />
               </TabsContent>
               <TabsContent value="artifact">
-                <Dropzone />
+                <Dropzone file={artifact} setFile={setArtifact} />
               </TabsContent>
             </Tabs>
           </div>

@@ -1,5 +1,5 @@
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
-import { Check, ClipboardCopy } from "lucide-react";
+import { Check, CopyIcon } from "lucide-react";
 import { useCallback } from "react";
 
 export const DeploymentValue: React.FC<{
@@ -13,7 +13,7 @@ export const DeploymentValue: React.FC<{
   }, []);
 
   return (
-    <div className="py-2 px-8 border rounded-md relative">
+    <div className="py-2 px-4 border rounded-md relative">
       <div>
         <pre className="text-foreground text-sm">{props.value}</pre>
         <span className="text-xs text-muted-foreground">{props.description}</span>
@@ -25,7 +25,7 @@ export const DeploymentValue: React.FC<{
         {isCopied ? (
           <Check className="h-4 w-4" />
         ) : (
-          <ClipboardCopy className="h-4 w-4" />
+          <CopyIcon className="h-4 w-4" />
         )}
         <span className="sr-only">Copy message</span>
       </button>

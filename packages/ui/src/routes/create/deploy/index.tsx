@@ -1,5 +1,5 @@
 import { Command } from "@/components/ui/command";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { AppSidebar } from "@/components/app-sidebar";
 import {
   Breadcrumb,
@@ -35,6 +35,7 @@ const steps = [
 ];
 
 function DeployChain() {
+  const router = useRouter();
   const [step, setStep] = useState<DeploymentStep>(
     DeploymentStep.INSTALL_DEPENDENCIES
   );
@@ -45,7 +46,7 @@ function DeployChain() {
     if (currentStepIndex < steps.length - 1) {
       setStep(steps[currentStepIndex + 1].step);
     } else {
-      // TODO: create and navigate to inspect
+      router.navigate({ to: "/create/upload" });
     }
   };
 

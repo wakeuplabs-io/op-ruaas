@@ -2,6 +2,7 @@ import * as React from "react";
 import {
   LogInIcon,
   Rocket,
+  SaveIcon,
   SettingsIcon,
   ShieldCheck,
 } from "lucide-react";
@@ -18,24 +19,6 @@ import { Button } from "./ui/button";
 
 // This is sample data.
 const data = {
-  navMain: [
-    {
-      title: "Setup",
-      url: "/",
-      icon: SettingsIcon,
-      isActive: true,
-    },
-    {
-      title: "Deploy",
-      url: "/deploy",
-      icon: Rocket,
-    },
-    {
-      title: "Verification",
-      url: "/inspect",
-      icon: ShieldCheck,
-    },
-  ],
   projects: [
     {
       name: "Sepolia",
@@ -156,10 +139,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         isActive: currentPath === "/create/deploy",
       },
       {
-        title: "Verification",
-        url: "/create/inspect",
-        icon: ShieldCheck,
-        isActive: currentPath === "/create/inspect",
+        title: "Upload",
+        url: "/create/upload",
+        icon: SaveIcon,
+        isActive: currentPath === "/create/upload",
       },
     ];
   }, [currentPath]);
@@ -167,15 +150,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <div className="py-6 px-2">
+        <div className="py-6 px-4">
           <img className="h-8" src="/opruaas.png" alt="logo" />
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="px-2">
         <NavMain items={navMain} />
         <NavProjects projects={data.projects} />
       </SidebarContent>
-      <SidebarFooter className="pb-4">
+      <SidebarFooter className="pb-4 px-4">
         <Button variant={"secondary"} className={"w-full h-[74px]"}>
           <img className="h-[45px]" src="/wakeuplabs.png" alt="logo" />
         </Button>
