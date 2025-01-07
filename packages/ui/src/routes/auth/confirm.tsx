@@ -40,53 +40,39 @@ function RouteComponent() {
     },
   });
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
-    if (step === "CONFIRM_SIGN_UP") {
-      auth
-        .confirmSignUp(user, data.code)
-        .then(() => {
-          navigate({ to: "/auth/signin" });
-        })
-        .catch((error) => {
-          toast({
-            variant: "destructive",
-            title: "Uh oh! Something went wrong.",
-            description: error.message,
-          });
-        });
-    } else {
-      auth
-        .confirmSignIn(data.code)
-        .then(() => {
-          navigate({ to: "/" });
-        })
-        .catch((error) => {
-          toast({
-            variant: "destructive",
-            title: "Uh oh! Something went wrong.",
-            description: error.message,
-          });
-        });
+  async function onSubmit(data: z.infer<typeof FormSchema>) {
+    try {
+      if (step === "CONFIRM_SIGN_UP") {
+        await auth.confirmSignUp(user, data.code);
+        navigate({ to: "/auth/signin" });
+      } else {
+        await auth.confirmSignIn(data.code);
+        navigate({ to: "/" });
+      }
+    } catch (e: any) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: e.message,
+      });
     }
   }
 
   function onResendClick() {
-    auth
-      .resendSignUpCode({ username: user })
-      .then(() => {
-        toast({
-          variant: "default",
-          title: "Success!",
-          description: "Code resent successfully!",
-        });
-      })
-      .catch((error) => {
-        toast({
-          variant: "destructive",
-          title: "Uh oh! Something went wrong.",
-          description: error.message,
-        });
+    try {
+      auth.resendSignUpCode({ username: user });
+      toast({
+        variant: "default",
+        title: "Success!",
+        description: "Code resent successfully!",
       });
+    } catch (e: any) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: e.message,
+      });
+    }
   }
 
   useEffect(() => {
