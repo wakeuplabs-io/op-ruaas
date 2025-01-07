@@ -14,8 +14,8 @@ export const Pagination: React.FC<{
       <Button
         onClick={onPrev}
         disabled={disablePrev}
-        size={"lg"}
-        variant={"secondary"}
+        size="lg"
+        variant="secondary"
         className="rounded-full justify-start md:w-full"
       >
         <ChevronLeftIcon className="md:ml-2" />
@@ -24,7 +24,7 @@ export const Pagination: React.FC<{
       <Button
         disabled={disableNext}
         onClick={onNext}
-        size={"lg"}
+        size="lg"
         className="rounded-full justify-end w-full"
       >
         <span>Next</span>

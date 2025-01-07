@@ -57,18 +57,18 @@ export function AppSidebar({
       </SidebarContent>
 
       <SidebarFooter className="pb-4 px-4">
-        <Button variant={"secondary"} className={"w-full h-[74px]"}>
+        <Button variant="secondary" className="w-full h-[74px]">
           <img className="h-[45px]" src="/wakeuplabs.png" alt="logo" />
         </Button>
 
         {user ? (
-          <Button variant={"ghost"} onClick={() => signOut()}>
+          <Button variant="ghost" onClick={() => signOut()}>
             <LogInIcon className="h-4 w-4" />
             <span>Logout</span>
           </Button>
         ) : (
           <Button
-            variant={"ghost"}
+            variant="ghost"
             onClick={() => router.navigate({ to: "/auth/signin" })}
           >
             <LogInIcon className="h-4 w-4" />

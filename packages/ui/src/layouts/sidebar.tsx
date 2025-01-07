@@ -41,7 +41,7 @@ export const SidebarLayout: React.FC<{
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink className={"font-semibold"}>
+                <BreadcrumbLink className="font-semibold">
                   {title}
                 </BreadcrumbLink>
               </BreadcrumbItem>
@@ -67,7 +67,7 @@ export const SidebarLayout: React.FC<{
                     </BreadcrumbLink>
                   </BreadcrumbItem>
                   {index < breadcrumb.length - 1 && (
-                    <BreadcrumbSeparator className={"hidden md:block"} />
+                    <BreadcrumbSeparator className="hidden md:block" />
                   )}
                 </React.Fragment>
               ))}

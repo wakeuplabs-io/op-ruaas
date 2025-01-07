@@ -124,7 +124,7 @@ function RouteComponent() {
               type="submit"
               className="w-full rounded-full"
               disabled={auth.loading}
-              size={"lg"}
+              size="lg"
             >
               {auth.loading ? "Loading..." : "Sign up"}
             </Button>

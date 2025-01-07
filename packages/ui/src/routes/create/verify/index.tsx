@@ -1,10 +1,11 @@
 import { Pagination } from "@/components/pagination";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Command } from "@/components/ui/command";
 import { Dropzone } from "@/components/ui/dropzone";
 import { SidebarLayout } from "@/layouts/sidebar";
 import { useToast } from "@/lib/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import { Check, Upload } from "lucide-react";
 import { useState } from "react";
@@ -35,8 +36,9 @@ function RouteComponent() {
       toast({
         variant: "destructive",
         title: "Invalid file",
-        description: "Please ensure files are named deployment.json and artifact.zip",
-      })
+        description:
+          "Please ensure files are named deployment.json and artifact.zip",
+      });
     }
   };
 
@@ -46,41 +48,67 @@ function RouteComponent() {
         <CardTitle>Verify and upload chain artifacts</CardTitle>
         <CardDescription className="mt-4 md:mt-6">
           Check out deployment addresses and relevant endpoints. You can run
-          this command locally or if authenticated upload the artifacts to save
-          them to your account and recheck any time you want.
+          this command locally.
         </CardDescription>
 
-        <Command className="mt-10" command="npm i -g @wakeuplabs/opruaas" />
+        <Command className="mt-4" command="npx opruaas inspect all --deployment {name}" />
 
-        <div className="w-full mt-10">
+        <CardDescription className="mt-10 md:mt-10">
+          Or if authenticated upload the artifacts to save them to your account
+          and recheck any time you want.
+        </CardDescription>
+
+        <div className="w-full mt-4">
           <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
-            <Button size="lg" variant="outline" className="justify-between">
+            <label
+              htmlFor="deployment"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "lg" }),
+                "justify-between"
+              )}
+            >
               Deployment.json
               {deployment ? (
                 <Check className="h-4 w-4 text-primary" />
               ) : (
                 <Upload className="h-4 w-4" />
               )}
-            </Button>
-            <Button size="lg" variant="outline" className="justify-between">
+            </label>
+            <label
+              htmlFor="artifact"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "lg" }),
+                "justify-between"
+              )}
+            >
               Artifact.zip
               {artifact ? (
                 <Check className="h-4 w-4 text-primary" />
               ) : (
                 <Upload className="h-4 w-4" />
               )}
-            </Button>
+            </label>
           </div>
 
-          <Dropzone onDrop={onDrop} className="mt-4" />
+          <input
+            id="deployment"
+            type="file"
+            className="hidden"
+            onChange={(e) => e.target.files && setDeployment(e.target.files[0])}
+          />
+          <input
+            id="artifact"
+            type="file"
+            className="hidden"
+            onChange={(e) => e.target.files && setArtifact(e.target.files[0])}
+          />
+          {!artifact && !deployment && (
+            <Dropzone onDrop={onDrop} className="mt-4" />
+          )}
         </div>
       </Card>
 
-      <Pagination
-        className="mt-6"
-        disablePrev
-        disableNext
-      />
+      <Pagination className="mt-6" disablePrev />
     </SidebarLayout>
   );
 }

@@ -14,7 +14,7 @@ export const Dropzone: React.FC<{
     <div
       {...getRootProps()}
       className={cn(
-        "flex flex-col items-center cursor-pointer py-12 border-4 border-dotted border-gray-300 rounded-xl text-muted-foreground",
+        "flex flex-col items-center cursor-pointer py-12 border-2 border-dotted border-gray-300 rounded-xl text-muted-foreground",
         className
       )}
     >

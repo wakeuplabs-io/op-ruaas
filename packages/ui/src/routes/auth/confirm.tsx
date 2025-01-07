@@ -124,8 +124,8 @@ function RouteComponent() {
             <div className="text-right">
               <Button
                 type="button"
-                variant={"link"}
-                size={"sm"}
+                variant="link"
+                size="sm"
                 className="px-0"
                 onClick={onResendClick}
               >
@@ -136,7 +136,7 @@ function RouteComponent() {
 
           <Button
             type="submit"
-            size={"lg"}
+            size="lg"
             className="w-full rounded-full"
             disabled={auth.loading}
           >

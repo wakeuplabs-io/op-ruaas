@@ -1,27 +1,12 @@
-import { AppSidebar } from "@/components/app-sidebar";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
-import {
-  SidebarInset,
-  SidebarMenuAction,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
 import { createFileRoute } from "@tanstack/react-router";
 import { DeploymentValue } from "@/components/ui/deployment-value";
 import { Button } from "@/components/ui/button";
 import {
   Download,
-  Folder,
-  Forward,
+  Edit,
   MoreHorizontal,
   Trash2,
+  Upload,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -39,13 +24,16 @@ export const Route = createFileRoute("/deployments/$id")({
 
 function RouteComponent() {
   return (
-    <SidebarLayout title="Rollups" breadcrumb={[{ id: 0, label: "Holensky" }]}>
+    <SidebarLayout
+      title="Deployments"
+      breadcrumb={[{ id: 0, label: "Holensky" }]}
+    >
       <Card className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="font-bold text-xl">Holensky</h1>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant={"ghost"} size={"icon"}>
+              <Button variant="ghost" size="icon">
                 <MoreHorizontal />
                 <span className="sr-only">More</span>
               </Button>
@@ -56,21 +44,21 @@ function RouteComponent() {
               align="start"
             >
               <DropdownMenuItem>
-                <Folder className="text-muted-foreground" />
+                <Edit className="text-muted-foreground" />
                 <span>Update name</span>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Forward className="text-muted-foreground" />
+                <Upload className="text-muted-foreground" />
                 <span>Upload artifacts.zip</span>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Forward className="text-muted-foreground" />
+                <Upload className="text-muted-foreground" />
                 <span>Upload deployment.json</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <Trash2 className="text-muted-foreground" />
-                <span>Delete Project</span>
+                <span>Delete</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -171,8 +159,8 @@ function RouteComponent() {
       </Card>
 
       <Button
-        variant={"secondary"}
-        size={"lg"}
+        size="lg"
+        variant="secondary"
         className="w-full mt-6 rounded-full font-medium"
       >
         Download artifacts <Download />
