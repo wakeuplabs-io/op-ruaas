@@ -102,7 +102,7 @@ function RouteComponent() {
             className="hidden"
             onChange={(e) => e.target.files && setArtifact(e.target.files[0])}
           />
-          {!artifact && !deployment && (
+          {(!artifact  || !deployment) && (
             <Dropzone onDrop={onDrop} className="mt-4" />
           )}
         </div>
