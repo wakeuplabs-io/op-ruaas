@@ -12,7 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
-import { Route as RollupsIdImport } from './routes/rollups/$id'
+import { Route as DeploymentsIdImport } from './routes/deployments/$id'
 import { Route as AuthSignupImport } from './routes/auth/signup'
 import { Route as AuthSigninImport } from './routes/auth/signin'
 import { Route as AuthConfirmImport } from './routes/auth/confirm'
@@ -28,9 +28,9 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const RollupsIdRoute = RollupsIdImport.update({
-  id: '/rollups/$id',
-  path: '/rollups/$id',
+const DeploymentsIdRoute = DeploymentsIdImport.update({
+  id: '/deployments/$id',
+  path: '/deployments/$id',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -102,11 +102,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSignupImport
       parentRoute: typeof rootRoute
     }
-    '/rollups/$id': {
-      id: '/rollups/$id'
-      path: '/rollups/$id'
-      fullPath: '/rollups/$id'
-      preLoaderRoute: typeof RollupsIdImport
+    '/deployments/$id': {
+      id: '/deployments/$id'
+      path: '/deployments/$id'
+      fullPath: '/deployments/$id'
+      preLoaderRoute: typeof DeploymentsIdImport
       parentRoute: typeof rootRoute
     }
     '/create/deploy/': {
@@ -140,7 +140,7 @@ export interface FileRoutesByFullPath {
   '/auth/confirm': typeof AuthConfirmRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
-  '/rollups/$id': typeof RollupsIdRoute
+  '/deployments/$id': typeof DeploymentsIdRoute
   '/create/deploy': typeof CreateDeployIndexRoute
   '/create/setup': typeof CreateSetupIndexRoute
   '/create/verify': typeof CreateVerifyIndexRoute
@@ -151,7 +151,7 @@ export interface FileRoutesByTo {
   '/auth/confirm': typeof AuthConfirmRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
-  '/rollups/$id': typeof RollupsIdRoute
+  '/deployments/$id': typeof DeploymentsIdRoute
   '/create/deploy': typeof CreateDeployIndexRoute
   '/create/setup': typeof CreateSetupIndexRoute
   '/create/verify': typeof CreateVerifyIndexRoute
@@ -163,7 +163,7 @@ export interface FileRoutesById {
   '/auth/confirm': typeof AuthConfirmRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
-  '/rollups/$id': typeof RollupsIdRoute
+  '/deployments/$id': typeof DeploymentsIdRoute
   '/create/deploy/': typeof CreateDeployIndexRoute
   '/create/setup/': typeof CreateSetupIndexRoute
   '/create/verify/': typeof CreateVerifyIndexRoute
@@ -176,7 +176,7 @@ export interface FileRouteTypes {
     | '/auth/confirm'
     | '/auth/signin'
     | '/auth/signup'
-    | '/rollups/$id'
+    | '/deployments/$id'
     | '/create/deploy'
     | '/create/setup'
     | '/create/verify'
@@ -186,7 +186,7 @@ export interface FileRouteTypes {
     | '/auth/confirm'
     | '/auth/signin'
     | '/auth/signup'
-    | '/rollups/$id'
+    | '/deployments/$id'
     | '/create/deploy'
     | '/create/setup'
     | '/create/verify'
@@ -196,7 +196,7 @@ export interface FileRouteTypes {
     | '/auth/confirm'
     | '/auth/signin'
     | '/auth/signup'
-    | '/rollups/$id'
+    | '/deployments/$id'
     | '/create/deploy/'
     | '/create/setup/'
     | '/create/verify/'
@@ -208,7 +208,7 @@ export interface RootRouteChildren {
   AuthConfirmRoute: typeof AuthConfirmRoute
   AuthSigninRoute: typeof AuthSigninRoute
   AuthSignupRoute: typeof AuthSignupRoute
-  RollupsIdRoute: typeof RollupsIdRoute
+  DeploymentsIdRoute: typeof DeploymentsIdRoute
   CreateDeployIndexRoute: typeof CreateDeployIndexRoute
   CreateSetupIndexRoute: typeof CreateSetupIndexRoute
   CreateVerifyIndexRoute: typeof CreateVerifyIndexRoute
@@ -219,7 +219,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthConfirmRoute: AuthConfirmRoute,
   AuthSigninRoute: AuthSigninRoute,
   AuthSignupRoute: AuthSignupRoute,
-  RollupsIdRoute: RollupsIdRoute,
+  DeploymentsIdRoute: DeploymentsIdRoute,
   CreateDeployIndexRoute: CreateDeployIndexRoute,
   CreateSetupIndexRoute: CreateSetupIndexRoute,
   CreateVerifyIndexRoute: CreateVerifyIndexRoute,
@@ -239,7 +239,7 @@ export const routeTree = rootRoute
         "/auth/confirm",
         "/auth/signin",
         "/auth/signup",
-        "/rollups/$id",
+        "/deployments/$id",
         "/create/deploy/",
         "/create/setup/",
         "/create/verify/"
@@ -257,8 +257,8 @@ export const routeTree = rootRoute
     "/auth/signup": {
       "filePath": "auth/signup.tsx"
     },
-    "/rollups/$id": {
-      "filePath": "rollups/$id.tsx"
+    "/deployments/$id": {
+      "filePath": "deployments/$id.tsx"
     },
     "/create/deploy/": {
       "filePath": "create/deploy/index.tsx"

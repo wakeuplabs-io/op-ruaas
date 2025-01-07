@@ -1,12 +1,5 @@
 import * as React from "react";
-import {
-  LogInIcon,
-  Rocket,
-  SaveIcon,
-  SettingsIcon,
-  ShieldCheck,
-  ShieldIcon,
-} from "lucide-react";
+import { LogInIcon, Rocket, SettingsIcon, ShieldCheck } from "lucide-react";
 import { useRouter } from "@tanstack/react-router";
 import { NavMain } from "@/components/nav-main";
 import {
@@ -15,138 +8,35 @@ import {
   SidebarFooter,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-import { NavProjects } from "./nav-projects";
+import { NavDeployments } from "./nav-deployments";
 import { Button } from "./ui/button";
-import { useAuth } from "@/hooks/use-auth";
+import { Deployment } from "@/lib/api/deployment";
+import { useAuth } from "@/lib/hooks/use-auth";
 
-// This is sample data.
-const data = {
-  projects: [
-    {
-      name: "Sepolia",
-      url: "/rollups/id",
-    },
-    {
-      name: "Holenksy",
-      url: "#",
-    },
-    {
-      name: "Mainnet",
-      url: "#",
-    },
-    {
-      name: "Sepolia",
-      url: "#",
-    },
-    {
-      name: "Holenksy",
-      url: "#",
-    },
-    {
-      name: "Mainnet",
-      url: "#",
-    },
-    {
-      name: "Sepolia",
-      url: "#",
-    },
-    {
-      name: "Holenksy",
-      url: "#",
-    },
-    {
-      name: "Mainnet",
-      url: "#",
-    },
-    {
-      name: "Sepolia",
-      url: "#",
-    },
-    {
-      name: "Holenksy",
-      url: "#",
-    },
-    {
-      name: "Mainnet",
-      url: "#",
-    },
-    {
-      name: "Sepolia",
-      url: "#",
-    },
-    {
-      name: "Holenksy",
-      url: "#",
-    },
-    {
-      name: "Mainnet",
-      url: "#",
-    },
-    {
-      name: "Sepolia",
-      url: "#",
-    },
-    {
-      name: "Holenksy",
-      url: "#",
-    },
-    {
-      name: "Mainnet",
-      url: "#",
-    },
-    {
-      name: "Sepolia",
-      url: "#",
-    },
-    {
-      name: "Holenksy",
-      url: "#",
-    },
-    {
-      name: "Mainnet",
-      url: "#",
-    },
-    {
-      name: "Sepolia",
-      url: "#",
-    },
-    {
-      name: "Holenksy",
-      url: "#",
-    },
-    {
-      name: "Mainnet",
-      url: "#",
-    },
-  ],
-};
-
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+  deployments,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & { deployments: Deployment[] }) {
   const router = useRouter();
-  const currentPath = router.state.location.pathname;
+  const { user, signOut } = useAuth();
 
-  const navMain = React.useMemo(() => {
-    return [
-      {
-        title: "Setup",
-        url: "/create/setup",
-        icon: SettingsIcon,
-        isActive: currentPath === "/create/setup",
-      },
-      {
-        title: "Deploy",
-        url: "/create/deploy",
-        icon: Rocket,
-        isActive: currentPath === "/create/deploy",
-      },
-      {
-        title: "Verify",
-        url: "/create/verify",
-        icon: ShieldCheck,
-        isActive: currentPath === "/create/verify",
-      },
-    ];
-  }, [currentPath]);
+  const navMain = [
+    {
+      title: "Setup",
+      url: "/create/setup",
+      icon: SettingsIcon,
+    },
+    {
+      title: "Deploy",
+      url: "/create/deploy",
+      icon: Rocket,
+    },
+    {
+      title: "Verify",
+      url: "/create/verify",
+      icon: ShieldCheck,
+    },
+  ];
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -155,22 +45,36 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <img className="h-8" src="/opruaas.png" alt="logo" />
         </div>
       </SidebarHeader>
+
       <SidebarContent className="px-2">
         <NavMain items={navMain} />
-        <NavProjects projects={data.projects} />
+        <NavDeployments
+          deployments={deployments.map((d) => ({
+            id: d.id,
+            name: d.id[0].toUpperCase() + d.id.slice(1),
+          }))}
+        />
       </SidebarContent>
+
       <SidebarFooter className="pb-4 px-4">
         <Button variant={"secondary"} className={"w-full h-[74px]"}>
           <img className="h-[45px]" src="/wakeuplabs.png" alt="logo" />
         </Button>
 
-        <Button
-          variant={"ghost"}
-          onClick={() => router.navigate({ to: "/auth/signin" })}
-        >
-          <LogInIcon className="h-4 w-4" />
-          <span>Login</span>
-        </Button>
+        {user ? (
+          <Button variant={"ghost"} onClick={() => signOut()}>
+            <LogInIcon className="h-4 w-4" />
+            <span>Logout</span>
+          </Button>
+        ) : (
+          <Button
+            variant={"ghost"}
+            onClick={() => router.navigate({ to: "/auth/signin" })}
+          >
+            <LogInIcon className="h-4 w-4" />
+            <span>Login</span>
+          </Button>
+        )}
       </SidebarFooter>
     </Sidebar>
   );

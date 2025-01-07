@@ -33,7 +33,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { SidebarLayout } from "@/layouts/sidebar";
 
-export const Route = createFileRoute("/rollups/$id")({
+export const Route = createFileRoute("/deployments/$id")({
   component: RouteComponent,
 });
 
@@ -52,8 +52,6 @@ function RouteComponent() {
             </DropdownMenuTrigger>
             <DropdownMenuContent
               className="w-48 rounded-lg"
-              // side={isMobile ? "bottom" : "right"}
-              // align={isMobile ? "end" : "start"}
               side="right"
               align="start"
             >

@@ -1,38 +1,40 @@
-import {
-  ScrollText,
-} from "lucide-react"
+import { ScrollText } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
+import { Link } from "@tanstack/react-router";
 
-export function NavProjects({
-  projects,
+export function NavDeployments({
+  deployments,
 }: {
-  projects: {
-    name: string
-    url: string
-  }[]
+  deployments: {
+    id: string;
+    name: string;
+  }[];
 }) {
 
+  if (deployments.length === 0) {
+    return null;
+  }
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>My Rollups</SidebarGroupLabel>
+      <SidebarGroupLabel>My Deployments</SidebarGroupLabel>
       <SidebarMenu>
-        {projects.map((item) => (
+        {deployments.map((item) => (
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton asChild>
-              <a href={item.url}>
+              <Link to="/deployments/$id" params={{ id: item.id }}>
                 <ScrollText className="text-sidebar-foreground/70" />
                 <span>{item.name}</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}
       </SidebarMenu>
     </SidebarGroup>
-  )
+  );
 }

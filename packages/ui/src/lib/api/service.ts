@@ -1,9 +1,14 @@
 import { l1BlockTimes } from "@/shared/config/l1-block-times";
 import { NetworkConfig } from "@/shared/config/network-config";
 import axios from "axios";
+import { Deployment } from "./deployment";
 
 
 export class ApiService {
+    static deploymentsByOwner(ownerId: string): Deployment[] {
+        return [];
+    }
+
 
     static buildChainConfig(l1ChainId: number, config: NetworkConfig) {
         return axios.post(

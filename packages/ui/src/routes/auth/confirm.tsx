@@ -11,8 +11,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/hooks/use-auth";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/hooks/use-auth";
+import { useToast } from "@/lib/hooks/use-toast";
 import { useEffect } from "react";
 
 export const Route = createFileRoute("/auth/confirm")({
@@ -96,7 +96,8 @@ function RouteComponent() {
   }, [auth.user, navigate]);
 
   return (
-    <div className="w-[350px] mx-auto my-20">
+    <div className="flex justify-center items-center min-h-screen">
+    <div className="w-[350px]">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="flex flex-col items-center gap-2 text-center">
@@ -133,11 +134,17 @@ function RouteComponent() {
             </div>
           </div>
 
-          <Button type="submit" className="w-full rounded-full" disabled={auth.loading}>
+          <Button
+            type="submit"
+            size={"lg"}
+            className="w-full rounded-full"
+            disabled={auth.loading}
+          >
             {auth.loading ? "Loading..." : "Confirm"}
           </Button>
         </form>
       </Form>
+    </div>
     </div>
   );
 }

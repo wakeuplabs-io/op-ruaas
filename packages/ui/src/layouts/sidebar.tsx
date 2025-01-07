@@ -14,6 +14,9 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { deploymentsByOwnerQueryOptions } from "@/lib/api/deployment";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 export const SidebarLayout: React.FC<{
   children: React.ReactNode;
@@ -23,10 +26,15 @@ export const SidebarLayout: React.FC<{
 }> = ({ children, title, breadcrumb, onBreadcrumbClick }) => {
   breadcrumb = breadcrumb || [];
 
+  const { user } = useAuth();
+  const { data: deployments } = useQuery(
+    deploymentsByOwnerQueryOptions(user?.userId)
+  );
+
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="bg-gray-50 min-h-screen">
+      <AppSidebar deployments={deployments} />
+      <SidebarInset className="bg-gray-50 min-h-screen w-full">
         <header className="flex h-16 shrink-0 items-center gap-2 px-4">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />

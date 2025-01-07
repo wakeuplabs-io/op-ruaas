@@ -1,4 +1,4 @@
-import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
+import { useCopyToClipboard } from "@/lib/hooks/use-copy-to-clipboard";
 import { Check, CopyIcon } from "lucide-react";
 import { useCallback } from "react";
 

@@ -6,10 +6,10 @@ import { Switch } from "@/components/ui/switch";
 import { SidebarLayout } from "@/layouts/sidebar";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { DownloadIcon } from "lucide-react";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/create/setup/")({
-  component: Index,
+  component: RouteComponent,
 });
 
 enum SetupStep {
@@ -26,7 +26,7 @@ const steps = [
   { step: SetupStep.DOWNLOAD, label: "Download" },
 ];
 
-function Index() {
+function RouteComponent() {
   const router = useRouter();
   const [step, setStep] = useState<SetupStep>(SetupStep.L1_CHAIN);
 
@@ -46,13 +46,15 @@ function Index() {
     }
   };
 
-  const breadcrumb = steps.reduce(
-    (acc, s) => {
-      if (s.step >= step) return acc;
-      else return [...acc, { id: s.step, label: s.label }];
-    },
-    [] as { id: number; label: string }[]
-  );
+  const breadcrumb = useMemo(() => {
+    return steps.reduce(
+      (acc, s) => {
+        if (s.step > step) return acc;
+        else return [...acc, { id: s.step, label: s.label }];
+      },
+      [] as { id: number; label: string }[]
+    );
+  }, [step]);
 
   return (
     <SidebarLayout
@@ -65,7 +67,12 @@ function Index() {
       {step == SetupStep.GOVERNANCE && <L2GovernanceStep />}
       {step == SetupStep.DOWNLOAD && <DownloadStep />}
 
-      <Pagination className="mt-6" onNext={next} onPrev={previous} />
+      <Pagination
+        disablePrev={currentStepIndex === 0}
+        className="mt-6"
+        onNext={next}
+        onPrev={previous}
+      />
     </SidebarLayout>
   );
 }

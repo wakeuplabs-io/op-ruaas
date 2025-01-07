@@ -6,6 +6,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useRouter } from "@tanstack/react-router";
 
 export function NavMain({
   items,
@@ -14,16 +15,22 @@ export function NavMain({
     title: string;
     url: string;
     icon: LucideIcon;
-    isActive?: boolean;
   }[];
 }) {
+  const router = useRouter();
+  const currentPath = router.state.location.pathname;
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Create</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem>
-            <SidebarMenuButton isActive={item.isActive} asChild tooltip={item.title}>
+            <SidebarMenuButton
+              isActive={item.url === currentPath}
+              asChild
+              tooltip={item.title}
+            >
               <a href={item.url}>
                 <item.icon />
                 <span>{item.title}</span>

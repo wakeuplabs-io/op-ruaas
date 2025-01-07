@@ -1,32 +1,22 @@
-import { FileUp, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { FileUp } from "lucide-react";
 import { useDropzone } from "react-dropzone";
-import { Button } from "./button";
 
-export const Dropzone: React.FC<{ 
-    file: File | null,
-    setFile: (f: File | null) => void,
- }> = ({ file, setFile }) => {
+export const Dropzone: React.FC<{
+  onDrop: (files: File[]) => void;
+  className?: string;
+}> = ({ onDrop, className }) => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop: acceptedFiles => {
-      setFile(acceptedFiles[0]);
-    },
+    onDrop: onDrop,
   });
-
-  if (file) {
-    return (
-      <div className="border rounded-md px-3 h-12 flex justify-between items-center relative">
-        <span className="text-sm">{file.name}</span>
-        <Button onClick={() => setFile(null)} variant={"ghost"} size={"icon"} className="absolute right-2 top-2 h-8 w-8">
-            <X size={16} />
-        </Button>
-      </div>
-    );
-  } 
 
   return (
     <div
       {...getRootProps()}
-      className="flex flex-col items-center cursor-pointer py-12 border-2 border-dotted border-gray-300 rounded-xl text-muted-foreground"
+      className={cn(
+        "flex flex-col items-center cursor-pointer py-12 border-4 border-dotted border-gray-300 rounded-xl text-muted-foreground",
+        className
+      )}
     >
       <input {...getInputProps()} />
       {isDragActive ? (

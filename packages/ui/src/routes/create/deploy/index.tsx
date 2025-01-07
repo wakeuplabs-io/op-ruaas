@@ -1,32 +1,32 @@
 import { Command } from "@/components/ui/command";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Pagination } from "@/components/pagination";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { SidebarLayout } from "@/layouts/sidebar";
 
 export const Route = createFileRoute("/create/deploy/")({
-  component: DeployChain,
+  component: RouteComponent,
 });
 
 enum DeploymentStep {
-  INSTALL_DEPENDENCIES = 1,
-  RUN_DEV_MODE = 2,
-  DEPLOY = 3,
+  INSTALL_DEPENDENCIES,
+  RUN_DEV_MODE,
+  DEPLOY,
 }
 
 const steps = [
   { step: DeploymentStep.INSTALL_DEPENDENCIES, label: "Install Dependencies" },
   { step: DeploymentStep.RUN_DEV_MODE, label: "Dev Mode" },
-  { step: DeploymentStep.DEPLOY, label: "Deploy" },
+  { step: DeploymentStep.DEPLOY, label: "Go Live" },
 ];
 
-function DeployChain() {
+function RouteComponent() {
   const router = useRouter();
+
   const [step, setStep] = useState<DeploymentStep>(
     DeploymentStep.INSTALL_DEPENDENCIES
   );
-
   const currentStepIndex = steps.findIndex((s) => s.step === step);
 
   const next = () => {
@@ -43,13 +43,15 @@ function DeployChain() {
     }
   };
 
-  const breadcrumb = steps.reduce(
-    (acc, s) => {
-      if (s.step >= step) return acc;
-      else return [...acc, { id: s.step, label: s.label }];
-    },
-    [] as { id: number; label: string }[]
-  );
+  const breadcrumb = useMemo(() => {
+    return steps.reduce(
+      (acc, s) => {
+        if (s.step > step) return acc;
+        else return [...acc, { id: s.step, label: s.label }];
+      },
+      [] as { id: number; label: string }[]
+    );
+  }, [step]);
 
   return (
     <SidebarLayout
@@ -103,7 +105,7 @@ const RunDevModeStep: React.FC = () => {
 const DeployStep: React.FC = () => {
   return (
     <Card>
-      <CardTitle>Deploy</CardTitle>
+      <CardTitle>Go Live</CardTitle>
       <CardDescription className="mt-4 md:mt-6">
         Run from inside the project directory
       </CardDescription>
