@@ -1,8 +1,8 @@
 import "./index.css";
-import ProvidersWrapper from "@/lib/providers.tsx";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { Amplify } from "aws-amplify";
+import { ProvidersWrapper } from "@/lib/providers.tsx";
 import { Toaster } from "./components/ui/toaster.tsx";
 import { RouterProvider } from "@tanstack/react-router";
 import { routeTree } from "@/routeTree.gen";
@@ -28,7 +28,7 @@ Amplify.configure({
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ProvidersWrapper>
-    <RouterProvider router={router} />;
+      <RouterProvider router={router} />;
       <Toaster />
     </ProvidersWrapper>
   </React.StrictMode>
