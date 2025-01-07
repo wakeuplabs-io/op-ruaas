@@ -1,10 +1,20 @@
 import "./index.css";
-import ProvidersWrapper from "@/hoc/ProvidersWrapper.tsx";
+import ProvidersWrapper from "@/lib/providers.tsx";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App.tsx";
 import { Amplify } from "aws-amplify";
 import { Toaster } from "./components/ui/toaster.tsx";
+import { RouterProvider } from "@tanstack/react-router";
+import { routeTree } from "@/routeTree.gen";
+import { createRouter } from "@tanstack/react-router";
+
+export const router = createRouter({ routeTree });
+
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router;
+  }
+}
 
 Amplify.configure({
   Auth: {
@@ -18,7 +28,7 @@ Amplify.configure({
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ProvidersWrapper>
-      <App />
+    <RouterProvider router={router} />;
       <Toaster />
     </ProvidersWrapper>
   </React.StrictMode>
