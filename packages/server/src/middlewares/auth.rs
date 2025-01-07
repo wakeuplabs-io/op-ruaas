@@ -18,7 +18,7 @@ pub struct Authorizer {
 impl Authorizer {
     pub fn new(region: &str, user_pool_id: &str, client_ids: &[&str]) -> Result<Self, Box<dyn std::error::Error>> {
         let keyset = KeySet::new(region, user_pool_id)?;
-        let verifier = keyset.new_access_token_verifier(client_ids).build()?;
+        let verifier = keyset.new_id_token_verifier(client_ids).build()?;
 
         Ok(Self { keyset, verifier })
     }

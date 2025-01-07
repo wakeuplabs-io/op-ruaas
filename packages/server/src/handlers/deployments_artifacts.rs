@@ -5,7 +5,7 @@ use crate::{
 };
 use axum::{
     extract::{Multipart, Path},
-    http::StatusCode,
+    http::{header, StatusCode},
     response::IntoResponse,
     Extension,
 };
@@ -84,7 +84,7 @@ pub async fn head(
         .await
         .map_err(ApiError::from)?;
 
-    if !exists {
+    if exists {
         Ok((StatusCode::OK, [("X-Resource-Exist", "true")]))
     } else {
         Ok((StatusCode::NOT_FOUND, [("X-Resource-Exist", "false")]))
@@ -106,8 +106,26 @@ pub async fn get_by_id(
             "Could not find deployment with given id".into(),
         ))?;
 
-    let deployment_json = serde_json::to_string(&deployment).unwrap();
-    Ok((StatusCode::OK, deployment_json))
+    // verify deployment is owned by user
+    if deployment.owner_id != user.id {
+        return Err(ApiError::AuthError(
+            "Deployment is not owned by user".into(),
+        ));
+    }
+
+    let res = deployments_manager
+        .find_artifact(&deployment)
+        .await
+        .map_err(ApiError::from)?
+        .ok_or(ApiError::BadRequest(
+            "Could not find deployment with given id".into(),
+        ))?;
+
+    Ok((
+        StatusCode::OK,
+        [(header::CONTENT_TYPE, "application/zip")],
+        res,
+    ))
 }
 
 pub async fn delete(

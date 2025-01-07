@@ -2,7 +2,6 @@
 CREATE TABLE deployments (
     id TEXT NOT NULL, -- Unique identifier
     owner_id TEXT NOT NULL, -- Owner ID
-    name TEXT NOT NULL, -- Unique slug
     release_tag TEXT NOT NULL, -- Release tag
     release_registry TEXT NOT NULL, -- Release registry
     network_config TEXT NOT NULL, -- TEXT for serialized network configuration

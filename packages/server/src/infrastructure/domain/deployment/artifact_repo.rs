@@ -26,7 +26,7 @@ impl TDeploymentArtifactsRepository for S3DeploymentArtifactsRepository {
             .client
             .get_object()
             .bucket(&self.bucket_name)
-            .key(key)
+            .key(&key)
             .send()
             .await?;
 
@@ -41,7 +41,7 @@ impl TDeploymentArtifactsRepository for S3DeploymentArtifactsRepository {
             .client
             .head_object()
             .bucket(&self.bucket_name)
-            .key(key)
+            .key(&key)
             .send()
             .await;
 
@@ -58,7 +58,7 @@ impl TDeploymentArtifactsRepository for S3DeploymentArtifactsRepository {
             .put_object()
             .bucket(&self.bucket_name)
             .content_length(artifact.len() as i64)
-            .key(key)
+            .key(&key)
             .body(ByteStream::from(artifact))
             .send()
             .await?;
@@ -71,7 +71,7 @@ impl TDeploymentArtifactsRepository for S3DeploymentArtifactsRepository {
         self.client
             .delete_object()
             .bucket(&self.bucket_name)
-            .key(key)
+            .key(&key)
             .send()
             .await
             .map_err(|err| err.to_string())?;

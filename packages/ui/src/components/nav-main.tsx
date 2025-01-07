@@ -24,8 +24,8 @@ export function NavMain({
     <SidebarGroup>
       <SidebarGroupLabel>Create</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map((item) => (
-          <SidebarMenuItem>
+        {items.map((item, index) => (
+          <SidebarMenuItem key={index}>
             <SidebarMenuButton
               isActive={item.url === currentPath}
               asChild
