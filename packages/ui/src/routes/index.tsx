@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
@@ -5,9 +7,14 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const auth = useAuth()
+
   return (
-    <div className="flex flex-1 items-center justify-center">
-      <h3>Home Page</h3>
+    <div className="">
+      <p>{auth.user?.userId}</p>
+      <Button onClick={auth.signOut}>
+        Logout
+      </Button>
     </div>
   );
 }

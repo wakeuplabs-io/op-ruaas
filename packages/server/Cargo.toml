@@ -25,3 +25,6 @@ lazy_static = "1"
 sqlx = { version = "0.8.2", features = ["migrate", "postgres", "runtime-tokio-rustls", "uuid"] }
 thiserror = "2.0.9"
 async_once = "0.2"
+jsonwebtokens-cognito = "0.1.1"
+jsonwebtokens = "1"
+
