@@ -3,12 +3,15 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Command } from "@/components/ui/command";
 import { Dropzone } from "@/components/ui/dropzone";
+import { Input } from "@/components/ui/input";
 import { SidebarLayout } from "@/layouts/sidebar";
+import { Deployment } from "@/lib/api";
 import { useToast } from "@/lib/hooks/use-toast";
-import { cn } from "@/lib/utils";
-import { createFileRoute } from "@tanstack/react-router";
+import { useCreateDeploymentMutation } from "@/lib/queries";
+import { cn, readFile } from "@/lib/utils";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Check, Upload } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 export const Route = createFileRoute("/create/verify/")({
   component: RouteComponent,
@@ -16,18 +19,22 @@ export const Route = createFileRoute("/create/verify/")({
 
 function RouteComponent() {
   const { toast } = useToast();
-  const [deployment, setDeployment] = useState<File | null>(null);
-  const [artifact, setArtifact] = useState<File | null>(null);
+  const { navigate } = useRouter();
+  const [deploymentFile, setDeploymentFile] = useState<File | null>(null);
+  const [artifactFile, setArtifactFile] = useState<File | null>(null);
 
-  const onDrop = (files: File[]) => {
+  const { mutateAsync: createDeployment, isPending } =
+    useCreateDeploymentMutation();
+
+  const onDrop = useCallback((files: File[]) => {
     let valid = false;
 
     for (const file of files) {
       if (file.name === "deployment.json") {
-        setDeployment(file);
+        setDeploymentFile(file);
         valid = true;
       } else if (file.name === "artifact.zip") {
-        setArtifact(file);
+        setArtifactFile(file);
         valid = true;
       }
     }
@@ -40,7 +47,26 @@ function RouteComponent() {
           "Please ensure files are named deployment.json and artifact.zip",
       });
     }
-  };
+  }, []);
+
+  const onNext = useCallback(async () => {
+    if (!deploymentFile) {
+      return;
+    }
+
+    try {
+      const deployment = await createDeployment(
+        JSON.parse(await readFile(deploymentFile)) as Deployment
+      );
+      if (artifactFile) {
+        // TODO: upload artifact
+      }
+
+      navigate({ to: "/deployments/$id", params: { id: deployment.id } });
+    } catch (error) {
+      console.error(error);
+    }
+  }, [deploymentFile]);
 
   return (
     <SidebarLayout title="Verify">
@@ -51,7 +77,10 @@ function RouteComponent() {
           this command locally.
         </CardDescription>
 
-        <Command className="mt-4" command="npx opruaas inspect all --deployment {name}" />
+        <Command
+          className="mt-4"
+          command="npx opruaas inspect all --deployment {name}"
+        />
 
         <CardDescription className="mt-10 md:mt-10">
           Or if authenticated upload the artifacts to save them to your account
@@ -68,7 +97,7 @@ function RouteComponent() {
               )}
             >
               Deployment.json
-              {deployment ? (
+              {deploymentFile ? (
                 <Check className="h-4 w-4 text-primary" />
               ) : (
                 <Upload className="h-4 w-4" />
@@ -82,7 +111,7 @@ function RouteComponent() {
               )}
             >
               Artifact.zip
-              {artifact ? (
+              {artifactFile ? (
                 <Check className="h-4 w-4 text-primary" />
               ) : (
                 <Upload className="h-4 w-4" />
@@ -94,21 +123,29 @@ function RouteComponent() {
             id="deployment"
             type="file"
             className="hidden"
-            onChange={(e) => e.target.files && setDeployment(e.target.files[0])}
+            onChange={(e) =>
+              e.target.files && setDeploymentFile(e.target.files[0])
+            }
           />
           <input
             id="artifact"
             type="file"
             className="hidden"
-            onChange={(e) => e.target.files && setArtifact(e.target.files[0])}
+            onChange={(e) =>
+              e.target.files && setArtifactFile(e.target.files[0])
+            }
           />
-          {(!artifact  || !deployment) && (
+          {(!artifactFile || !deploymentFile) && (
             <Dropzone onDrop={onDrop} className="mt-4" />
           )}
         </div>
       </Card>
 
-      <Pagination className="mt-6" disablePrev />
+      <Pagination
+        className="mt-6"
+        prev={{ disabled: true }}
+        next={{ disabled: !deploymentFile, onClick: onNext, isPending }}
+      />
     </SidebarLayout>
   );
 }

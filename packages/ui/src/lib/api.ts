@@ -115,6 +115,7 @@ export class ApiService {
     }
 
     static async createDeployment(deployment: Deployment): Promise<Deployment> {
+        console.log("deployment", deployment);
         const res = await this.axiosInstance.post("deployments", deployment, {
             headers: {
                 Authorization: `Bearer ${await this.getBearerToken()}`

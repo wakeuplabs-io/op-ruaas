@@ -25,7 +25,7 @@ export function NavDeployments({
       <SidebarGroupLabel>My Deployments</SidebarGroupLabel>
       <SidebarMenu>
         {deployments.map((item) => (
-          <SidebarMenuItem key={item.name}>
+          <SidebarMenuItem key={item.id}>
             <SidebarMenuButton asChild>
               <Link to="/deployments/$id" params={{ id: item.id }}>
                 <ScrollText className="text-sidebar-foreground/70" />

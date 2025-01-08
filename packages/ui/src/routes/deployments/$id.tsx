@@ -17,11 +17,12 @@ import {
   useDeleteDeploymentMutation,
 } from "@/lib/queries";
 import { getCurrentUser } from "aws-amplify/auth";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQueries } from "@tanstack/react-query";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { capitalize } from "@/lib/strings";
 import { useCallback, useState } from "react";
 import { UpdateDeploymentNameDialog } from "@/components/update-deployment-name-dialog";
+import { Deployment } from "@/lib/api";
 
 export const Route = createFileRoute("/deployments/$id")({
   component: RouteComponent,
@@ -34,79 +35,25 @@ export const Route = createFileRoute("/deployments/$id")({
 
 function RouteComponent() {
   const { user } = useAuth();
-  const { navigate } = useRouter();
   const { id } = Route.useParams();
-  const [updateOpen, setUpdateOpen] = useState(false);
 
-  const { data: deployment } = useSuspenseQuery(
-    deploymentById(user?.userId, id)
-  );
-  const { data: deploymentHasArtifact } = useSuspenseQuery(
-    deploymentHasArtifactById(user?.userId, id)
-  );
-  
-  const { mutateAsync: deleteDeployment } = useDeleteDeploymentMutation();
-
-  const onDelete = useCallback(() => {
-    if (window.confirm("Are you sure? There's no way back")) {
-      deleteDeployment(id).then(() => {
-        navigate({ to: "/" });
-      });
-    }
-  }, [navigate, deleteDeployment, id]);
-
-  const onUpdateName = useCallback(() => {
-    setUpdateOpen(true);
-  }, []);
+  const [{ data: deployment }, { data: deploymentHasArtifact }] =
+    useSuspenseQueries({
+      queries: [
+        deploymentById(user?.userId, id),
+        deploymentHasArtifactById(user?.userId, id),
+      ],
+    });
 
   return (
     <SidebarLayout
       title="Deployments"
       breadcrumb={[{ id: 0, label: capitalize(deployment.name) }]}
     >
-      <UpdateDeploymentNameDialog
-        open={updateOpen}
-        setOpen={setUpdateOpen}
-        deployment={deployment}
-      />
-
-      <input type="file" id="deployment" className="hidden" />
-      <input type="file" id="artifact" className="hidden" />
-
       <Card className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="font-bold text-xl">{capitalize(deployment.name)}</h1>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreHorizontal />
-                <span className="sr-only">More</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              className="w-48 rounded-lg"
-              side="right"
-              align="start"
-            >
-              <DropdownMenuItem onClick={onUpdateName}>
-                <Edit className="text-muted-foreground" />
-                <span>Update name</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Upload className="text-muted-foreground" />
-                <span>Upload artifacts.zip</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Upload className="text-muted-foreground" />
-                <span>Upload deployment.json</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={onDelete}>
-                <Trash2 className="text-muted-foreground" />
-                <span>Delete</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <OptionsMenu deployment={deployment} />
         </div>
 
         {deployment.infra_base_url && (
@@ -152,6 +99,12 @@ function RouteComponent() {
             </ul>
           </div>
         )}
+
+        {!deployment.contracts_addresses && !deployment.infra_base_url && (
+          <div className="space-y-2">
+            <h2 className="text-sm">No deployment outputs. Deploy locally and upload new outputs from the menu</h2>
+          </div>
+        )}
       </Card>
 
       {deploymentHasArtifact && (
@@ -166,3 +119,67 @@ function RouteComponent() {
     </SidebarLayout>
   );
 }
+
+const OptionsMenu: React.FC<{ deployment: Deployment }> = ({ deployment }) => {
+  const { navigate } = useRouter();
+  const [updateOpen, setUpdateOpen] = useState(false);
+  const { mutateAsync: deleteDeployment } = useDeleteDeploymentMutation();
+
+  const onDelete = useCallback(() => {
+    if (window.confirm("Are you sure? There's no way back")) {
+      deleteDeployment(deployment.id).then(() => {
+        navigate({ to: "/" });
+      });
+    }
+  }, [navigate, deleteDeployment, deployment]);
+
+  const onUpdateName = useCallback(() => {
+    setUpdateOpen(true);
+  }, []);
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon">
+            <MoreHorizontal />
+            <span className="sr-only">More</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          className="w-48 rounded-lg"
+          side="right"
+          align="start"
+        >
+          <DropdownMenuItem onClick={onUpdateName}>
+            <Edit className="text-muted-foreground" />
+            <span>Update name</span>
+          </DropdownMenuItem>
+          {/* TODO: */}
+          {/* <DropdownMenuItem>
+            <Upload className="text-muted-foreground" />
+            <span>Update artifacts.zip</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <Upload className="text-muted-foreground" />
+            <span>Update deployment.json</span>
+          </DropdownMenuItem> */}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={onDelete}>
+            <Trash2 className="text-muted-foreground" />
+            <span>Delete</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <UpdateDeploymentNameDialog
+        open={updateOpen}
+        setOpen={setUpdateOpen}
+        deployment={deployment}
+      />
+
+      <input type="file" id="deployment" className="hidden" />
+      <input type="file" id="artifact" className="hidden" />
+    </>
+  );
+};

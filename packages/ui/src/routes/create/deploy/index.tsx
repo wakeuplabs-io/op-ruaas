@@ -66,10 +66,9 @@ function RouteComponent() {
       {step === DeploymentStep.DEPLOY && <DeployStep />}
 
       <Pagination
-        disablePrev={currentStepIndex === 0}
         className="mt-6"
-        onNext={next}
-        onPrev={previous}
+        prev={{ disabled: currentStepIndex === 0, onClick: previous }}
+        next={{ onClick: next }}
       />
     </SidebarLayout>
   );
