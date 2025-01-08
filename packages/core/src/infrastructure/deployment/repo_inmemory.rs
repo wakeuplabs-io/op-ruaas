@@ -22,12 +22,8 @@ impl InMemoryDeploymentRepository {
 
 #[async_trait::async_trait]
 impl domain::deployment::TDeploymentRepository for InMemoryDeploymentRepository {
-    async fn find_one(
-        &self,
-        owner_id: &str,
-        id: &str,
-    ) -> Result<Option<domain::Deployment>, Box<dyn std::error::Error>> {
-        let depl_path = self.root.join(owner_id).join(id).join("deployment.json");
+    async fn find_by_id(&self, id: &str) -> Result<Option<domain::Deployment>, Box<dyn std::error::Error>> {
+        let depl_path = self.root.join(id).join("deployment.json");
         let exists = std::fs::exists(&depl_path).unwrap_or(false);
         if !exists {
             return Ok(None);
@@ -39,14 +35,18 @@ impl domain::deployment::TDeploymentRepository for InMemoryDeploymentRepository 
         Ok(Some(deployment))
     }
 
-    async fn find(&self, owner_id: &str) -> Result<Vec<Deployment>, Box<dyn std::error::Error>> {
+    async fn find_by_owner(&self, owner_id: &str) -> Result<Vec<Deployment>, Box<dyn std::error::Error>> {
         let mut deployments = Vec::new();
 
-        for entry in fs::read_dir(&self.root.join(owner_id))? {
+        for entry in fs::read_dir(&self.root)? {
             let entry = entry?;
             let depl_path = entry.path();
             let deserialized = fs::read_to_string(&depl_path)?;
             let deployment: Deployment = serde_json::from_str(&deserialized)?;
+
+            if deployment.owner_id != owner_id {
+                continue;
+            }
             deployments.push(deployment);
         }
 
@@ -56,11 +56,7 @@ impl domain::deployment::TDeploymentRepository for InMemoryDeploymentRepository 
     async fn save(&self, deployment: &Deployment) -> Result<(), Box<dyn std::error::Error>> {
         let serialized = serde_json::to_string(&deployment)?;
 
-        let depl_path = self
-            .root
-            .join(&deployment.owner_id)
-            .join(&deployment.id)
-            .join("deployment.json");
+        let depl_path = self.root.join(&deployment.id).join("deployment.json");
 
         std::fs::create_dir_all(&depl_path.parent().unwrap()).expect("Can't create deployments directory");
         fs::write(depl_path, serialized)?;
@@ -69,12 +65,7 @@ impl domain::deployment::TDeploymentRepository for InMemoryDeploymentRepository 
     }
 
     async fn delete(&self, deployment: &Deployment) -> Result<(), Box<dyn std::error::Error>> {
-        fs::remove_file(
-            self.root
-                .join(&deployment.owner_id)
-                .join(&deployment.id)
-                .join("deployment.json"),
-        )?;
+        fs::remove_file(self.root.join(&deployment.id).join("deployment.json"))?;
         Ok(())
     }
 }

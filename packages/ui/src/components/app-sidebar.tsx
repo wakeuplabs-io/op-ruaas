@@ -52,7 +52,7 @@ export function AppSidebar({
         <NavDeployments
           deployments={deployments.map((d) => ({
             id: d.id,
-            name: capitalize(d.id),
+            name: capitalize(d.name),
           }))}
         />
       </SidebarContent>

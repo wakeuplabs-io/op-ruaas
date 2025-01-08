@@ -157,6 +157,7 @@ impl DevCommand {
 
         let mut deployment = Deployment::new(
             "dev",
+            "Development",
             &owner_id,
             &release_tag,
             &release_registry,

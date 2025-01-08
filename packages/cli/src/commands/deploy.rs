@@ -80,6 +80,7 @@ impl DeployCommand {
         ctx: &AppContext,
         target: &DeployTarget,
         deployment_id: &str,
+        deployment_name: &str,
         deploy_deterministic_deployer: bool,
     ) -> Result<(), Box<dyn std::error::Error>> {
         self.system_requirement_checker.check(vec![
@@ -95,9 +96,9 @@ impl DeployCommand {
 
         // dev is reserved for local deployments
         if deployment_id == "dev" {
-            return Err("Name cannot be 'dev'".into());
+            return Err("Deployment id cannot be 'dev'".into());
         } else if deployment_id.contains(" ") {
-            return Err("Name cannot contain spaces".into());
+            return Err("Deployment id cannot contain spaces".into());
         }
 
         let release_registry: String = self
@@ -134,6 +135,7 @@ impl DeployCommand {
 
             let mut deployment = Deployment::new(
                 deployment_id,
+                deployment_name,
                 &owner_id,
                 &release_tag,
                 &release_registry,
@@ -158,7 +160,7 @@ impl DeployCommand {
         if matches!(target, DeployTarget::Infra | DeployTarget::All) {
             let mut deployment = self
                 .deployments_manager
-                .find_one(&owner_id, &deployment_id)
+                .find_by_id(&deployment_id)
                 .await?
                 .expect("Contracts deployment not found");
 
@@ -185,7 +187,7 @@ impl DeployCommand {
 
         let deployment = self
             .deployments_manager
-            .find_one(&owner_id, &deployment_id)
+            .find_by_id(&deployment_id)
             .await?
             .expect("Contracts deployment not found");
 

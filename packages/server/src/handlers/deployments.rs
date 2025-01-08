@@ -8,32 +8,23 @@ use opraas_core::{application::deployment::manager::DeploymentManagerService, do
 use std::sync::Arc;
 
 pub async fn create(
-    Path(id): Path<String>,
     Extension(user): Extension<AuthCurrentUser>,
     Extension(deployments_manager): Extension<
         Arc<DeploymentManagerService<SqlDeploymentRepository, S3DeploymentArtifactsRepository>>,
     >,
     Json(mut deployment): Json<Deployment>,
 ) -> Result<impl IntoResponse, ApiError> {
-    deployment.id = id;
+    deployment.id = uuid::Uuid::new_v4().to_string();
     deployment.owner_id = user.id.clone();
-
-    // check if existent already
-    if deployments_manager
-        .find_one(&user.id, &deployment.id)
-        .await
-        .map_err(ApiError::from)?
-        .is_some()
-    {
-        return Err(ApiError::BadRequest("Deployment already exists".into()));
-    }
 
     deployments_manager
         .save(&deployment)
         .await
         .map_err(ApiError::from)?;
 
-    return Ok((StatusCode::OK, "Ok"));
+    let deployment_json = serde_json::to_string(&deployment)
+        .map_err(|_| ApiError::InternalServerError("Could not serialize deployment".into()))?;
+    return Ok((StatusCode::OK, deployment_json));
 }
 
 pub async fn update(
@@ -45,7 +36,7 @@ pub async fn update(
     Json(deployment_update): Json<Deployment>, // Receive the updated deployment as JSON
 ) -> Result<impl IntoResponse, ApiError> {
     let mut deployment = deployments_manager
-        .find_one(&user.id, &id)
+        .find_by_id(&id)
         .await
         .map_err(ApiError::from)?
         .ok_or(ApiError::BadRequest(
@@ -60,6 +51,7 @@ pub async fn update(
     }
 
     // Update the fields with the new data
+    deployment.name = deployment_update.name;
     deployment.accounts_config = deployment_update.accounts_config;
     deployment.contracts_addresses = deployment_update.contracts_addresses;
     deployment.infra_base_url = deployment_update.infra_base_url;
@@ -73,7 +65,9 @@ pub async fn update(
         .await
         .map_err(ApiError::from)?;
 
-    Ok((StatusCode::OK, "Deployment updated"))
+    let deployment_json = serde_json::to_string(&deployment)
+        .map_err(|_| ApiError::InternalServerError("Could not serialize deployment".into()))?;
+    Ok((StatusCode::OK, deployment_json))
 }
 
 pub async fn list(
@@ -83,11 +77,12 @@ pub async fn list(
     >,
 ) -> Result<impl IntoResponse, ApiError> {
     let deployments = deployments_manager
-        .find(&user.id)
+        .find_by_owner(&user.id)
         .await
         .map_err(|_| ApiError::InternalServerError("Could not list deployments".into()))?;
 
-    let deployments_json = serde_json::to_string(&deployments).unwrap();
+    let deployments_json = serde_json::to_string(&deployments)
+        .map_err(|_| ApiError::InternalServerError("Could not serialize deployment".into()))?;
     Ok((StatusCode::OK, deployments_json))
 }
 
@@ -99,14 +94,22 @@ pub async fn get_by_id(
     >,
 ) -> Result<impl IntoResponse, ApiError> {
     let deployment = deployments_manager
-        .find_one(&user.id, &id)
+        .find_by_id(&id)
         .await
         .map_err(ApiError::from)?
         .ok_or(ApiError::BadRequest(
             "Could not find deployment with given id".into(),
         ))?;
 
-    let deployment_json = serde_json::to_string(&deployment).unwrap();
+    // verify deployment is owned by user
+    if deployment.owner_id != user.id {
+        return Err(ApiError::AuthError(
+            "Deployment is not owned by user".into(),
+        ));
+    }
+
+    let deployment_json = serde_json::to_string(&deployment)
+        .map_err(|_| ApiError::InternalServerError("Could not serialize deployment".into()))?;
     Ok((StatusCode::OK, deployment_json))
 }
 
@@ -118,7 +121,7 @@ pub async fn delete(
     >,
 ) -> Result<impl IntoResponse, ApiError> {
     let deployment = deployments_manager
-        .find_one(&user.id, &id)
+        .find_by_id(&id)
         .await
         .map_err(ApiError::from)?
         .ok_or(ApiError::BadRequest(
@@ -138,5 +141,7 @@ pub async fn delete(
         .await
         .map_err(ApiError::from)?;
 
-    Ok((StatusCode::OK, "Ok"))
+    let deployment_json = serde_json::to_string(&deployment)
+        .map_err(|_| ApiError::InternalServerError("Could not serialize deployment".into()))?;
+    Ok((StatusCode::OK, deployment_json))
 }

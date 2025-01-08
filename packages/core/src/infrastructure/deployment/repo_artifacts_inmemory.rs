@@ -26,7 +26,7 @@ impl domain::deployment::TDeploymentArtifactsRepository for InMemoryDeploymentAr
         let depl_path = self
             .root
             .join(&deployment.owner_id)
-            .join(&deployment.id)
+            .join(&deployment.id.to_string())
             .join("artifact.zip");
         let exists = std::fs::exists(&depl_path).unwrap_or(false);
         if !exists {
@@ -41,7 +41,7 @@ impl domain::deployment::TDeploymentArtifactsRepository for InMemoryDeploymentAr
         let depl_path = self
             .root
             .join(&deployment.owner_id)
-            .join(&deployment.id)
+            .join(&deployment.id.to_string())
             .join("artifact.zip");
 
         Ok(std::fs::exists(&depl_path).unwrap_or(false))
@@ -51,7 +51,7 @@ impl domain::deployment::TDeploymentArtifactsRepository for InMemoryDeploymentAr
         let depl_path = self
             .root
             .join(&deployment.owner_id)
-            .join(&deployment.id)
+            .join(&deployment.id.to_string())
             .join("artifact.zip");
         fs::write(depl_path, artifact).unwrap();
         Ok(())
@@ -61,7 +61,7 @@ impl domain::deployment::TDeploymentArtifactsRepository for InMemoryDeploymentAr
         let depl_path = self
             .root
             .join(&deployment.owner_id)
-            .join(&deployment.id)
+            .join(&deployment.id.to_string())
             .join("artifact.zip");
         fs::remove_file(depl_path).unwrap();
         Ok(())

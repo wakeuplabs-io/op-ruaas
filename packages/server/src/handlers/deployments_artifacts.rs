@@ -36,7 +36,7 @@ pub async fn create(
     };
 
     let deployment = deployments_manager
-        .find_one(&user.id, &deployment_id)
+        .find_by_id(&deployment_id)
         .await
         .map_err(ApiError::from)?
         .ok_or(ApiError::BadRequest(
@@ -66,7 +66,7 @@ pub async fn head(
     >,
 ) -> Result<impl IntoResponse, ApiError> {
     let deployment = deployments_manager
-        .find_one(&user.id, &id)
+        .find_by_id(&id)
         .await
         .map_err(ApiError::from)?
         .ok_or(ApiError::BadRequest(
@@ -99,7 +99,7 @@ pub async fn get_by_id(
     >,
 ) -> Result<impl IntoResponse, ApiError> {
     let deployment = deployments_manager
-        .find_one(&user.id, &id)
+        .find_by_id(&id)
         .await
         .map_err(ApiError::from)?
         .ok_or(ApiError::BadRequest(
@@ -136,7 +136,7 @@ pub async fn delete(
     >,
 ) -> Result<impl IntoResponse, ApiError> {
     let deployment = deployments_manager
-        .find_one(&user.id, &id)
+        .find_by_id(&id)
         .await
         .map_err(ApiError::from)?
         .ok_or(ApiError::BadRequest(

@@ -10,7 +10,7 @@ mod utils;
 use aws_config::Region;
 use axum::extract::DefaultBodyLimit;
 use axum::http::Method;
-use axum::routing::{get, post};
+use axum::routing::{get, post, put};
 use axum::{middleware, Extension, Router};
 use handlers::health;
 use infrastructure::database::get_db_pool;
@@ -91,13 +91,14 @@ async fn main() -> Result<(), Error> {
         .route("/projects", post(handlers::projects::create))
         .route(
             "/deployments",
-            get(handlers::deployments::list).layer(authorizer_layer.clone()),
+            get(handlers::deployments::list)
+                .layer(authorizer_layer.clone())
+                .post(handlers::deployments::create)
+                .layer(authorizer_layer.clone()),
         )
         .route(
             "/deployments/{id}",
-            post(handlers::deployments::create)
-                .layer(authorizer_layer.clone())
-                .get(handlers::deployments::get_by_id)
+            get(handlers::deployments::get_by_id)
                 .layer(authorizer_layer.clone())
                 .delete(handlers::deployments::delete)
                 .layer(authorizer_layer.clone())
@@ -106,7 +107,7 @@ async fn main() -> Result<(), Error> {
         )
         .route(
             "/deployments/{id}/artifact",
-            post(handlers::deployments_artifacts::create)
+            put(handlers::deployments_artifacts::create)
                 .layer(authorizer_layer.clone())
                 .get(handlers::deployments_artifacts::get_by_id)
                 .layer(authorizer_layer.clone())

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { DeploymentValue } from "@/components/ui/deployment-value";
 import { Button } from "@/components/ui/button";
 import { Download, Edit, MoreHorizontal, Trash2, Upload } from "lucide-react";
@@ -11,32 +11,71 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Card } from "@/components/ui/card";
 import { SidebarLayout } from "@/layouts/sidebar";
-import { deploymentById } from "@/lib/queries";
+import {
+  deploymentById,
+  deploymentHasArtifactById,
+  useDeleteDeploymentMutation,
+} from "@/lib/queries";
 import { getCurrentUser } from "aws-amplify/auth";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { capitalize } from "@/lib/strings";
+import { useCallback, useState } from "react";
+import { UpdateDeploymentNameDialog } from "@/components/update-deployment-name-dialog";
 
 export const Route = createFileRoute("/deployments/$id")({
   component: RouteComponent,
   loader: async ({ params: { id }, context: { queryClient } }) => {
     const user = await getCurrentUser();
     queryClient.ensureQueryData(deploymentById(user.userId, id));
+    queryClient.ensureQueryData(deploymentHasArtifactById(user.userId, id));
   },
 });
 
 function RouteComponent() {
   const { user } = useAuth();
+  const { navigate } = useRouter();
   const { id } = Route.useParams();
+  const [updateOpen, setUpdateOpen] = useState(false);
+
   const { data: deployment } = useSuspenseQuery(
     deploymentById(user?.userId, id)
   );
+  const { data: deploymentHasArtifact } = useSuspenseQuery(
+    deploymentHasArtifactById(user?.userId, id)
+  );
+  
+  const { mutateAsync: deleteDeployment } = useDeleteDeploymentMutation();
+
+  const onDelete = useCallback(() => {
+    if (window.confirm("Are you sure? There's no way back")) {
+      deleteDeployment(id).then(() => {
+        navigate({ to: "/" });
+      });
+    }
+  }, [navigate, deleteDeployment, id]);
+
+  const onUpdateName = useCallback(() => {
+    setUpdateOpen(true);
+  }, []);
 
   return (
-    <SidebarLayout title="Deployments" breadcrumb={[{ id: 0, label: capitalize(id) }]}>
+    <SidebarLayout
+      title="Deployments"
+      breadcrumb={[{ id: 0, label: capitalize(deployment.name) }]}
+    >
+      <UpdateDeploymentNameDialog
+        open={updateOpen}
+        setOpen={setUpdateOpen}
+        deployment={deployment}
+      />
+
+      <input type="file" id="deployment" className="hidden" />
+      <input type="file" id="artifact" className="hidden" />
+
       <Card className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="font-bold text-xl">{capitalize(id)}</h1>
+          <h1 className="font-bold text-xl">{capitalize(deployment.name)}</h1>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -49,7 +88,7 @@ function RouteComponent() {
               side="right"
               align="start"
             >
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={onUpdateName}>
                 <Edit className="text-muted-foreground" />
                 <span>Update name</span>
               </DropdownMenuItem>
@@ -62,7 +101,7 @@ function RouteComponent() {
                 <span>Upload deployment.json</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={onDelete}>
                 <Trash2 className="text-muted-foreground" />
                 <span>Delete</span>
               </DropdownMenuItem>
@@ -115,14 +154,15 @@ function RouteComponent() {
         )}
       </Card>
 
-      {/* TODO: if artifacts available, otherwise button to upload */}
-      <Button
-        size="lg"
-        variant="secondary"
-        className="w-full mt-6 rounded-full font-medium"
-      >
-        Download artifacts <Download />
-      </Button>
+      {deploymentHasArtifact && (
+        <Button
+          size="lg"
+          variant="secondary"
+          className="w-full mt-6 rounded-full font-medium"
+        >
+          Download artifacts <Download />
+        </Button>
+      )}
     </SidebarLayout>
   );
 }

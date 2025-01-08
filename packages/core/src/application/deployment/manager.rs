@@ -1,3 +1,5 @@
+use uuid::Uuid;
+
 use crate::domain::{Deployment, DeploymentArtifact, TDeploymentArtifactsRepository, TDeploymentRepository};
 
 pub struct DeploymentManagerService<T, U>
@@ -25,12 +27,12 @@ where
         self.deployment_repository.save(deployment).await
     }
 
-    pub async fn find(&self, owner_id: &str) -> Result<Vec<Deployment>, Box<dyn std::error::Error>> {
-        self.deployment_repository.find(owner_id).await
+    pub async fn find_by_id(&self, id: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>> {
+        self.deployment_repository.find_by_id(id).await
     }
 
-    pub async fn find_one(&self, owner_id: &str, id: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>> {
-        self.deployment_repository.find_one(owner_id, id).await
+    pub async fn find_by_owner(&self, owner_id: &str) -> Result<Vec<Deployment>, Box<dyn std::error::Error>> {
+        self.deployment_repository.find_by_owner(owner_id).await
     }
 
     pub async fn delete(&self, deployment: &Deployment) -> Result<(), Box<dyn std::error::Error>> {

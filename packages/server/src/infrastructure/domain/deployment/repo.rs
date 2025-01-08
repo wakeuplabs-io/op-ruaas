@@ -8,6 +8,7 @@ pub struct SqlDeploymentRepository {
 #[derive(Debug, sqlx::FromRow)]
 struct DeploymentDto {
     pub id: String,
+    pub name: String,
     pub owner_id: String,
     pub release_tag: String,
     pub release_registry: String,
@@ -21,6 +22,7 @@ impl From<DeploymentDto> for Deployment {
     fn from(deployment: DeploymentDto) -> Self {
         Self {
             id: deployment.id,
+            name: deployment.name,
             owner_id: deployment.owner_id,
             release_tag: deployment.release_tag,
             release_registry: deployment.release_registry,
@@ -36,6 +38,7 @@ impl From<Deployment> for DeploymentDto {
     fn from(deployment: Deployment) -> Self {
         Self {
             id: deployment.id,
+            name: deployment.name,
             owner_id: deployment.owner_id,
             release_tag: deployment.release_tag,
             release_registry: deployment.release_registry,
@@ -55,9 +58,8 @@ impl SqlDeploymentRepository {
 
 #[async_trait::async_trait]
 impl TDeploymentRepository for SqlDeploymentRepository {
-    async fn find_one(&self, owner_id: &str, id: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>> {
-        let result: DeploymentDto = sqlx::query_as("SELECT * FROM deployments WHERE owner_id = $1 AND id = $2")
-            .bind(&owner_id)
+    async fn find_by_id(&self, id: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>> {
+        let result: DeploymentDto = sqlx::query_as("SELECT * FROM deployments WHERE id = $1")
             .bind(&id)
             .fetch_one(&self.client)
             .await?;
@@ -65,7 +67,7 @@ impl TDeploymentRepository for SqlDeploymentRepository {
         Ok(Some(result.into()))
     }
 
-    async fn find(&self, owner_id: &str) -> Result<Vec<Deployment>, Box<dyn std::error::Error>> {
+    async fn find_by_owner(&self, owner_id: &str) -> Result<Vec<Deployment>, Box<dyn std::error::Error>> {
         let result: Vec<DeploymentDto> = sqlx::query_as("SELECT * FROM deployments WHERE owner_id = $1")
             .bind(&owner_id)
             .fetch_all(&self.client)
@@ -78,9 +80,8 @@ impl TDeploymentRepository for SqlDeploymentRepository {
         let deployment_dto: DeploymentDto = deployment.clone().into();
 
         let exists: Option<String> = sqlx::query_scalar!(
-            "SELECT id FROM deployments WHERE id = $1 AND owner_id = $2",
+            "SELECT id FROM deployments WHERE id = $1",
             deployment_dto.id,
-            deployment_dto.owner_id,
         )
         .fetch_optional(&self.client)
         .await?;
@@ -91,16 +92,18 @@ impl TDeploymentRepository for SqlDeploymentRepository {
                 UPDATE deployments 
                 SET 
                     owner_id = $2,
-                    release_tag = $3,
-                    release_registry = $4,
-                    infra_base_url = $5,
-                    contracts_addresses = $6,
-                    network_config = $7,
-                    accounts_config = $8
-                WHERE owner_id = $2 AND id = $1
+                    name = $3,
+                    release_tag = $4,
+                    release_registry = $5,
+                    infra_base_url = $6,
+                    contracts_addresses = $7,
+                    network_config = $8,
+                    accounts_config = $9
+                WHERE id = $1
                 "#,
                 deployment_dto.id,
                 deployment_dto.owner_id,
+                deployment_dto.name,
                 deployment_dto.release_tag,
                 deployment_dto.release_registry,
                 deployment_dto.infra_base_url,
@@ -112,9 +115,10 @@ impl TDeploymentRepository for SqlDeploymentRepository {
             .await?;
         } else {
             sqlx::query!(
-                "INSERT INTO deployments (id, owner_id, release_tag, release_registry, infra_base_url, contracts_addresses, network_config, accounts_config)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+                "INSERT INTO deployments (id, name, owner_id, release_tag, release_registry, infra_base_url, contracts_addresses, network_config, accounts_config)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
                 deployment_dto.id,
+                deployment_dto.name,
                 deployment_dto.owner_id,
                 deployment_dto.release_tag,
                 deployment_dto.release_registry,
