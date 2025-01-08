@@ -14,9 +14,9 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
-import { deploymentsByOwnerQueryOptions } from "@/lib/api/deployment";
 import { useAuth } from "@/lib/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
+import { deploymentsByOwner } from "@/lib/queries";
 
 export const SidebarLayout: React.FC<{
   children: React.ReactNode;
@@ -27,9 +27,7 @@ export const SidebarLayout: React.FC<{
   breadcrumb = breadcrumb || [];
 
   const { user } = useAuth();
-  const { data: deployments } = useQuery(
-    deploymentsByOwnerQueryOptions(user?.userId)
-  );
+  const { data: deployments } = useQuery(deploymentsByOwner(user?.userId));
 
   return (
     <SidebarProvider>

@@ -9,6 +9,7 @@ mod utils;
 
 use aws_config::Region;
 use axum::extract::DefaultBodyLimit;
+use axum::http::Method;
 use axum::routing::{get, post};
 use axum::{middleware, Extension, Router};
 use handlers::health;
@@ -22,6 +23,7 @@ use opraas_core::{
     infrastructure::project::{GitVersionControl, InMemoryProjectRepository},
 };
 use std::sync::Arc;
+use tower_http::cors::{Any, CorsLayer};
 use tower_http::limit::RequestBodyLimitLayer;
 use tower_http::trace::{self, TraceLayer};
 use tracing::{level_filters::LevelFilter, Level};
@@ -60,6 +62,12 @@ async fn main() -> Result<(), Error> {
         let authorizer = authorizer.clone();
         async move { authorizer.authorize(req, next).await }
     });
+
+    // cors policy
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_headers(Any)
+        .allow_methods(vec![Method::GET, Method::POST, Method::DELETE, Method::HEAD, Method::PUT]);
 
     // services
     let create_service = Arc::new(CreateProjectService::new(
@@ -109,7 +117,8 @@ async fn main() -> Result<(), Error> {
         .layer(DefaultBodyLimit::disable())
         .layer(RequestBodyLimitLayer::new(
             250 * 1024 * 1024, /* 250mb */
-        ));
+        ))
+        .layer(cors);
 
     if std::env::var("ENV").unwrap_or_else(|_| "dev".into()) == "prod" {
         run(router).await?;

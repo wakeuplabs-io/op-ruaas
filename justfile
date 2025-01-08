@@ -48,6 +48,11 @@ server-run:
 server-predeploy:
     cargo lambda build --package opraas_server --arm64 --release
 
+# ui
+
+ui-run:
+	cd packages/ui && npm run dev
+
 # sst deployment and management
 
 install-tunnel:

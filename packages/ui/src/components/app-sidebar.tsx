@@ -10,8 +10,9 @@ import {
 } from "@/components/ui/sidebar";
 import { NavDeployments } from "./nav-deployments";
 import { Button } from "./ui/button";
-import { Deployment } from "@/lib/api/deployment";
 import { useAuth } from "@/lib/hooks/use-auth";
+import { Deployment } from "@/lib/api";
+import { capitalize } from "@/lib/strings";
 
 export function AppSidebar({
   deployments,
@@ -51,7 +52,7 @@ export function AppSidebar({
         <NavDeployments
           deployments={deployments.map((d) => ({
             id: d.id,
-            name: d.id[0].toUpperCase() + d.id.slice(1),
+            name: capitalize(d.id),
           }))}
         />
       </SidebarContent>
