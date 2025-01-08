@@ -4,9 +4,11 @@ import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { SidebarLayout } from "@/layouts/sidebar";
+import { useToast } from "@/lib/hooks/use-toast";
+import { useCreateProjectMutation } from "@/lib/queries";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { DownloadIcon } from "lucide-react";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
 export const Route = createFileRoute("/create/setup/")({
   component: RouteComponent,
@@ -28,23 +30,52 @@ const steps = [
 
 function RouteComponent() {
   const router = useRouter();
+  const { toast } = useToast();
   const [step, setStep] = useState<SetupStep>(SetupStep.L1_CHAIN);
+  const [mainnet, setMainnet] = useState<boolean>(false);
+  const [chainId, setChainId] = useState<number>(128930);
+  const [governanceSymbol, setGovernanceSymbol] = useState<string>("");
+  const [governanceName, setGovernanceName] = useState<string>("");
 
-  const currentStepIndex = steps.findIndex((s) => s.step === step);
+  const { mutateAsync, isPending } = useCreateProjectMutation();
 
-  const next = () => {
+  const onDownload = useCallback(async () => {
+    try {
+      const res = await mutateAsync({
+        mainnet,
+        chainId,
+        governanceSymbol,
+        governanceName,
+      });
+      const url = window.URL.createObjectURL(res);
+      window.open(url, "_blank");
+    } catch (e) {
+      toast({
+        title: "Error",
+        description: "Failed to create project",
+        variant: "destructive",
+      });
+    }
+  }, [mainnet, chainId, governanceName, governanceSymbol]);
+
+  const currentStepIndex = useMemo(
+    () => steps.findIndex((s) => s.step === step),
+    [step]
+  );
+
+  const next = useCallback(() => {
     if (currentStepIndex < steps.length - 1) {
       setStep(steps[currentStepIndex + 1].step);
     } else {
       router.navigate({ to: "/create/deploy" });
     }
-  };
+  }, [currentStepIndex]);
 
-  const previous = () => {
+  const previous = useCallback(() => {
     if (currentStepIndex > 0) {
       setStep(steps[currentStepIndex - 1].step);
     }
-  };
+  }, [currentStepIndex]);
 
   const breadcrumb = useMemo(() => {
     return steps.reduce(
@@ -62,10 +93,21 @@ function RouteComponent() {
       breadcrumb={breadcrumb}
       onBreadcrumbClick={(id) => setStep(id)}
     >
-      {step == SetupStep.L1_CHAIN && <L1ChainStep />}
-      {step == SetupStep.L2_CHAIN && <L2ChainStep />}
-      {step == SetupStep.GOVERNANCE && <L2GovernanceStep />}
-      {step == SetupStep.DOWNLOAD && <DownloadStep />}
+      {step == SetupStep.L1_CHAIN && (
+        <L1ChainStep mainnet={mainnet} setMainnet={setMainnet} />
+      )}
+      {step == SetupStep.L2_CHAIN && (
+        <L2ChainStep chainId={chainId} setChainId={setChainId} />
+      )}
+      {step == SetupStep.GOVERNANCE && (
+        <L2GovernanceStep
+          name={governanceName}
+          setName={setGovernanceName}
+          symbol={governanceSymbol}
+          setSymbol={setGovernanceSymbol}
+        />
+      )}
+      {step == SetupStep.DOWNLOAD && <DownloadStep onDownload={onDownload} isPending={isPending} />}
 
       <Pagination
         disablePrev={currentStepIndex === 0}
@@ -77,7 +119,10 @@ function RouteComponent() {
   );
 }
 
-const L1ChainStep: React.FC = () => {
+const L1ChainStep: React.FC<{
+  mainnet: boolean;
+  setMainnet: (mainnet: boolean) => void;
+}> = ({ mainnet, setMainnet }) => {
   return (
     <Card>
       <CardTitle>L1 chain</CardTitle>
@@ -87,14 +132,17 @@ const L1ChainStep: React.FC = () => {
       </CardDescription>
 
       <div className="flex items-center justify-between mt-10 px-4 h-12 text-sm border rounded-lg">
-        <span className="text-sm">Ethereum testnet</span>
-        <Switch />
+        <span className="text-sm">Ethereum mainnet</span>
+        <Switch checked={mainnet} onCheckedChange={setMainnet} />
       </div>
     </Card>
   );
 };
 
-const L2ChainStep: React.FC = () => {
+const L2ChainStep: React.FC<{
+  chainId: number;
+  setChainId: (chainId: number) => void;
+}> = ({ chainId, setChainId }) => {
   return (
     <Card>
       <CardTitle>Your L2 Chain Details</CardTitle>
@@ -103,12 +151,23 @@ const L2ChainStep: React.FC = () => {
         tune the generated config file before deployment.
       </CardDescription>
 
-      <Input className="mt-10" placeholder="L2 chain id" />
+      <Input
+        type="number"
+        value={chainId}
+        onChange={(e) => setChainId(Number(e.target.value))}
+        className="mt-10"
+        placeholder="L2 chain id"
+      />
     </Card>
   );
 };
 
-const L2GovernanceStep: React.FC = () => {
+const L2GovernanceStep: React.FC<{
+  name: string;
+  setName: (name: string) => void;
+  symbol: string;
+  setSymbol: (symbol: string) => void;
+}> = ({ name, setName, symbol, setSymbol }) => {
   return (
     <Card>
       <CardTitle>L2 Governance</CardTitle>
@@ -117,14 +176,27 @@ const L2GovernanceStep: React.FC = () => {
         tune the generated config file before deployment.
       </CardDescription>
 
-      <Input className="mt-10" placeholder="Token name" />
+      <Input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        className="mt-10"
+        placeholder="Token name"
+      />
 
-      <Input className="mt-2" placeholder="Token symbol" />
+      <Input
+        value={symbol}
+        onChange={(e) => setSymbol(e.target.value)}
+        className="mt-2"
+        placeholder="Token symbol"
+      />
     </Card>
   );
 };
 
-const DownloadStep: React.FC = () => {
+const DownloadStep: React.FC<{
+  onDownload: () => void;
+  isPending: boolean;
+}> = ({ onDownload, isPending }) => {
   return (
     <>
       <Card>
@@ -137,11 +209,19 @@ const DownloadStep: React.FC = () => {
       </Card>
 
       <Button
+        onClick={onDownload}
+        disabled={isPending}
         size="lg"
         variant="secondary"
         className="w-full rounded-full mt-4"
       >
-        Download <DownloadIcon />
+        {isPending ? (
+          "Downloading..."
+        ) : (
+          <>
+            Download <DownloadIcon />
+          </>
+        )}
       </Button>
     </>
   );

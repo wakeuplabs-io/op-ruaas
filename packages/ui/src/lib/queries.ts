@@ -1,4 +1,4 @@
-import { queryOptions } from "@tanstack/react-query"
+import { queryOptions, useMutation } from "@tanstack/react-query"
 import { ApiService, Deployment } from "./api"
 
 
@@ -30,5 +30,16 @@ export const deploymentById = (ownerId?: string, id?: string) => {
         queryKey: ['deployment', ownerId, id],
         queryFn: () => ApiService.deploymentById(id!),
         enabled: !!ownerId && !!id
+    })
+}
+
+export const useCreateProjectMutation = () => {
+    return useMutation({
+        mutationFn: (data: {
+            mainnet: boolean,
+            chainId: number,
+            governanceSymbol: string,
+            governanceName: string
+        }) => ApiService.createProject(data.mainnet, data.chainId, data.governanceSymbol, data.governanceName),
     })
 }

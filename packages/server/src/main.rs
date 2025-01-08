@@ -67,7 +67,13 @@ async fn main() -> Result<(), Error> {
     let cors = CorsLayer::new()
         .allow_origin(Any)
         .allow_headers(Any)
-        .allow_methods(vec![Method::GET, Method::POST, Method::DELETE, Method::HEAD, Method::PUT]);
+        .allow_methods(vec![
+            Method::GET,
+            Method::POST,
+            Method::DELETE,
+            Method::HEAD,
+            Method::PUT,
+        ]);
 
     // services
     let create_service = Arc::new(CreateProjectService::new(
@@ -82,7 +88,7 @@ async fn main() -> Result<(), Error> {
 
     let router = Router::new()
         .route("/health", get(health::health))
-        .route("/config", post(handlers::deployments_config::create))
+        .route("/projects", post(handlers::projects::create))
         .route(
             "/deployments",
             get(handlers::deployments::list).layer(authorizer_layer.clone()),
