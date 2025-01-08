@@ -1,5 +1,6 @@
 import { queryOptions, useMutation } from "@tanstack/react-query"
 import { ApiService, Deployment } from "./api"
+import { queryClient } from "@/main"
 
 
 export class QueryKeyFactory {
@@ -41,5 +42,56 @@ export const useCreateProjectMutation = () => {
             governanceSymbol: string,
             governanceName: string
         }) => ApiService.createProject(data.mainnet, data.chainId, data.governanceSymbol, data.governanceName),
+    })
+}
+
+export const useCreateDeploymentMutation = () => {
+    return useMutation({
+        mutationFn: (data: Deployment) => ApiService.createDeployment(data),
+    })
+}
+
+export const useUpdateDeploymentMutation = () => {
+    return useMutation({
+        mutationFn: (data: Deployment) => ApiService.updateDeployment(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                // queryKey: QueryKeyFactory.deploymentsByOwner(data.owner_id)
+                // queryKey: QueryKeyFactory.deploymentById(data.owner_id)
+            })
+        }
+    })
+}
+
+export const useDeleteDeploymentMutation = () => {
+    return useMutation({
+        mutationFn: (id: string) => ApiService.deleteDeployment(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                // queryKey: QueryKeyFactory.deploymentsByOwner(data.owner_id)
+            })
+        }
+    })
+}
+
+export const useUpdateDeploymentArtifactMutation = () => {
+    return useMutation({
+        // mutationFn: (data: any) => ApiService.updateDeploymentArtifact(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                // queryKey: QueryKeyFactory.deploymentsByOwner(data.owner_id)
+            })
+        }
+    })
+}
+
+export const useGetDeploymentArtifacts = () => {
+    return useMutation({
+        // mutationFn: (data: any) => ApiService.updateDeploymentArtifact(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                // queryKey: QueryKeyFactory.deploymentsByOwner(data.owner_id)
+            })
+        }
     })
 }

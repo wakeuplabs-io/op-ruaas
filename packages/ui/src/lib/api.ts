@@ -112,4 +112,28 @@ export class ApiService {
 
         return res.data
     }
+
+    static async createDeployment(deployment: Deployment) {
+        const res = await this.axiosInstance.post("deployments", deployment, {
+            headers: {
+                Authorization: `Bearer ${await this.getBearerToken()}`
+            }
+        })
+    }
+
+    static async updateDeployment(deployment: Deployment) {
+        const res = await this.axiosInstance.put(`deployments/${deployment.id}`, deployment, {
+            headers: {
+                Authorization: `Bearer ${await this.getBearerToken()}`
+            }
+        })
+    }
+
+    static async deleteDeployment(id: string) {
+        const res = await this.axiosInstance.delete(`deployments/${id}`, {
+            headers: {
+                Authorization: `Bearer ${await this.getBearerToken()}`
+            }
+        })
+    }
 }

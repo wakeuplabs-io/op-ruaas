@@ -77,21 +77,55 @@ impl TDeploymentRepository for SqlDeploymentRepository {
     async fn save(&self, deployment: &Deployment) -> Result<(), Box<dyn std::error::Error>> {
         let deployment_dto: DeploymentDto = deployment.clone().into();
 
-        sqlx::query!(
-            "INSERT INTO deployments (id, owner_id, release_tag, release_registry, infra_base_url, contracts_addresses, network_config, accounts_config)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+        let exists: Option<String> = sqlx::query_scalar!(
+            "SELECT id FROM deployments WHERE id = $1 AND owner_id = $2",
             deployment_dto.id,
             deployment_dto.owner_id,
-            deployment_dto.release_tag,
-            deployment_dto.release_registry,
-            deployment_dto.infra_base_url,
-            deployment_dto.contracts_addresses,
-            deployment_dto.network_config,
-            deployment_dto.accounts_config,
         )
-        .execute(&self.client)
-        .await
-        .unwrap();
+        .fetch_optional(&self.client)
+        .await?;
+
+        if exists.is_some() {
+            sqlx::query!(
+                r#"
+                UPDATE deployments 
+                SET 
+                    owner_id = $2,
+                    release_tag = $3,
+                    release_registry = $4,
+                    infra_base_url = $5,
+                    contracts_addresses = $6,
+                    network_config = $7,
+                    accounts_config = $8
+                WHERE owner_id = $2 AND id = $1
+                "#,
+                deployment_dto.id,
+                deployment_dto.owner_id,
+                deployment_dto.release_tag,
+                deployment_dto.release_registry,
+                deployment_dto.infra_base_url,
+                deployment_dto.contracts_addresses,
+                deployment_dto.network_config,
+                deployment_dto.accounts_config,
+            )
+            .execute(&self.client)
+            .await?;
+        } else {
+            sqlx::query!(
+                "INSERT INTO deployments (id, owner_id, release_tag, release_registry, infra_base_url, contracts_addresses, network_config, accounts_config)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+                deployment_dto.id,
+                deployment_dto.owner_id,
+                deployment_dto.release_tag,
+                deployment_dto.release_registry,
+                deployment_dto.infra_base_url,
+                deployment_dto.contracts_addresses,
+                deployment_dto.network_config,
+                deployment_dto.accounts_config,
+            )
+            .execute(&self.client)
+            .await?;
+        }
 
         Ok(())
     }

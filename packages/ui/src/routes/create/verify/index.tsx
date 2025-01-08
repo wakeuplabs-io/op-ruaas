@@ -64,7 +64,7 @@ function RouteComponent() {
               htmlFor="deployment"
               className={cn(
                 buttonVariants({ variant: "outline", size: "lg" }),
-                "justify-between"
+                "justify-between cursor-pointer"
               )}
             >
               Deployment.json
@@ -78,7 +78,7 @@ function RouteComponent() {
               htmlFor="artifact"
               className={cn(
                 buttonVariants({ variant: "outline", size: "lg" }),
-                "justify-between"
+                "justify-between cursor-pointer"
               )}
             >
               Artifact.zip

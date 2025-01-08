@@ -8,9 +8,9 @@ import { routeTree } from "@/routeTree.gen";
 import { createRouter } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-const queryClient = new QueryClient();
+export const queryClient = new QueryClient();
 
-const router = createRouter({
+export const router = createRouter({
   routeTree,
   context: { queryClient },
   defaultPreload: "intent",

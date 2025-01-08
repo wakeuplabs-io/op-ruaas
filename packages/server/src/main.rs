@@ -100,6 +100,8 @@ async fn main() -> Result<(), Error> {
                 .get(handlers::deployments::get_by_id)
                 .layer(authorizer_layer.clone())
                 .delete(handlers::deployments::delete)
+                .layer(authorizer_layer.clone())
+                .put(handlers::deployments::update)
                 .layer(authorizer_layer.clone()),
         )
         .route(
