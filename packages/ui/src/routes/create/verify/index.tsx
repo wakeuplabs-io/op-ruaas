@@ -76,7 +76,11 @@ function RouteComponent() {
 
       navigate({ to: "/deployments/$id", params: { id: deployment.id } });
     } catch (error) {
-      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Failed to create deployment",
+        description: (error as Error).message,
+      })
     }
   }, [deploymentFile, artifactFile]);
 

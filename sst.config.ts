@@ -39,7 +39,7 @@ export default $config({
 
         // api db
         const rds = new sst.aws.Postgres(`${PROJECT_NAME}-db`, {
-            vpc,
+            vpc
         });
         const DATABASE_URL = $interpolate`postgres://${rds.username}:${rds.password}@${rds.host}:${rds.port}/${rds.database}`;
 
@@ -47,7 +47,7 @@ export default $config({
         const api = new sst.aws.Function(`${PROJECT_NAME}-api`, {
             vpc,
             handler: "bootstrap",
-            bundle: "packages/server/target/lambda/server",
+            bundle: "target/lambda/opraas_server",
             architecture: "arm64", // or x86_64
             runtime: 'provided.al2023',
             url: true,
@@ -57,8 +57,8 @@ export default $config({
                 ENV: "prod",
                 DATABASE_URL,
                 ARTIFACTS_BUCKET: bucket.name,
-                COGNITO_USER_POOL_ID: userPool.id,
-                COGNITO_USER_POOL_CLIENT_ID: userPoolClient.id
+                COGNITO_POOL_ID: userPool.id,
+                COGNITO_CLIENT_IDS: userPoolClient.id
             }
         });
 
@@ -81,11 +81,17 @@ export default $config({
                 directory: "packages/ui",
             },
             environment: {
-                VITE_API_URL: api.url,
+                VITE_SERVER_URL: api.url,
                 VITE_APP_REGION: REGION,
                 VITE_USER_POOL_ID: userPool.id,
                 VITE_USER_POOL_CLIENT_ID: userPoolClient.id,
             },
+            indexPage: "index.html",
+            errorPage: "index.html",
+            invalidation: {
+                paths: "all",
+                wait: true,
+            }
         });
 
         return {
