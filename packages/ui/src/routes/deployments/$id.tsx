@@ -17,7 +17,7 @@ import {
   useDeleteDeploymentMutation,
 } from "@/lib/queries";
 import { getCurrentUser } from "aws-amplify/auth";
-import { useSuspenseQueries } from "@tanstack/react-query";
+import { useQuery, useSuspenseQueries } from "@tanstack/react-query";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { capitalize } from "@/lib/strings";
 import { useCallback, useState } from "react";
@@ -44,6 +44,27 @@ function RouteComponent() {
         deploymentHasArtifactById(user?.userId, id),
       ],
     });
+
+    // const { data, isPending } = useQuery();
+
+    // const onDownload = useCallback(async () => {
+    //   try {
+    //     const res = await mutateAsync({
+    //       mainnet,
+    //       chainId,
+    //       governanceSymbol,
+    //       governanceName,
+    //     });
+    //     const url = window.URL.createObjectURL(res);
+    //     window.open(url, "_blank");
+    //   } catch (e) {
+    //     toast({
+    //       title: "Error",
+    //       description: "Failed to create project",
+    //       variant: "destructive",
+    //     });
+    //   }
+    // }, [mainnet, chainId, governanceName, governanceSymbol]);
 
   return (
     <SidebarLayout

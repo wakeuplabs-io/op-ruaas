@@ -158,4 +158,34 @@ export class ApiService {
             return false;
         }
     }
+
+    static async createDeploymentArtifact(id: string, artifact: File): Promise<void> {
+        const data = new FormData();
+        data.append("artifact.zip", artifact);
+        
+        await this.axiosInstance.post(`deployments/${id}/artifact`, data, {
+            headers: {
+                Authorization: `Bearer ${await this.getBearerToken()}`
+            }
+        })
+    }
+
+    static async deleteDeploymentArtifact(id: string): Promise<void> {
+        await this.axiosInstance.delete(`deployments/${id}/artifact`, {
+            headers: {
+                Authorization: `Bearer ${await this.getBearerToken()}`
+            }
+        })
+    }
+
+    static async getDeploymentArtifact(id: string): Promise<Blob> {
+        const res = await this.axiosInstance.get(`deployments/${id}/artifact`, {
+            responseType: "blob",
+            headers: {
+                Authorization: `Bearer ${await this.getBearerToken()}`
+            }
+        })
+
+        return res.data
+    }
 }

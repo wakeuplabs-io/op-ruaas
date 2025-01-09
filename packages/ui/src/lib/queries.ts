@@ -12,10 +12,6 @@ export class QueryKeyFactory {
         return ["deployment", ownerId, id]
     }
 
-    static deploymentArtifactById(ownerId: string, id: string): string[] {
-        return ["deploymentArtifact", ownerId, id]
-    }
-
     static hasDeploymentArtifact(ownerId: string, id: string): string[] {
         return ["hasDeploymentArtifact", ownerId, id]
     }
@@ -93,15 +89,16 @@ export const useDeleteDeploymentMutation = () => {
     })
 }
 
+export const useGetDeploymentArtifactMutation = () => {
+    return useMutation({
+        mutationFn: (id: string) => ApiService.getDeploymentArtifact(id),
+    })
+}
+
 
 export const useUpdateDeploymentArtifactMutation = () => {
     return useMutation({
-        // mutationFn: (data: any) => ApiService.updateDeploymentArtifact(data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                // queryKey: QueryKeyFactory.deploymentsByOwner(data.owner_id)
-            })
-        }
+        // mutationFn: (id, artifact: File) => ApiService.createDeploymentArtifact(data),
     })
 }
 
