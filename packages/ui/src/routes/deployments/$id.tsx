@@ -179,15 +179,6 @@ const OptionsMenu: React.FC<{ deployment: Deployment }> = ({ deployment }) => {
             <Edit className="text-muted-foreground" />
             <span>Update name</span>
           </DropdownMenuItem>
-          {/* TODO: */}
-          {/* <DropdownMenuItem>
-            <Upload className="text-muted-foreground" />
-            <span>Update artifacts.zip</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Upload className="text-muted-foreground" />
-            <span>Update deployment.json</span>
-          </DropdownMenuItem> */}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={onDelete}>
             <Trash2 className="text-muted-foreground" />
