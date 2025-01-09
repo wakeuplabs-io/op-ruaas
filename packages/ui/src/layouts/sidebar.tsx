@@ -23,9 +23,7 @@ export const SidebarLayout: React.FC<{
   title: string;
   breadcrumb?: { id: number; label: string }[];
   onBreadcrumbClick?: (id: number) => void;
-}> = ({ children, title, breadcrumb, onBreadcrumbClick }) => {
-  breadcrumb = breadcrumb || [];
-
+}> = ({ children, title, breadcrumb = [], onBreadcrumbClick }) => {
   const { user } = useAuth();
   const { data: deployments } = useQuery(deploymentsByOwner(user?.userId));
 

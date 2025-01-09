@@ -11,8 +11,8 @@ import {
 import { NavDeployments } from "./nav-deployments";
 import { Button } from "./ui/button";
 import { useAuth } from "@/lib/hooks/use-auth";
-import { Deployment } from "@/lib/api";
 import { capitalize } from "@/lib/strings";
+import { Deployment } from "@/lib/services/deployment";
 
 export function AppSidebar({
   deployments,
