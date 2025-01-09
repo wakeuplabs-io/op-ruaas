@@ -40,53 +40,39 @@ function RouteComponent() {
     },
   });
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
-    if (step === "CONFIRM_SIGN_UP") {
-      auth
-        .confirmSignUp(user, data.code)
-        .then(() => {
-          navigate({ to: "/auth/signin" });
-        })
-        .catch((error) => {
-          toast({
-            variant: "destructive",
-            title: "Uh oh! Something went wrong.",
-            description: error.message,
-          });
-        });
-    } else {
-      auth
-        .confirmSignIn(data.code)
-        .then(() => {
-          navigate({ to: "/" });
-        })
-        .catch((error) => {
-          toast({
-            variant: "destructive",
-            title: "Uh oh! Something went wrong.",
-            description: error.message,
-          });
-        });
+  async function onSubmit(data: z.infer<typeof FormSchema>) {
+    try {
+      if (step === "CONFIRM_SIGN_UP") {
+        await auth.confirmSignUp(user, data.code);
+        navigate({ to: "/auth/signin" });
+      } else {
+        await auth.confirmSignIn(data.code);
+        navigate({ to: "/" });
+      }
+    } catch (e: any) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: e.message,
+      });
     }
   }
 
   function onResendClick() {
-    auth
-      .resendSignUpCode({ username: user })
-      .then(() => {
-        toast({
-          variant: "default",
-          title: "Success!",
-          description: "Code resent successfully!",
-        });
-      })
-      .catch((error) => {
-        toast({
-          variant: "destructive",
-          title: "Uh oh! Something went wrong.",
-          description: error.message,
-        });
+    try {
+      auth.resendSignUpCode({ username: user });
+      toast({
+        variant: "default",
+        title: "Success!",
+        description: "Code resent successfully!",
       });
+    } catch (e: any) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: e.message,
+      });
+    }
   }
 
   useEffect(() => {
@@ -97,54 +83,54 @@ function RouteComponent() {
 
   return (
     <div className="flex justify-center items-center min-h-screen">
-    <div className="w-[350px]">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-2xl font-bold">Confirm account</h1>
-            <p className="text-balance text-sm text-muted-foreground">
-              Enter the code sent to your email
-            </p>
-          </div>
-
-          <div>
-            <FormField
-              control={form.control}
-              name="code"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="text-right">
-              <Button
-                type="button"
-                variant="link"
-                size="sm"
-                className="px-0"
-                onClick={onResendClick}
-              >
-                Resend Code
-              </Button>
+      <div className="w-[350px]">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="flex flex-col items-center gap-2 text-center">
+              <h1 className="text-2xl font-bold">Confirm account</h1>
+              <p className="text-balance text-sm text-muted-foreground">
+                Enter the code sent to your email
+              </p>
             </div>
-          </div>
 
-          <Button
-            type="submit"
-            size="lg"
-            className="w-full rounded-full"
-            disabled={auth.loading}
-          >
-            {auth.loading ? "Loading..." : "Confirm"}
-          </Button>
-        </form>
-      </Form>
-    </div>
+            <div>
+              <FormField
+                control={form.control}
+                name="code"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="text-right">
+                <Button
+                  type="button"
+                  variant="link"
+                  size="sm"
+                  className="px-0"
+                  onClick={onResendClick}
+                >
+                  Resend Code
+                </Button>
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full rounded-full"
+              disabled={auth.loading}
+            >
+              {auth.loading ? "Loading..." : "Confirm"}
+            </Button>
+          </form>
+        </Form>
+      </div>
     </div>
   );
 }
