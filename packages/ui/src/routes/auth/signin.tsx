@@ -47,26 +47,25 @@ function RouteComponent() {
     },
   });
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
-    auth
-      .signIn(data.email, data.password)
-      .then((signinStep) => {
-        if (signinStep === "DONE") {
-          navigate({ to: "/" });
-        } else {
-          navigate({
-            to: "/auth/confirm",
-            search: { user: data.email, step: signinStep },
-          });
-        }
-      })
-      .catch((error) => {
-        toast({
-          variant: "destructive",
-          title: "Uh oh! Something went wrong.",
-          description: error.message,
+  async function onSubmit(data: z.infer<typeof FormSchema>) {
+    try {
+      const signinStep = await auth.signIn(data.email, data.password);
+      
+      if (signinStep === "DONE") {
+        navigate({ to: "/" });
+      } else {
+        navigate({
+          to: "/auth/confirm",
+          search: { user: data.email, step: signinStep },
         });
+      }
+    } catch (e: any) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: e.message,
       });
+    }
   }
 
   useEffect(() => {

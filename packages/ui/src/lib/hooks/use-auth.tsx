@@ -15,43 +15,57 @@ export const useAuth = () => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const signUp = (email: string, password: string) => {
+  const signUp = async (email: string, password: string) => {
     setLoading(true);
 
-    return amplifySignUp({ username: email, password })
-      .then(({ isSignUpComplete, nextStep }) => {
-        if (isSignUpComplete) {
-          return getCurrentUser()
-            .then(setUser)
-            .then(() => "DONE");
-        } else {
-          return Promise.resolve(nextStep.signUpStep);
-        }
-      })
-      .finally(() => setLoading(false));
+    try {
+      const { isSignUpComplete, nextStep } = await amplifySignUp({
+        username: email,
+        password,
+      });
+
+      if (isSignUpComplete) {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+        setLoading(false);
+        return "DONE";
+      } else {
+        setLoading(false);
+        return nextStep.signUpStep;
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const confirmSignUp = (email: string, code: string) => {
     setLoading(true);
 
-    return amplifyConfirmSignUp({ username: email, confirmationCode: code })
-      .finally(() => setLoading(false));
+    return amplifyConfirmSignUp({
+      username: email,
+      confirmationCode: code,
+    }).finally(() => setLoading(false));
   };
 
-  const signIn = (email: string, password: string) => {
+  const signIn = async (email: string, password: string) => {
     setLoading(true);
 
-    return amplifySignIn({ username: email, password })
-      .then(({ isSignedIn, nextStep }) => {
-        if (isSignedIn) {
-          return getCurrentUser()
-            .then(setUser)
-            .then(() => "DONE");
-        } else {
-          return Promise.resolve(nextStep.signInStep);
-        }
-      })
-      .finally(() => setLoading(false));
+    try {
+      const { isSignedIn, nextStep } = await amplifySignIn({
+        username: email,
+        password,
+      });
+
+      if (isSignedIn) {
+        return getCurrentUser()
+          .then(setUser)
+          .then(() => "DONE");
+      } else {
+        return Promise.resolve(nextStep.signInStep);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const confirmSignIn = (code: string) => {
