@@ -12,12 +12,13 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
-import { Route as InspectIndexImport } from './routes/inspect/index'
-import { Route as DeployIndexImport } from './routes/deploy/index'
-import { Route as ConfigureIndexImport } from './routes/configure/index'
+import { Route as DeploymentsIdImport } from './routes/deployments/$id'
 import { Route as AuthSignupImport } from './routes/auth/signup'
 import { Route as AuthSigninImport } from './routes/auth/signin'
 import { Route as AuthConfirmImport } from './routes/auth/confirm'
+import { Route as CreateVerifyIndexImport } from './routes/create/verify/index'
+import { Route as CreateSetupIndexImport } from './routes/create/setup/index'
+import { Route as CreateDeployIndexImport } from './routes/create/deploy/index'
 
 // Create/Update Routes
 
@@ -27,21 +28,45 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const InspectIndexRoute = InspectIndexImport.update({
-  id: '/inspect/',
-  path: '/inspect/',
+const DeploymentsIdRoute = DeploymentsIdImport.update({
+  id: '/deployments/$id',
+  path: '/deployments/$id',
   getParentRoute: () => rootRoute,
 } as any)
 
-const DeployIndexRoute = DeployIndexImport.update({
-  id: '/deploy/',
-  path: '/deploy/',
+const AuthSignupRoute = AuthSignupImport.update({
+  id: '/auth/signup',
+  path: '/auth/signup',
   getParentRoute: () => rootRoute,
 } as any)
 
-const ConfigureIndexRoute = ConfigureIndexImport.update({
-  id: '/configure/',
-  path: '/configure/',
+const AuthSigninRoute = AuthSigninImport.update({
+  id: '/auth/signin',
+  path: '/auth/signin',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AuthConfirmRoute = AuthConfirmImport.update({
+  id: '/auth/confirm',
+  path: '/auth/confirm',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const CreateVerifyIndexRoute = CreateVerifyIndexImport.update({
+  id: '/create/verify/',
+  path: '/create/verify/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const CreateSetupIndexRoute = CreateSetupIndexImport.update({
+  id: '/create/setup/',
+  path: '/create/setup/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const CreateDeployIndexRoute = CreateDeployIndexImport.update({
+  id: '/create/deploy/',
+  path: '/create/deploy/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -95,25 +120,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSignupImport
       parentRoute: typeof rootRoute
     }
-    '/configure/': {
-      id: '/configure/'
-      path: '/configure'
-      fullPath: '/configure'
-      preLoaderRoute: typeof ConfigureIndexImport
+    '/deployments/$id': {
+      id: '/deployments/$id'
+      path: '/deployments/$id'
+      fullPath: '/deployments/$id'
+      preLoaderRoute: typeof DeploymentsIdImport
       parentRoute: typeof rootRoute
     }
-    '/deploy/': {
-      id: '/deploy/'
-      path: '/deploy'
-      fullPath: '/deploy'
-      preLoaderRoute: typeof DeployIndexImport
+    '/create/deploy/': {
+      id: '/create/deploy/'
+      path: '/create/deploy'
+      fullPath: '/create/deploy'
+      preLoaderRoute: typeof CreateDeployIndexImport
       parentRoute: typeof rootRoute
     }
-    '/inspect/': {
-      id: '/inspect/'
-      path: '/inspect'
-      fullPath: '/inspect'
-      preLoaderRoute: typeof InspectIndexImport
+    '/create/setup/': {
+      id: '/create/setup/'
+      path: '/create/setup'
+      fullPath: '/create/setup'
+      preLoaderRoute: typeof CreateSetupIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/create/verify/': {
+      id: '/create/verify/'
+      path: '/create/verify'
+      fullPath: '/create/verify'
+      preLoaderRoute: typeof CreateVerifyIndexImport
       parentRoute: typeof rootRoute
     }
   }
@@ -126,9 +158,10 @@ export interface FileRoutesByFullPath {
   '/auth/confirm': typeof AuthConfirmRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
-  '/configure': typeof ConfigureIndexRoute
-  '/deploy': typeof DeployIndexRoute
-  '/inspect': typeof InspectIndexRoute
+  '/deployments/$id': typeof DeploymentsIdRoute
+  '/create/deploy': typeof CreateDeployIndexRoute
+  '/create/setup': typeof CreateSetupIndexRoute
+  '/create/verify': typeof CreateVerifyIndexRoute
 }
 
 export interface FileRoutesByTo {
@@ -136,9 +169,10 @@ export interface FileRoutesByTo {
   '/auth/confirm': typeof AuthConfirmRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
-  '/configure': typeof ConfigureIndexRoute
-  '/deploy': typeof DeployIndexRoute
-  '/inspect': typeof InspectIndexRoute
+  '/deployments/$id': typeof DeploymentsIdRoute
+  '/create/deploy': typeof CreateDeployIndexRoute
+  '/create/setup': typeof CreateSetupIndexRoute
+  '/create/verify': typeof CreateVerifyIndexRoute
 }
 
 export interface FileRoutesById {
@@ -147,9 +181,10 @@ export interface FileRoutesById {
   '/auth/confirm': typeof AuthConfirmRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
-  '/configure/': typeof ConfigureIndexRoute
-  '/deploy/': typeof DeployIndexRoute
-  '/inspect/': typeof InspectIndexRoute
+  '/deployments/$id': typeof DeploymentsIdRoute
+  '/create/deploy/': typeof CreateDeployIndexRoute
+  '/create/setup/': typeof CreateSetupIndexRoute
+  '/create/verify/': typeof CreateVerifyIndexRoute
 }
 
 export interface FileRouteTypes {
@@ -159,27 +194,30 @@ export interface FileRouteTypes {
     | '/auth/confirm'
     | '/auth/signin'
     | '/auth/signup'
-    | '/configure'
-    | '/deploy'
-    | '/inspect'
+    | '/deployments/$id'
+    | '/create/deploy'
+    | '/create/setup'
+    | '/create/verify'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth/confirm'
     | '/auth/signin'
     | '/auth/signup'
-    | '/configure'
-    | '/deploy'
-    | '/inspect'
+    | '/deployments/$id'
+    | '/create/deploy'
+    | '/create/setup'
+    | '/create/verify'
   id:
     | '__root__'
     | '/'
     | '/auth/confirm'
     | '/auth/signin'
     | '/auth/signup'
-    | '/configure/'
-    | '/deploy/'
-    | '/inspect/'
+    | '/deployments/$id'
+    | '/create/deploy/'
+    | '/create/setup/'
+    | '/create/verify/'
   fileRoutesById: FileRoutesById
 }
 
@@ -188,9 +226,10 @@ export interface RootRouteChildren {
   AuthConfirmRoute: typeof AuthConfirmRoute
   AuthSigninRoute: typeof AuthSigninRoute
   AuthSignupRoute: typeof AuthSignupRoute
-  ConfigureIndexRoute: typeof ConfigureIndexRoute
-  DeployIndexRoute: typeof DeployIndexRoute
-  InspectIndexRoute: typeof InspectIndexRoute
+  DeploymentsIdRoute: typeof DeploymentsIdRoute
+  CreateDeployIndexRoute: typeof CreateDeployIndexRoute
+  CreateSetupIndexRoute: typeof CreateSetupIndexRoute
+  CreateVerifyIndexRoute: typeof CreateVerifyIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -198,9 +237,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthConfirmRoute: AuthConfirmRoute,
   AuthSigninRoute: AuthSigninRoute,
   AuthSignupRoute: AuthSignupRoute,
-  ConfigureIndexRoute: ConfigureIndexRoute,
-  DeployIndexRoute: DeployIndexRoute,
-  InspectIndexRoute: InspectIndexRoute,
+  DeploymentsIdRoute: DeploymentsIdRoute,
+  CreateDeployIndexRoute: CreateDeployIndexRoute,
+  CreateSetupIndexRoute: CreateSetupIndexRoute,
+  CreateVerifyIndexRoute: CreateVerifyIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -217,9 +257,10 @@ export const routeTree = rootRoute
         "/auth/confirm",
         "/auth/signin",
         "/auth/signup",
-        "/configure/",
-        "/deploy/",
-        "/inspect/"
+        "/deployments/$id",
+        "/create/deploy/",
+        "/create/setup/",
+        "/create/verify/"
       ]
     },
     "/": {
@@ -234,14 +275,17 @@ export const routeTree = rootRoute
     "/auth/signup": {
       "filePath": "auth/signup.tsx"
     },
-    "/configure/": {
-      "filePath": "configure/index.tsx"
+    "/deployments/$id": {
+      "filePath": "deployments/$id.tsx"
     },
-    "/deploy/": {
-      "filePath": "deploy/index.tsx"
+    "/create/deploy/": {
+      "filePath": "create/deploy/index.tsx"
     },
-    "/inspect/": {
-      "filePath": "inspect/index.tsx"
+    "/create/setup/": {
+      "filePath": "create/setup/index.tsx"
+    },
+    "/create/verify/": {
+      "filePath": "create/verify/index.tsx"
     }
   }
 }

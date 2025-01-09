@@ -1,20 +1,9 @@
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from '@tanstack/react-router'
 
-export const Route = createFileRoute("/")({
-  component: Index,
-});
+export const Route = createFileRoute('/')({
+  component: RouteComponent,
+})
 
-function Index() {
-  const auth = useAuth()
-
-  return (
-    <div className="">
-      <p>{auth.user?.userId}</p>
-      <Button onClick={auth.signOut}>
-        Logout
-      </Button>
-    </div>
-  );
+function RouteComponent() {
+  return <Navigate to="/create/setup" />
 }
