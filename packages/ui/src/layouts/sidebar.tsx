@@ -16,7 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
-import { deploymentsByOwner } from "@/lib/queries";
+import { deploymentsByOwner } from "@/lib/queries/deployment";
 
 export const SidebarLayout: React.FC<{
   children: React.ReactNode;

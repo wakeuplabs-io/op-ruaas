@@ -1,7 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { DeploymentValue } from "@/components/ui/deployment-value";
 import { Button } from "@/components/ui/button";
-import { Download, Edit, MoreHorizontal, Trash2, Upload } from "lucide-react";
+import { Download, Edit, MoreHorizontal, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,60 +11,58 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Card } from "@/components/ui/card";
 import { SidebarLayout } from "@/layouts/sidebar";
-import {
-  deploymentById,
-  deploymentHasArtifactById,
-  useDeleteDeploymentMutation,
-} from "@/lib/queries";
 import { getCurrentUser } from "aws-amplify/auth";
-import { useQuery, useSuspenseQueries } from "@tanstack/react-query";
+import { useSuspenseQueries } from "@tanstack/react-query";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { capitalize } from "@/lib/strings";
 import { useCallback, useState } from "react";
 import { UpdateDeploymentNameDialog } from "@/components/update-deployment-name-dialog";
-import { Deployment } from "@/lib/api";
+import {
+  deploymentById,
+  useDeleteDeploymentMutation,
+} from "@/lib/queries/deployment";
+import { deploymentArtifactExists, useDownloadDeploymentArtifact } from "@/lib/queries/deployment-artifact";
+import { Deployment } from "@/lib/services/deployment";
+import { useToast } from "@/lib/hooks/use-toast";
 
 export const Route = createFileRoute("/deployments/$id")({
   component: RouteComponent,
   loader: async ({ params: { id }, context: { queryClient } }) => {
     const user = await getCurrentUser();
     queryClient.ensureQueryData(deploymentById(user.userId, id));
-    queryClient.ensureQueryData(deploymentHasArtifactById(user.userId, id));
+    queryClient.ensureQueryData(deploymentArtifactExists(user.userId, id));
   },
 });
 
 function RouteComponent() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const { id } = Route.useParams();
 
   const [{ data: deployment }, { data: deploymentHasArtifact }] =
     useSuspenseQueries({
       queries: [
         deploymentById(user?.userId, id),
-        deploymentHasArtifactById(user?.userId, id),
+        deploymentArtifactExists(user?.userId, id),
       ],
     });
+    const { mutateAsync: downloadArtifact, isPending: isDownloading } = useDownloadDeploymentArtifact();
 
-    // const { data, isPending } = useQuery();
+  const onDownload = useCallback(async () => {
+    if (!id) return;
 
-    // const onDownload = useCallback(async () => {
-    //   try {
-    //     const res = await mutateAsync({
-    //       mainnet,
-    //       chainId,
-    //       governanceSymbol,
-    //       governanceName,
-    //     });
-    //     const url = window.URL.createObjectURL(res);
-    //     window.open(url, "_blank");
-    //   } catch (e) {
-    //     toast({
-    //       title: "Error",
-    //       description: "Failed to create project",
-    //       variant: "destructive",
-    //     });
-    //   }
-    // }, [mainnet, chainId, governanceName, governanceSymbol]);
+    try {
+      const res = await downloadArtifact(id);
+      const url = window.URL.createObjectURL(res);
+      window.open(url, "_blank");
+    } catch (e) {
+      toast({
+        title: "Error",
+        description: "Failed to create project",
+        variant: "destructive",
+      });
+    }
+  }, [id, downloadArtifact]);
 
   return (
     <SidebarLayout
@@ -123,7 +121,10 @@ function RouteComponent() {
 
         {!deployment.contracts_addresses && !deployment.infra_base_url && (
           <div className="space-y-2">
-            <h2 className="text-sm">No deployment outputs. Deploy locally and upload new outputs from the menu</h2>
+            <h2 className="text-sm">
+              No deployment outputs. Deploy locally and upload new outputs from
+              the menu
+            </h2>
           </div>
         )}
       </Card>
@@ -133,6 +134,8 @@ function RouteComponent() {
           size="lg"
           variant="secondary"
           className="w-full mt-6 rounded-full font-medium"
+          isPending={isDownloading}
+          onClick={onDownload}
         >
           Download artifacts <Download />
         </Button>

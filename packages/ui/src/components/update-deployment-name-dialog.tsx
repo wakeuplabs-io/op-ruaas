@@ -7,8 +7,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Deployment } from "@/lib/api";
-import { useUpdateDeploymentMutation } from "@/lib/queries";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -19,6 +17,8 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
+import { useUpdateDeploymentMutation } from "@/lib/queries/deployment";
+import { Deployment } from "@/lib/services/deployment";
 
 const FormSchema = z.object({
   name: z.string().min(2, {

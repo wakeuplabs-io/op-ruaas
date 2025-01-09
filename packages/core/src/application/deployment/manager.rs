@@ -1,5 +1,3 @@
-use uuid::Uuid;
-
 use crate::domain::{Deployment, DeploymentArtifact, TDeploymentArtifactsRepository, TDeploymentRepository};
 
 pub struct DeploymentManagerService<T, U>

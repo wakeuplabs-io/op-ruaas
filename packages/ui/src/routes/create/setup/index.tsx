@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { SidebarLayout } from "@/layouts/sidebar";
 import { useToast } from "@/lib/hooks/use-toast";
-import { useCreateProjectMutation } from "@/lib/queries";
+import { useCreateProjectMutation } from "@/lib/queries/project";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { DownloadIcon } from "lucide-react";
 import React, { useCallback, useMemo, useState } from "react";

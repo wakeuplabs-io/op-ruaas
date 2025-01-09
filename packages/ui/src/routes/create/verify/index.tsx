@@ -3,11 +3,11 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Command } from "@/components/ui/command";
 import { Dropzone } from "@/components/ui/dropzone";
-import { Input } from "@/components/ui/input";
 import { SidebarLayout } from "@/layouts/sidebar";
-import { Deployment } from "@/lib/api";
 import { useToast } from "@/lib/hooks/use-toast";
-import { useCreateDeploymentMutation } from "@/lib/queries";
+import { useCreateDeploymentMutation } from "@/lib/queries/deployment";
+import { useSetDeploymentArtifactMutation } from "@/lib/queries/deployment-artifact";
+import { Deployment } from "@/lib/services/deployment";
 import { cn, readFile } from "@/lib/utils";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Check, Upload } from "lucide-react";
@@ -23,12 +23,15 @@ function RouteComponent() {
   const [deploymentFile, setDeploymentFile] = useState<File | null>(null);
   const [artifactFile, setArtifactFile] = useState<File | null>(null);
 
-  const { mutateAsync: createDeployment, isPending } =
+  const { mutateAsync: createDeployment, isPending: isDeploymentPending } =
     useCreateDeploymentMutation();
+  const { mutateAsync: setDeploymentArtifact, isPending: isArtifactPending } =
+    useSetDeploymentArtifactMutation();
 
   const onDrop = useCallback((files: File[]) => {
     let valid = false;
 
+    // find deployment and artifact within dropped files
     for (const file of files) {
       if (file.name === "deployment.json") {
         setDeploymentFile(file);
@@ -58,15 +61,24 @@ function RouteComponent() {
       const deployment = await createDeployment(
         JSON.parse(await readFile(deploymentFile)) as Deployment
       );
+
       if (artifactFile) {
-        // TODO: upload artifact
+        await setDeploymentArtifact({
+          deploymentId: deployment.id,
+          artifact: artifactFile,
+        }).catch((e) => {
+          window.alert(
+            "Failed to upload artifact. Please try again from the deployments page." +
+              e.message
+          );
+        });
       }
 
       navigate({ to: "/deployments/$id", params: { id: deployment.id } });
     } catch (error) {
       console.error(error);
     }
-  }, [deploymentFile]);
+  }, [deploymentFile, artifactFile]);
 
   return (
     <SidebarLayout title="Verify">
@@ -135,6 +147,8 @@ function RouteComponent() {
               e.target.files && setArtifactFile(e.target.files[0])
             }
           />
+
+          {/* Show drop zone only if we still don't have our files */}
           {(!artifactFile || !deploymentFile) && (
             <Dropzone onDrop={onDrop} className="mt-4" />
           )}
@@ -144,7 +158,11 @@ function RouteComponent() {
       <Pagination
         className="mt-6"
         prev={{ disabled: true }}
-        next={{ disabled: !deploymentFile, onClick: onNext, isPending }}
+        next={{
+          disabled: !deploymentFile,
+          onClick: onNext,
+          isPending: isArtifactPending || isDeploymentPending,
+        }}
       />
     </SidebarLayout>
   );
