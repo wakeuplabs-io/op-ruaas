@@ -54,8 +54,12 @@ console-predeploy:
 console-deploy stage: console-predeploy
 	npx sst deploy --stage {{stage}}
 
+console-tunnel stage:
+	sudo npx sst tunnel install --stage {{stage}}
+	npx sst tunnel --stage {{stage}}
+
 console-migrate stage:
-	echo "Ensure tunnel is installed 'sudo npx sst tunnel install --stage {{stage}}' and running 'npx sst tunnel --stage {{stage}}'"
+	echo "Ensure tunnel is installed 'sudo npx sst tunnel install --stage {{stage}}' and running 'npx sst tunnel --stage {{stage}}' or 'just console-tunnel {{stage}}'"
 	npx sst shell --target db --stage {{stage}} sqlx migrate run
 
 # utils
