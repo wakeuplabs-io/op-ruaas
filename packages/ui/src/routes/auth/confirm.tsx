@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -14,6 +14,8 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useToast } from "@/lib/hooks/use-toast";
 import { useEffect } from "react";
+import { HomeIcon, Link } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/auth/confirm")({
   component: RouteComponent,
@@ -47,7 +49,7 @@ function RouteComponent() {
         navigate({ to: "/auth/signin" });
       } else {
         await auth.confirmSignIn(data.code);
-        navigate({ to: "/" });
+        navigate({ to: "/app" });
       }
     } catch (e: any) {
       toast({
@@ -77,12 +79,22 @@ function RouteComponent() {
 
   useEffect(() => {
     if (auth.user) {
-      navigate({ to: "/" });
+      navigate({ to: "/app" });
     }
   }, [auth.user, navigate]);
 
   return (
-    <div className="flex justify-center items-center min-h-screen">
+    <div className="flex justify-center items-center min-h-screen min-w-screen">
+      <Link
+        to="/app"
+        className={cn(
+          buttonVariants({ variant: "ghost", size: "icon" }),
+          "absolute top-4 left-4"
+        )}
+      >
+        <HomeIcon className="w-6 h-6" />
+      </Link>
+
       <div className="w-[350px]">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

@@ -40,29 +40,23 @@ cli-build-apple: clean-apple
 	cp opruaas opruaas-v{{VERSION}}-{{APPLE_TARGET}} && \
 	tar -czf opruaas-v{{VERSION}}-{{APPLE_TARGET}}.tar.gz opruaas-v{{VERSION}}-{{APPLE_TARGET}})
 
-# server
+# console
 
-server-run:
-	ENV=dev && cargo run --package opraas_server
+console-server-run:
+	ENV=dev && cargo run --package opraas_server 
 
-server-predeploy:
-    cargo lambda build --package opraas_server --arm64 --release
-
-# ui
-
-ui-run:
+console-ui-run:
 	cd packages/ui && npm run dev
 
-# sst deployment and management
+console-predeploy:
+    cargo lambda build --package opraas_server --arm64 --release
 
-install-tunnel:
-	sudo npx sst tunnel install
+console-deploy-staging: console-predeploy
+	npx sst deploy --stage staging
 
-tunnel: install-tunnel
-	npx sst tunnel
-	
-deploy: server-predeploy
-	npx sst deploy
+console-migrate:
+	echo "Ensure tunnel is installed 'sudo npx sst tunnel install --stage staging' and running 'npx sst tunnel --stage staging'"
+	npx sst shell --target db --stage staging sqlx migrate run
 
 # utils
 

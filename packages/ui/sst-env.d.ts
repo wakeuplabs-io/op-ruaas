@@ -25,7 +25,7 @@ declare module "sst" {
       "host": string
       "password": string
       "port": number
-      "type": "sst.aws.Postgres"
+      "type": "sst.aws.Aurora"
       "username": string
     }
     "opruaas-ui": {

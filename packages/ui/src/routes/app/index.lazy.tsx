@@ -1,16 +1,16 @@
+import { BreadcrumbHeader } from "@/components/breadcrumb-header";
 import { Pagination } from "@/components/pagination";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { SidebarLayout } from "@/layouts/sidebar";
 import { useToast } from "@/lib/hooks/use-toast";
 import { useCreateProjectMutation } from "@/lib/queries/project";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createLazyFileRoute, useRouter } from "@tanstack/react-router";
 import { DownloadIcon } from "lucide-react";
 import React, { useCallback, useMemo, useState } from "react";
 
-export const Route = createFileRoute("/create/setup/")({
+export const Route = createLazyFileRoute("/app/")({
   component: RouteComponent,
 });
 
@@ -67,7 +67,7 @@ function RouteComponent() {
     if (currentStepIndex < steps.length - 1) {
       setStep(steps[currentStepIndex + 1].step);
     } else {
-      router.navigate({ to: "/create/deploy" });
+      router.navigate({ to: "/app/deploy" });
     }
   }, [currentStepIndex]);
 
@@ -88,35 +88,39 @@ function RouteComponent() {
   }, [step]);
 
   return (
-    <SidebarLayout
-      title="Setup"
-      breadcrumb={breadcrumb}
-      onBreadcrumbClick={(id) => setStep(id)}
-    >
-      {step == SetupStep.L1_CHAIN && (
-        <L1ChainStep mainnet={mainnet} setMainnet={setMainnet} />
-      )}
-      {step == SetupStep.L2_CHAIN && (
-        <L2ChainStep chainId={chainId} setChainId={setChainId} />
-      )}
-      {step == SetupStep.GOVERNANCE && (
-        <L2GovernanceStep
-          name={governanceName}
-          setName={setGovernanceName}
-          symbol={governanceSymbol}
-          setSymbol={setGovernanceSymbol}
-        />
-      )}
-      {step == SetupStep.DOWNLOAD && (
-        <DownloadStep onDownload={onDownload} isPending={isPending} />
-      )}
-
-      <Pagination
-        className="mt-6"
-        prev={{ disabled: currentStepIndex === 0, onClick: previous }}
-        next={{ onClick: next }}
+    <>
+      <BreadcrumbHeader
+        title="Create Project"
+        breadcrumb={breadcrumb}
+        onBreadcrumbClick={(id) => setStep(id)}
       />
-    </SidebarLayout>
+
+      <main className="p-4 pt-0 pb-20">
+        {step == SetupStep.L1_CHAIN && (
+          <L1ChainStep mainnet={mainnet} setMainnet={setMainnet} />
+        )}
+        {step == SetupStep.L2_CHAIN && (
+          <L2ChainStep chainId={chainId} setChainId={setChainId} />
+        )}
+        {step == SetupStep.GOVERNANCE && (
+          <L2GovernanceStep
+            name={governanceName}
+            setName={setGovernanceName}
+            symbol={governanceSymbol}
+            setSymbol={setGovernanceSymbol}
+          />
+        )}
+        {step == SetupStep.DOWNLOAD && (
+          <DownloadStep onDownload={onDownload} isPending={isPending} />
+        )}
+
+        <Pagination
+          className="mt-6"
+          prev={{ disabled: currentStepIndex === 0, onClick: previous }}
+          next={{ onClick: next }}
+        />
+      </main>
+    </>
   );
 }
 

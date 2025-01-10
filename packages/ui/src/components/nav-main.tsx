@@ -6,7 +6,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useRouter } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 
 export function NavMain({
   items,
@@ -17,8 +17,8 @@ export function NavMain({
     icon: LucideIcon;
   }[];
 }) {
-  const router = useRouter();
-  const currentPath = router.state.location.pathname;
+  const router = useRouterState();
+  const currentPath = router.location.pathname;
 
   return (
     <SidebarGroup>
@@ -31,10 +31,10 @@ export function NavMain({
               asChild
               tooltip={item.title}
             >
-              <a href={item.url}>
+              <Link to={item.url}>
                 <item.icon />
                 <span>{item.title}</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}
