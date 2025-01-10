@@ -9,4 +9,4 @@
 *.tgz
 /demo
 /alias.sh
-/infra/helm/config
+.sst

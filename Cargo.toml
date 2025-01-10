@@ -1,8 +1,8 @@
 [workspace]
 members = [
-    "opraas_core",
-    "opraas_cli",
-    "opraas_server"
+    "packages/core",
+    "packages/cli",
+    "packages/server"
 ]
 
 

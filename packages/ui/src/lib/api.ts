@@ -1,44 +1,24 @@
-import { l1BlockTimes } from "@/config/l1-block-times";
-import { NetworkConfig } from "@/config/network-config";
+import { fetchAuthSession } from "aws-amplify/auth";
 import axios from "axios";
 
+export const api = axios.create({
+  baseURL: import.meta.env.VITE_SERVER_URL,
+  timeout: 10000,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
-export class ApiService {
+api.interceptors.request.use(
+  async (config) => {
+    const token = (await fetchAuthSession()).tokens?.idToken;
 
-    static buildChainConfig(l1ChainId: number, config: NetworkConfig) {
-        return axios.post(
-            import.meta.env.VITE_SERVER_URL + '/build',
-            {
-                config: {
-                    l1_chain_id: l1ChainId,
-                    l1_block_time: l1BlockTimes[l1ChainId],
-                    l1_use_clique: true,
-                    ...config
-                }
-            },
-            { responseType: 'blob' },
-        )
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-
-    static inspectContracts(artifact: File) {
-        const formData = new FormData();
-        formData.append("file", artifact);
-
-        return axios.post(
-            import.meta.env.VITE_SERVER_URL + "/inspect/contracts",
-            formData,
-            { headers: { "Content-Type": "multipart/form-data" } }
-        );
-    }
-
-    static inspectInfra(artifact: File) {
-        const formData = new FormData();
-        formData.append("file", artifact);
-
-        return axios.post(
-            import.meta.env.VITE_SERVER_URL + "/inspect/infra",
-            formData,
-            { headers: { "Content-Type": "multipart/form-data" } }
-        );
-    }
-}
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);

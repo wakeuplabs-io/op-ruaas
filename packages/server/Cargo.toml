@@ -1,0 +1,31 @@
+[package]
+name = "opraas_server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = {version = "0.8.1", features = ["multipart"]}
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+zip = "0.6"
+log = "0.4"
+uuid = { version = "1.11.0", features = ["v4"] }
+tracing = "0.1.37" 
+tracing-subscriber = { version = "0.3.16", features = ["env-filter"]} 
+tower-http = { version = "0.6.2", features = ["trace", "limit", "cors"] }
+lambda_http = "0.14.0"
+lambda_runtime = "0.13.0"
+tempfile = "3.14.0"
+opraas_core = { path = "../core" }
+aws-config = { version = "1.5.0", features = ["behavior-version-latest"] }
+aws-sdk-s3 = "1.32.0"
+async-trait = "0.1.83"
+aws-credential-types = "1.2.1"
+lazy_static = "1"
+sqlx = { version = "0.8.2", features = ["migrate", "postgres", "runtime-tokio-rustls", "uuid"] }
+thiserror = "2.0.9"
+async_once = "0.2"
+jsonwebtokens-cognito = "0.1.1"
+jsonwebtokens = "1"
+

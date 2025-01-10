@@ -39,7 +39,7 @@ Usage: `opruaas [OPTIONS] <COMMAND>`
 
 #### Options:
 
-- `-q`, `--quiet` Suppress logging output
+- `-v`, `--verbose` Verbose output
 - `-h`, `--help` Print help
 - `-V`, `--version` Print version
 
@@ -84,7 +84,7 @@ The dev command simplifies the setup for local testing. It performs the followin
 Run the following command to execute the setup:
 
 ```bash
-# Use -v for verbose output; recommended as the process may take some time
+# Use -v for verbose output; recommended as the process may take some time, specially first time when downloading images
 npx opruaas -v dev
 ```
 
@@ -158,11 +158,11 @@ Ensure that your `config.toml` configuration file is properly set up before proc
 
 ```bash
 # Use -v for verbose output; recommended for detailed progress logs.
-npx opruaas -v deploy all --name my-prod-deployment
+npx opruaas -v deploy all --deployment-id holenksy --deployment-name "My First Deployment"
 ```
 
 - Optional Flag:
-  Add `--deploy-deployer` if the L1 chain does not already have a deployer. For most popular L1 chains, this step is unnecessary.
+  Add `--deploy-deterministic-deployer` if the L1 chain does not already have a deployer. For most popular L1 chains, this step is unnecessary.
 
 The deployment process will create a deployments/my-prod-deployment directory containing the generated artifacts.
 
@@ -173,11 +173,11 @@ The deployment process will create a deployments/my-prod-deployment directory co
 
 ## Dev
 
-### Makefile Commands
+### Justfile Commands
 
-- `make format`: Format the codebase.
-- `make lint`: Run linting checks on the codebase.
-- `make release-{windows/apple/linux}`:  
+- `just format`: Format the codebase.
+- `just lint`: Run linting checks on the codebase.
+- `just release-{windows/apple/linux}`:  
   Creates binaries and zip releases for the specified platform (`windows`, `apple`, or `linux`) within the `releases` folder.
 
 ### NPM Distribution
@@ -186,11 +186,11 @@ Follow these steps to prepare and publish a new version of the package:
 
 1. Update Version Constants:
 
-   - Update the version constant in `packages/cli/lib/binary.js`.
+   - Update the version constant in `packages/cli/binary.js`.
    - Update the `version` field in `packages/cli/package.json`.
 
 2. Update Artifacts (if applicable):  
-   If the artifacts have changed, modify `opraas_core/src/config/artifact.rs` to reflect the future version.
+   If the artifacts have changed, modify `packages/core/src/config/artifact.rs` to reflect the future version.
 
 3. Tag the Release:  
    Create a GitHub tag in the format `v{}.{}.{}` and push it to trigger the GitHub Actions workflow. Alternatively build binaries with Makefile
@@ -205,29 +205,16 @@ Follow these steps to prepare and publish a new version of the package:
  npm publish --access public
 ```
 
-### WWW Deployments
+### WWW Console Deployments
 
-#### UI
+With aws cli configure properly you just need to run
 
-1. Setup `terraform` with `aws`
-2. `cd packages/ui` -> `terraform init` -> `terraform plan` -> `terraform apply`
-3. After this actions can take place. Or manually (assuming bucket name to be `op-ruaas`, otherwise you can get this commands from `terraform output`):
+```bash
+just console-deploy staging
 
-- `npm run build`
-- `aws s3 sync dist s3://op-ruaas --delete`
-- `DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[?DomainName=='op-ruaas.s3.amazonaws.com'].DomainName].Id" --output text) && aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"`
+# in one terminal start the tunnel to run migration
+just console-tunnel staging
 
-#### Server
-
-**debug**
-
-1. Install [cargo-lambda](https://www.cargo-lambda.info/guide/getting-started.html)
-2. Run `cargo lambda watch`
-3. Base url is `http://localhost:9000/lambda-url/opraas_server`, so for example you can try `curl http://localhost:9000/lambda-url/opraas_server/health`
-
-**Build & Deploy**
-
-1. Install [cargo-lambda](https://www.cargo-lambda.info/guide/getting-started.html)
-2. Install [cross](https://crates.io/crates/cross)
-3. Build the function with `cargo lambda build --package opraas_server --release --compiler cross`
-4. Deploy the function to AWS Lambda with `cargo lambda deploy opraas_server --tag customer=op-ruaas --enable-function-url`
+# in another and once tunnel is available run db migrations
+just console-migrate staging
+```

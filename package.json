@@ -1,5 +1,5 @@
 {
-  "name": "ruas",
+  "name": "ruaas",
   "version": "1.0.0",
   "description": "Easy optimism rollups",
   "scripts": {
@@ -7,8 +7,11 @@
     "prepare": "husky"
   },
   "devDependencies": {
+    "@tsconfig/node20": "^20.1.4",
+    "typescript": "5.6.2",
     "git-format-staged": "3.1.1",
     "husky": "9.1.6",
-    "prettier": "3.3.3"
+    "prettier": "3.3.3",
+    "sst": "^3"
   }
 }
