@@ -15,7 +15,7 @@ export const DeploymentValue: React.FC<{
   return (
     <div className="py-2 px-4 border rounded-md relative">
       <div>
-        <pre className="text-foreground text-sm">{props.value}</pre>
+        <pre className="text-foreground text-sm overflow-clip">{props.value}</pre>
         <span className="text-xs text-muted-foreground">{props.description}</span>
       </div>
       <button

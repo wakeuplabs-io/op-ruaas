@@ -32,15 +32,13 @@ impl InspectCommand {
 
     pub async fn run(
         &self,
-        ctx: &AppContext,
+        _ctx: &AppContext,
         target: &InspectTarget,
         deployment_id: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let owner = ctx.user_id.clone().ok_or("User not found")?;
-
         let deployment = self
             .deployments_manager
-            .find_one(&owner, deployment_id)
+            .find_by_id(deployment_id)
             .await?
             .ok_or("Deployment not found")?;
 

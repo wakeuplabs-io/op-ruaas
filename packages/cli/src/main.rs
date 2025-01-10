@@ -49,8 +49,11 @@ enum Commands {
         #[arg(long)]
         deployment_id: String,
 
+        #[arg(long)]
+        deployment_name: String,
+
         #[arg(long, default_value_t = false)]
-        deterministic_deployer: bool,
+        deploy_deterministic_deployer: bool,
     },
     /// Get details about the current deployment. Target must be one of: contracts, infra
     Inspect {
@@ -111,10 +114,17 @@ async fn main() {
         Commands::Deploy {
             target,
             deployment_id,
-            deterministic_deployer,
+            deployment_name,
+            deploy_deterministic_deployer,
         } => {
             DeployCommand::new()
-                .run(&ctx, &target, &deployment_id, deterministic_deployer)
+                .run(
+                    &ctx,
+                    &target,
+                    &deployment_id,
+                    &deployment_name,
+                    deploy_deterministic_deployer,
+                )
                 .await
         }
         Commands::Inspect {

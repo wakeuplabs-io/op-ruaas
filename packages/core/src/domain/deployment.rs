@@ -6,7 +6,8 @@ use std::{collections::HashMap, error::Error};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Deployment {
-    pub id: String, // holensky, sepolia, mumbai, etc
+    pub id: String,
+    pub name: String, // holensky, sepolia, mumbai, etc
     pub owner_id: String,
     pub release_tag: String,
     pub release_registry: String,
@@ -20,8 +21,8 @@ pub type DeploymentArtifact = Vec<u8>;
 
 #[async_trait::async_trait]
 pub trait TDeploymentRepository: Send + Sync {
-    async fn find(&self, owner_id: &str) -> Result<Vec<Deployment>, Box<dyn std::error::Error>>;
-    async fn find_one(&self, owner_id: &str, id: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>>;
+    async fn find_by_id(&self, id: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>>;
+    async fn find_by_owner(&self, owner_id: &str) -> Result<Vec<Deployment>, Box<dyn std::error::Error>>;
     async fn save(&self, deployment: &Deployment) -> Result<(), Box<dyn std::error::Error>>;
     async fn delete(&self, deployment: &Deployment) -> Result<(), Box<dyn std::error::Error>>;
 }
@@ -72,6 +73,7 @@ pub trait TDeploymentRunner {
 impl Deployment {
     pub fn new<T>(
         id: T,
+        name: T,
         owner_id: T,
         release_tag: T,
         release_registry: T,
@@ -81,15 +83,9 @@ impl Deployment {
     where
         T: Into<String>,
     {
-        let id = id.into();
-        if id.is_empty() {
-            return Err("Deployment id can't be empty".into());
-        } else if id.contains(" ") {
-            return Err("Deployment id can't contain spaces".into());
-        }
-
         Ok(Self {
-            id,
+            id: id.into(),
+            name: name.into(),
             owner_id: owner_id.into(),
             release_tag: release_tag.into(),
             release_registry: release_registry.into(),

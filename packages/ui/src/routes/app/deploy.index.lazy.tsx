@@ -1,11 +1,11 @@
 import { Command } from "@/components/ui/command";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createLazyFileRoute, useRouter } from "@tanstack/react-router";
 import React, { useMemo, useState } from "react";
 import { Pagination } from "@/components/pagination";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { SidebarLayout } from "@/layouts/sidebar";
+import { BreadcrumbHeader } from "@/components/breadcrumb-header";
 
-export const Route = createFileRoute("/create/deploy/")({
+export const Route = createLazyFileRoute("/app/deploy/")({
   component: RouteComponent,
 });
 
@@ -33,7 +33,7 @@ function RouteComponent() {
     if (currentStepIndex < steps.length - 1) {
       setStep(steps[currentStepIndex + 1].step);
     } else {
-      router.navigate({ to: "/create/verify" });
+      router.navigate({ to: "/app/verify" });
     }
   };
 
@@ -54,24 +54,27 @@ function RouteComponent() {
   }, [step]);
 
   return (
-    <SidebarLayout
-      title="Deploy"
-      breadcrumb={breadcrumb}
-      onBreadcrumbClick={(id) => setStep(id)}
-    >
-      {step === DeploymentStep.INSTALL_DEPENDENCIES && (
-        <InstallDependenciesStep />
-      )}
-      {step === DeploymentStep.RUN_DEV_MODE && <RunDevModeStep />}
-      {step === DeploymentStep.DEPLOY && <DeployStep />}
-
-      <Pagination
-        disablePrev={currentStepIndex === 0}
-        className="mt-6"
-        onNext={next}
-        onPrev={previous}
+    <>
+      <BreadcrumbHeader
+        title="Deploy"
+        breadcrumb={breadcrumb}
+        onBreadcrumbClick={(id) => setStep(id)}
       />
-    </SidebarLayout>
+
+      <main className="p-4 pt-0 pb-20">
+        {step === DeploymentStep.INSTALL_DEPENDENCIES && (
+          <InstallDependenciesStep />
+        )}
+        {step === DeploymentStep.RUN_DEV_MODE && <RunDevModeStep />}
+        {step === DeploymentStep.DEPLOY && <DeployStep />}
+
+        <Pagination
+          className="mt-6"
+          prev={{ disabled: currentStepIndex === 0, onClick: previous }}
+          next={{ onClick: next }}
+        />
+      </main>
+    </>
   );
 }
 

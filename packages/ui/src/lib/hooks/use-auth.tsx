@@ -86,7 +86,7 @@ export const useAuth = () => {
   };
 
   const getToken = async () => {
-    return (await fetchAuthSession()).tokens?.accessToken;
+    return (await fetchAuthSession()).tokens?.idToken;
   };
 
   useEffect(() => {

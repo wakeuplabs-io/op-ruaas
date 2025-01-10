@@ -9,9 +9,29 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { NavDeployments } from "./nav-deployments";
-import { Button } from "./ui/button";
-import { Deployment } from "@/lib/api/deployment";
+import { Button, buttonVariants } from "./ui/button";
 import { useAuth } from "@/lib/hooks/use-auth";
+import { capitalize } from "@/lib/strings";
+import { Deployment } from "@/lib/services/deployment";
+import { cn } from "@/lib/utils";
+
+const navMain = [
+  {
+    title: "Setup",
+    url: "/app",
+    icon: SettingsIcon,
+  },
+  {
+    title: "Deploy",
+    url: "/app/deploy",
+    icon: Rocket,
+  },
+  {
+    title: "Verify",
+    url: "/app/verify",
+    icon: ShieldCheck,
+  },
+];
 
 export function AppSidebar({
   deployments,
@@ -19,24 +39,6 @@ export function AppSidebar({
 }: React.ComponentProps<typeof Sidebar> & { deployments: Deployment[] }) {
   const router = useRouter();
   const { user, signOut } = useAuth();
-
-  const navMain = [
-    {
-      title: "Setup",
-      url: "/create/setup",
-      icon: SettingsIcon,
-    },
-    {
-      title: "Deploy",
-      url: "/create/deploy",
-      icon: Rocket,
-    },
-    {
-      title: "Verify",
-      url: "/create/verify",
-      icon: ShieldCheck,
-    },
-  ];
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -51,15 +53,15 @@ export function AppSidebar({
         <NavDeployments
           deployments={deployments.map((d) => ({
             id: d.id,
-            name: d.id[0].toUpperCase() + d.id.slice(1),
+            name: capitalize(d.name),
           }))}
         />
       </SidebarContent>
 
       <SidebarFooter className="pb-4 px-4">
-        <Button variant="secondary" className="w-full h-[74px]">
+        <a href="https://www.wakeuplabs.io/" target="_blank" className={cn(buttonVariants({ variant: "secondary" }), "w-full h-[74px]")}>
           <img className="h-[45px]" src="/wakeuplabs.png" alt="logo" />
-        </Button>
+        </a>
 
         {user ? (
           <Button variant="ghost" onClick={() => signOut()}>
