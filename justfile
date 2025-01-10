@@ -51,12 +51,12 @@ console-ui-run:
 console-predeploy:
     cargo lambda build --package opraas_server --arm64 --release
 
-console-deploy-staging: console-predeploy
-	npx sst deploy --stage staging
+console-deploy stage: console-predeploy
+	npx sst deploy --stage {{stage}}
 
-console-migrate:
-	echo "Ensure tunnel is installed 'sudo npx sst tunnel install --stage staging' and running 'npx sst tunnel --stage staging'"
-	npx sst shell --target db --stage staging sqlx migrate run
+console-migrate stage:
+	echo "Ensure tunnel is installed 'sudo npx sst tunnel install --stage {{stage}}' and running 'npx sst tunnel --stage {{stage}}'"
+	npx sst shell --target db --stage {{stage}} sqlx migrate run
 
 # utils
 
