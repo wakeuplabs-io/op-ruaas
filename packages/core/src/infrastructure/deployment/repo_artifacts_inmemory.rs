@@ -25,7 +25,7 @@ impl domain::deployment::TDeploymentArtifactsRepository for InMemoryDeploymentAr
     async fn find_one(&self, deployment: &Deployment) -> Result<Option<DeploymentArtifact>, Box<dyn Error>> {
         let depl_path = self
             .root
-            .join(&deployment.id.to_string())
+            .join(&deployment.id)
             .join("artifact.zip");
         let exists = std::fs::exists(&depl_path).unwrap_or(false);
         if !exists {
@@ -39,7 +39,7 @@ impl domain::deployment::TDeploymentArtifactsRepository for InMemoryDeploymentAr
     async fn exists(&self, deployment: &Deployment) -> Result<bool, Box<dyn Error>> {
         let depl_path = self
             .root
-            .join(&deployment.id.to_string())
+            .join(&deployment.id)
             .join("artifact.zip");
 
         Ok(std::fs::exists(&depl_path).unwrap_or(false))
@@ -48,7 +48,7 @@ impl domain::deployment::TDeploymentArtifactsRepository for InMemoryDeploymentAr
     async fn save(&self, deployment: &Deployment, artifact: DeploymentArtifact) -> Result<(), Box<dyn Error>> {
         let depl_path = self
             .root
-            .join(&deployment.id.to_string())
+            .join(&deployment.id)
             .join("artifact.zip");
         fs::write(depl_path, artifact).unwrap();
         Ok(())
@@ -57,7 +57,7 @@ impl domain::deployment::TDeploymentArtifactsRepository for InMemoryDeploymentAr
     async fn delete(&self, deployment: &Deployment) -> Result<(), Box<dyn Error>> {
         let depl_path = self
             .root
-            .join(&deployment.id.to_string())
+            .join(&deployment.id)
             .join("artifact.zip");
         fs::remove_file(depl_path).unwrap();
         Ok(())

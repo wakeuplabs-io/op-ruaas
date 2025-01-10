@@ -17,7 +17,7 @@ pub fn zip_folder(folder: &std::path::PathBuf) -> Result<Vec<u8>, Box<dyn std::e
                     path.file_name().unwrap().to_string_lossy(),
                     Default::default(),
                 )?;
-                zip.write(&fs::read(path)?)?;
+                let _ = zip.write(&fs::read(path)?)?;
             }
         }
 

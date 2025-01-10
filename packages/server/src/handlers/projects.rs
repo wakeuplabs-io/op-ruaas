@@ -71,7 +71,7 @@ pub async fn create(
     headers.insert("Content-Type", HeaderValue::from_static("application/zip"));
     headers.insert(
         "Content-Disposition",
-        HeaderValue::from_str(&format!("attachment; filename=\"opruaas-project.zip\"")).expect("Invalid header value"),
+        HeaderValue::from_str("attachment; filename=\"opruaas-project.zip\"").expect("Invalid header value"),
     );
 
     let config = CoreConfig {

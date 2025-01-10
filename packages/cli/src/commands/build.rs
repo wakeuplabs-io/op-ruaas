@@ -85,7 +85,7 @@ impl BuildCommand {
         // Iterate over the artifacts and build
         let handles: Vec<_> = artifacts
             .iter()
-            .map(|&ref artifact| {
+            .map(|artifact| {
                 let artifact = Arc::clone(artifact); // Clone the Arc for thread ownership
                 let builder_service = Arc::clone(&self.artifacts_builder);
 

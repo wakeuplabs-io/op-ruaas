@@ -13,6 +13,12 @@ pub struct GethTestnetNode {
 
 // implementations ==============================================
 
+impl Default for GethTestnetNode {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl GethTestnetNode {
     pub fn new() -> Self {
         Self {
@@ -147,7 +153,7 @@ impl TTestnetNode for GethTestnetNode {
 
     fn stop(&self) -> Result<(), Box<dyn std::error::Error>> {
         let running_containers = execute_command(Command::new("docker").arg("ps"), true)?;
-        if running_containers.contains(CONTAINER_NAME) == false {
+        if !running_containers.contains(CONTAINER_NAME) {
             return Ok(());
         }
 

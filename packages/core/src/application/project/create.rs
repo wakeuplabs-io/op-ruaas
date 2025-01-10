@@ -40,9 +40,9 @@ where
         self.project_infra_repository.pull(&project)?;
 
         if init_git {
-            self.version_control.init(&root)?;
-            self.version_control.stage(&root)?;
-            self.version_control.commit(&root, "First commit", true)?;
+            self.version_control.init(root)?;
+            self.version_control.stage(root)?;
+            self.version_control.commit(root, "First commit", true)?;
         }
 
         Ok(project)

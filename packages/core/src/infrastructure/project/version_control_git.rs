@@ -5,6 +5,12 @@ use git2::{Commit, Oid, Repository, Tree};
 
 pub struct GitVersionControl;
 
+impl Default for GitVersionControl {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl GitVersionControl {
     pub fn new() -> Self {
         Self {}
@@ -22,7 +28,7 @@ impl TProjectVersionControl for GitVersionControl {
         let repo = Repository::open(path)?;
 
         let mut index = repo.index()?;
-        index.add_all(&["."], git2::IndexAddOption::DEFAULT, None)?;
+        index.add_all(["."], git2::IndexAddOption::DEFAULT, None)?;
         index.write()?;
 
         Ok(())

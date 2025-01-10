@@ -45,7 +45,7 @@ impl TContractsDeployerProvider for DockerContractsDeployer {
 
         // write contracts config to shared volume for artifact consumption
         fs::write(
-            &volume_dir.path().join(IN_NETWORK),
+            volume_dir.path().join(IN_NETWORK),
             deployment.build_deploy_config()?,
         )?;
 

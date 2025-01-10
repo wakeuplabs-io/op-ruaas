@@ -6,6 +6,12 @@ pub struct JsonRpc {}
 
 // implementations ================================================
 
+impl Default for JsonRpc {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl JsonRpc {
     pub fn new() -> JsonRpc {
         JsonRpc {}

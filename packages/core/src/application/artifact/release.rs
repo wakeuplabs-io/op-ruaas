@@ -22,7 +22,7 @@ where
         registry_url: &str,
     ) -> Result<Release, Box<dyn std::error::Error>> {
         self.release_repository
-            .create_for_artifact(&artifact, release_name, registry_url)
+            .create_for_artifact(artifact, release_name, registry_url)
     }
 }
 

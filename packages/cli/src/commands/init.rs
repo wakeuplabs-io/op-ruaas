@@ -79,7 +79,7 @@ impl InitCommand {
         // iterate over the artifacts and download
         let handles: Vec<_> = artifacts
             .iter()
-            .map(|&ref artifact| {
+            .map(|artifact| {
                 let artifact = Arc::new(artifact.clone());
                 let artifact_initializer = Arc::clone(&self.artifact_initializer);
 

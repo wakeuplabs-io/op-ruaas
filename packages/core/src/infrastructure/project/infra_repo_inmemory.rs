@@ -8,6 +8,12 @@ pub struct InMemoryProjectInfraRepository {}
 
 // implementations ================================================
 
+impl Default for InMemoryProjectInfraRepository {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl InMemoryProjectInfraRepository {
     pub fn new() -> Self {
         Self {}

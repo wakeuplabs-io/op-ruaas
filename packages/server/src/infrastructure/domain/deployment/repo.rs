@@ -60,7 +60,7 @@ impl SqlDeploymentRepository {
 impl TDeploymentRepository for SqlDeploymentRepository {
     async fn find_by_id(&self, id: &str) -> Result<Option<Deployment>, Box<dyn std::error::Error>> {
         let result: DeploymentDto = sqlx::query_as("SELECT * FROM deployments WHERE id = $1")
-            .bind(&id)
+            .bind(id)
             .fetch_one(&self.client)
             .await?;
 
@@ -69,7 +69,7 @@ impl TDeploymentRepository for SqlDeploymentRepository {
 
     async fn find_by_owner(&self, owner_id: &str) -> Result<Vec<Deployment>, Box<dyn std::error::Error>> {
         let result: Vec<DeploymentDto> = sqlx::query_as("SELECT * FROM deployments WHERE owner_id = $1")
-            .bind(&owner_id)
+            .bind(owner_id)
             .fetch_all(&self.client)
             .await?;
 

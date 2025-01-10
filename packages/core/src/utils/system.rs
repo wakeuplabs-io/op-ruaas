@@ -23,12 +23,12 @@ pub fn execute_command(command: &mut Command, silent: bool) -> Result<String, St
     let status = output.status;
 
     if status.success() {
-        return Ok(result);
+        Ok(result)
     } else {
-        return Err(format!(
+        Err(format!(
             "Command exited with non-zero status: {}. {}",
             status, error
-        ));
+        ))
     }
 }
 

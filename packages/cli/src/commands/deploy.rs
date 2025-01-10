@@ -160,7 +160,7 @@ impl DeployCommand {
         if matches!(target, DeployTarget::Infra | DeployTarget::All) {
             let mut deployment = self
                 .deployments_manager
-                .find_by_id(&deployment_id)
+                .find_by_id(deployment_id)
                 .await?
                 .expect("Contracts deployment not found");
 
@@ -187,7 +187,7 @@ impl DeployCommand {
 
         let deployment = self
             .deployments_manager
-            .find_by_id(&deployment_id)
+            .find_by_id(deployment_id)
             .await?
             .expect("Contracts deployment not found");
 

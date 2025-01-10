@@ -6,6 +6,12 @@ pub struct DockerArtifactRepository;
 
 // implementations ==========================================
 
+impl Default for DockerArtifactRepository {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DockerArtifactRepository {
     pub fn new() -> Self {
         Self

@@ -6,6 +6,12 @@ use crate::{
 
 pub struct GitArtifactSourceRepository;
 
+impl Default for GitArtifactSourceRepository {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl GitArtifactSourceRepository {
     pub fn new() -> Self {
         Self

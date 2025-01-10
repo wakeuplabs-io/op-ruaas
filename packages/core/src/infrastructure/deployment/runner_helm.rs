@@ -35,7 +35,7 @@ impl TDeploymentRunner for HelmDeploymentRunner {
 
         // create values file from stack
         let values_file = helm_tmp_folder.join("values.yaml");
-        self.create_values_file(project, deployment, &values, &values_file)?;
+        self.create_values_file(project, deployment, values, &values_file)?;
 
         // create artifacts.zip and addresses.json in helm so it can be loaded by it
         let deployment_artifacts = self
@@ -83,7 +83,7 @@ impl TDeploymentRunner for HelmDeploymentRunner {
                 .arg(&self.namespace),
             true,
         )?;
-        if running_releases.contains(&format!("op-ruaas-runner-{}", &self.release_tag)) == false {
+        if !running_releases.contains(&format!("op-ruaas-runner-{}", &self.release_tag)) {
             return Ok(());
         }
 
@@ -165,7 +165,7 @@ impl HelmDeploymentRunner {
                 false,
             )?;
 
-            self.wait_for_running_release(&name)?;
+            self.wait_for_running_release(name)?;
         }
 
         // build dependencies

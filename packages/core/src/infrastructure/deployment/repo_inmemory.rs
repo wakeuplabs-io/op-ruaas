@@ -58,7 +58,7 @@ impl domain::deployment::TDeploymentRepository for InMemoryDeploymentRepository 
 
         let depl_path = self.root.join(&deployment.id).join("deployment.json");
 
-        std::fs::create_dir_all(&depl_path.parent().unwrap()).expect("Can't create deployments directory");
+        std::fs::create_dir_all(depl_path.parent().unwrap()).expect("Can't create deployments directory");
         fs::write(depl_path, serialized)?;
 
         Ok(())

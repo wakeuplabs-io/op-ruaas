@@ -8,6 +8,12 @@ pub struct DockerReleaseRepository;
 
 // implementations ==================================================
 
+impl Default for DockerReleaseRepository {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DockerReleaseRepository {
     pub fn new() -> Self {
         Self
@@ -40,7 +46,7 @@ impl domain::TReleaseRepository for DockerReleaseRepository {
         registry_url: &str,
     ) -> Result<Release, Box<dyn std::error::Error>> {
         // check image exists locally
-        if self.exists(&artifact) == false {
+        if !self.exists(artifact) {
             return Err(format!("Artifact {} not found", artifact.name()).into());
         }
 

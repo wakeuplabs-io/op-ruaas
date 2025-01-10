@@ -55,7 +55,7 @@ pub async fn create(
         .await
         .map_err(ApiError::from)?;
 
-    return Ok((StatusCode::OK, "Ok"));
+    Ok((StatusCode::OK, "Ok"))
 }
 
 pub async fn head(

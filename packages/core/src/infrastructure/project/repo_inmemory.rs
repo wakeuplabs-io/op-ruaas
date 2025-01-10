@@ -7,6 +7,12 @@ use crate::{
 
 pub struct InMemoryProjectRepository;
 
+impl Default for InMemoryProjectRepository {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl InMemoryProjectRepository {
     pub fn new() -> Self {
         Self
@@ -15,11 +21,11 @@ impl InMemoryProjectRepository {
 
 impl domain::project::TProjectRepository for InMemoryProjectRepository {
     fn create(&self, root: &Path, config: &CoreConfig) -> Result<Project, Box<dyn std::error::Error>> {
-        std::fs::write(&root.join("README.md"), README)?;
-        std::fs::write(&root.join(".gitignore"), GITIGNORE)?;
-        std::fs::write(&root.join(".env"), ENV_FILE)?;
-        std::fs::write(&root.join(".env.sample"), ENV_FILE)?;
-        std::fs::write(&root.join("config.toml"), &toml::to_string(config).unwrap())?;
+        std::fs::write(root.join("README.md"), README)?;
+        std::fs::write(root.join(".gitignore"), GITIGNORE)?;
+        std::fs::write(root.join(".env"), ENV_FILE)?;
+        std::fs::write(root.join(".env.sample"), ENV_FILE)?;
+        std::fs::write(root.join("config.toml"), toml::to_string(config).unwrap())?;
 
         Ok(Project {
             root: root.to_path_buf(),

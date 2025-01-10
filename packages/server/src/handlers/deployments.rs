@@ -24,7 +24,7 @@ pub async fn create(
 
     let deployment_json = serde_json::to_string(&deployment)
         .map_err(|_| ApiError::InternalServerError("Could not serialize deployment".into()))?;
-    return Ok((StatusCode::OK, deployment_json));
+    Ok((StatusCode::OK, deployment_json))
 }
 
 pub async fn update(

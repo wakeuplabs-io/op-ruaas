@@ -8,6 +8,12 @@ pub struct DockerReleaseRunner;
 
 // implementations =============================================
 
+impl Default for DockerReleaseRunner {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DockerReleaseRunner {
     pub fn new() -> Self {
         Self

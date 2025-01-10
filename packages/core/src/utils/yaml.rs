@@ -37,7 +37,7 @@ where
 
     // replace self... references
     let mut updated_yaml = yaml.clone();
-    resolve_self_references(&mut updated_yaml, &yaml.as_mapping().unwrap())?;
+    resolve_self_references(&mut updated_yaml, yaml.as_mapping().unwrap())?;
 
     // Write the updated YAML back to the file
     let mut file = File::create(to)?;
@@ -75,10 +75,10 @@ pub fn resolve_self_references(value: &mut Value, context: &Mapping) -> Result<(
 pub fn resolve_path<'a>(context: &'a Mapping, path: &str) -> Option<&'a Value> {
     let mut current = context;
     for part in path.split('.') {
-        if let Some(Value::Mapping(map)) = current.get(&Value::String(part.to_string())) {
+        if let Some(Value::Mapping(map)) = current.get(Value::String(part.to_string())) {
             current = map;
         } else {
-            return current.get(&Value::String(part.to_string()));
+            return current.get(Value::String(part.to_string()));
         }
     }
     None

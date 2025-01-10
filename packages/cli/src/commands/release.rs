@@ -104,7 +104,7 @@ impl ReleaseCommand {
 
         let handles: Vec<_> = artifacts
             .iter()
-            .map(|&ref artifact| {
+            .map(|artifact| {
                 let release_name = release_name.clone();
                 let registry_url = registry_url.clone();
                 let artifact = Arc::clone(artifact);

@@ -89,7 +89,7 @@ impl TSystemRequirementsChecker for SystemRequirementsChecker {
         for requirement in requirements.iter() {
             let output = self
                 .system
-                .execute_command(&mut Command::new(requirement.program).arg(requirement.version_arg))
+                .execute_command(Command::new(requirement.program).arg(requirement.version_arg))
                 .map_err(|_| {
                     format!(
                         "{} {} did not exited succesfully. Please ensure program is installed and running.",

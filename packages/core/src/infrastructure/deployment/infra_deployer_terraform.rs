@@ -37,7 +37,7 @@ impl TInfraDeployerProvider for TerraformDeployer {
         values.insert("monitoring.enabled", monitoring.into());
         values.insert("explorer.enabled", explorer.into());
 
-        self.create_values_file(project, &deployment, &values, &values_file)?;
+        self.create_values_file(project, deployment, &values, &values_file)?;
 
         // create artifacts.zip and addresses.json in helm so it can be loaded by it
         let deployment_artifacts = self
