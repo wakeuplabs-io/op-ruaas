@@ -1,6 +1,10 @@
 use crate::config::{artifacts::ArtifactConfig, CoreConfig};
 use mockall::automock;
-use std::{fmt, path::PathBuf, sync::Arc};
+use std::{
+    fmt,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
 use super::Project;
 
@@ -75,7 +79,7 @@ pub trait TArtifactRepository: Send + Sync {
 }
 
 impl ArtifactData {
-    pub fn new(name: &str, context: &PathBuf, dockerfile: &PathBuf, config: &ArtifactConfig) -> Self {
+    pub fn new(name: &str, context: &Path, dockerfile: &Path, config: &ArtifactConfig) -> Self {
         Self {
             name: name.to_string(),
             context: context.to_path_buf(),

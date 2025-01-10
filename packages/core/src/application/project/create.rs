@@ -2,7 +2,7 @@ use crate::{
     config::CoreConfig,
     domain::{self, Project, TProjectInfraRepository},
 };
-use std::path::PathBuf;
+use std::path::Path;
 
 pub struct CreateProjectService<PR, VC, PIR>
 where
@@ -31,7 +31,7 @@ where
 
     pub fn create(
         &self,
-        root: &PathBuf,
+        root: &Path,
         config: &CoreConfig,
         init_git: bool,
     ) -> Result<Project, Box<dyn std::error::Error>> {

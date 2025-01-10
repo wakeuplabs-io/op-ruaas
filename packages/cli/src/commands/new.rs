@@ -40,7 +40,7 @@ impl NewCommand {
             &format!("⏳ Creating {} at {}...", name, root.display()),
         );
 
-        let default_config = CoreConfig::default();
+        let default_config = CoreConfig::null();
         self.project_creator.create(&root, &default_config, true)?;
 
         create_spinner.finish_with_message(format!(

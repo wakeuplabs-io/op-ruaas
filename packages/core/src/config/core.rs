@@ -27,7 +27,7 @@ impl CoreConfig {
         Ok(())
     }
 
-    pub fn default() -> Self {
+    pub fn null() -> Self {
         Self {
             artifacts: ArtifactsConfig::null(),
             accounts: AccountsConfig::null(),
