@@ -91,7 +91,7 @@ impl ArtifactData {
 }
 
 impl Artifact {
-    pub fn new(kind: ArtifactKind, source: &PathBuf, dockerfile: &PathBuf, config: &ArtifactConfig) -> Self {
+    pub fn new(kind: ArtifactKind, source: &Path, dockerfile: &Path, config: &ArtifactConfig) -> Self {
         match kind {
             ArtifactKind::Batcher => Artifact::Batcher(ArtifactData::new("op-batcher", source, dockerfile, config)),
             ArtifactKind::Node => Artifact::Node(ArtifactData::new("op-node", source, dockerfile, config)),
