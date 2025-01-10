@@ -39,7 +39,7 @@ Usage: `opruaas [OPTIONS] <COMMAND>`
 
 #### Options:
 
-- `-q`, `--quiet` Suppress logging output
+- `-v`, `--verbose` Verbose output
 - `-h`, `--help` Print help
 - `-V`, `--version` Print version
 
@@ -84,7 +84,7 @@ The dev command simplifies the setup for local testing. It performs the followin
 Run the following command to execute the setup:
 
 ```bash
-# Use -v for verbose output; recommended as the process may take some time
+# Use -v for verbose output; recommended as the process may take some time, specially first time when downloading images
 npx opruaas -v dev
 ```
 

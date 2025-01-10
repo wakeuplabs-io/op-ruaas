@@ -100,7 +100,7 @@ const RunDevModeStep: React.FC = () => {
         Run from inside the project directory
       </CardDescription>
 
-      <Command className="mt-10" command="npx opruaas dev --default" />
+      <Command className="mt-10" command="npx opruaas -v dev --default" />
     </Card>
   );
 };
@@ -115,7 +115,7 @@ const DeployStep: React.FC = () => {
 
       <Command
         className="mt-10"
-        command="opruaas deploy --name prod --target all"
+        command="opruaas -v deploy --deployment-id holensky --deployment-name 'My Prod Deployment' --target all"
       />
     </Card>
   );

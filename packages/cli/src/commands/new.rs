@@ -70,10 +70,10 @@ impl NewCommand {
             title = "What's Next?".bright_white().bold(),
             bin = env!("CARGO_BIN_NAME").blue(),
             init_cmd = "init [contracts|node|etc...]".blue(),
-            build_cmd = "build [contracts|node|etc...]".blue(),
-            release_cmd = "release [contracts|node|etc...]".blue(),
-            dev_cmd = "dev".blue(),
-            deploy_cmd = "deploy [contracts|infra|all] --name <deployment_name>".blue(),
+            build_cmd = "-v build [contracts|node|etc...]".blue(),
+            release_cmd = "-v release [contracts|node|etc...]".blue(),
+            dev_cmd = "-v dev".blue(),
+            deploy_cmd = "-v deploy [contracts|infra|all] --name <deployment_name>".blue(),
             cd_cmd = "cd".blue(),
             name = name.blue()
         );
