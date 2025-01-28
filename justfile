@@ -46,7 +46,7 @@ console-server-run:
 	ENV=dev && cargo run --package opraas_server 
 
 console-ui-run:
-	cd packages/ui && npm run dev
+	npm run dev --workspace=ui
 
 console-predeploy:
     cargo lambda build --package opraas_server --arm64 --release

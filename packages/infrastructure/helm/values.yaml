@@ -109,7 +109,7 @@ grafana:
           uid: prometheus-datasource
   ingress:
     enabled: true
-    path: /monitoring(/|$)(.*)
+    path: /monitoring
     annotations:
       kubernetes.io/ingress.class: "nginx"
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"

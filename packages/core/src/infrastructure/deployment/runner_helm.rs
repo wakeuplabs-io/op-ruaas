@@ -134,7 +134,6 @@ impl HelmDeploymentRunner {
                     .arg("add")
                     .arg(repo)
                     .arg(url),
-                // .arg("--force-update"),
                 false,
             )?;
         }
@@ -143,7 +142,11 @@ impl HelmDeploymentRunner {
         // install pre-requisites, without these helm won't be capable of understanding out chart
 
         let pre_requisites = [
-            ("ingress-nginx", "ingress-nginx/ingress-nginx", vec![]),
+            (
+                "ingress-nginx",
+                "ingress-nginx/ingress-nginx",
+                vec!["--version", "v4.6.0"],
+            ),
             (
                 "cert-manager",
                 "jetstack/cert-manager",

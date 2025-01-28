@@ -80,6 +80,12 @@ impl TContractsDeployerProvider for DockerContractsDeployer {
         let mut artifacts_zip_buffer = Vec::new();
         artifacts_zip.read_to_end(&mut artifacts_zip_buffer)?;
 
+        // Load addresses.json into deployment
+        let mut addresses = File::open(volume_dir.path().join("out").join("addresses.json"))?;
+        let mut addresses_json = String::new();
+        addresses.read_to_string(&mut addresses_json)?;
+        deployment.contracts_addresses = Some(addresses_json);
+
         Ok(artifacts_zip_buffer)
     }
 }
