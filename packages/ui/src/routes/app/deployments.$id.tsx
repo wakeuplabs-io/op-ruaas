@@ -112,7 +112,7 @@ function RouteComponent() {
             <div className="space-y-2">
               <h2 className="text-sm">Addresses</h2>
               <ul className="grid gap-3  grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                {Object.entries(deployment.contracts_addresses).map(
+                {Object.entries(JSON.parse(deployment.contracts_addresses) as { [key: string]: string }).map(
                   ([key, value]) => (
                     <li>
                       <DeploymentValue

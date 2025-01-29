@@ -100,7 +100,7 @@ const RunDevModeStep: React.FC = () => {
         Run from inside the project directory
       </CardDescription>
 
-      <Command className="mt-10" command="npx opruaas -v dev --default" />
+      <Command className="mt-10" command="opruaas -v dev --default" />
     </Card>
   );
 };

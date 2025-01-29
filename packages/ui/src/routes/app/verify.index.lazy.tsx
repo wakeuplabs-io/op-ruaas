@@ -108,7 +108,7 @@ function RouteComponent() {
 
           <Command
             className="mt-4"
-            command="npx opruaas inspect all --deployment {name}"
+            command="opruaas inspect all --deployment {name}"
           />
 
           <CardDescription className="mt-10 md:mt-10">

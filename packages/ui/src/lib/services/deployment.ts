@@ -7,7 +7,7 @@ export type Deployment = {
   release_tag: string;
   release_registry: string;
   infra_base_url: string | null;
-  contracts_addresses: { [key: string]: string } | null;
+  contracts_addresses: string | null;
   network_config: any;
   accounts_config: any;
 };
@@ -28,7 +28,7 @@ export class DeploymentService {
   }
 
   static async findById(id: string): Promise<Deployment> {
-    const res = await api.get(`deployments/${id}`);
+    const res = await api.get(`deployments/${id}`); 
     return res.data;
   }
 
