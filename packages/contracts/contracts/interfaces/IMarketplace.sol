@@ -12,7 +12,7 @@ interface IMarketplaceErrors {
 interface IMarketplaceEvents {
     event Withdrawal(address user, uint256 amount);
     event Deposit(address user, uint256 amount);
-    event NewOffer(address vendor, uint256 offerId);
+    event NewOffer(address vendor, uint256 offerId, uint256 pricePerHour, uint256 deploymentFee, uint256 units);
     event NewOrder(address vendor, address client, uint256 offerId);
     event OrderFulfilled(address vendor, address client, uint256 offerId);
     event OrderTerminated(address vendor, address client, uint256 offerId);
@@ -51,9 +51,9 @@ interface IMarketplace is IMarketplaceStructs, IMarketplaceErrors, IMarketplaceE
 
     /// @notice Vendor creates an offering
     function createOffer(
-        uint256 _units,
         uint256 _pricePerHour,
-        uint256 _deploymentFee
+        uint256 _deploymentFee,
+        uint256 _units
     ) external returns (uint256);
 
     /// @notice Updates the units of an offer

@@ -41,21 +41,22 @@ contract Marketplace is IMarketplace, Initializable {
 
     /// @inheritdoc IMarketplace
     function createOffer(
-        uint256 _units,
         uint256 _pricePerHour,
-        uint256 _deploymentFee
+        uint256 _deploymentFee,
+        uint256 _units
     ) public returns (uint256) {
-        offerCount += 1;
-        offers[offerCount] = Offer({
+        uint256 offerId = offerCount;
+        offers[offerId] = Offer({
             vendor: msg.sender,
             pricePerHour: _pricePerHour,
             remainingUnits: _units,
             deploymentFee: _deploymentFee
         });
+        offerCount += 1;
 
-        emit NewOffer(msg.sender, offerCount);
+        emit NewOffer(msg.sender, offerId, _pricePerHour, _deploymentFee, _units);
 
-        return offerCount;
+        return offerId;
     }
 
     /// @inheritdoc IMarketplace

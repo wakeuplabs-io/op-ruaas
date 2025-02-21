@@ -51,6 +51,35 @@ describe("Marketplace", function () {
     });
   });
 
+  describe("CreateOffer", function () {
+    it("Should create an offer", async function () {
+      const { marketplace } = await loadFixture(deployMarketplaceFixture);
+
+      await expect(marketplace.createOffer(1n, 2n, 3n)).not.to.be.reverted;
+    });
+
+    it("Should emit NewOffer event", async function () {
+      const { marketplace, owner } = await loadFixture(deployMarketplaceFixture);
+
+      const [pricePerHour, deploymentFee, units] = [1n, 2n, 3n];
+      await expect(marketplace.createOffer(pricePerHour, deploymentFee, units))
+        .to.emit(marketplace, "NewOffer")
+        .withArgs(owner.address, 0n, pricePerHour, deploymentFee, units);
+    });
+  });
+
+  describe("SetOfferRemainingUnits", function () {
+    it("Should set remaining units", async function () {
+      const { marketplace } = await loadFixture(deployMarketplaceFixture);
+
+      await marketplace.createOffer(1n, 2n, 3n);
+
+      await expect(marketplace.setOfferRemainingUnits(0n, 10n)).not.to.be
+        .reverted;
+      expect((await marketplace.offers(0n)).remainingUnits).to.equal(10n);
+    });
+  });
+
   describe("Deposit", function () {
     it("Should deposit tokens", async function () {
       const { marketplace, marketplaceAddress, token, owner } =
@@ -75,69 +104,7 @@ describe("Marketplace", function () {
     });
   });
 
-  // describe("Withdrawals", function () {
-  //   describe("Validations", function () {
-  //     it("Should revert with the right error if called too soon", async function () {
-  //       const { lock } = await loadFixture(deployOneYearLockFixture);
+  describe("Withdraw", function () {});
 
-  //       await expect(lock.withdraw()).to.be.revertedWith(
-  //         "You can't withdraw yet"
-  //       );
-  //     });
-
-  //     it("Should revert with the right error if called from another account", async function () {
-  //       const { lock, unlockTime, otherAccount } = await loadFixture(
-  //         deployOneYearLockFixture
-  //       );
-
-  //       // We can increase the time in Hardhat Network
-  //       await time.increaseTo(unlockTime);
-
-  //       // We use lock.connect() to send a transaction from another account
-  //       await expect(lock.connect(otherAccount).withdraw()).to.be.revertedWith(
-  //         "You aren't the owner"
-  //       );
-  //     });
-
-  //     it("Shouldn't fail if the unlockTime has arrived and the owner calls it", async function () {
-  //       const { lock, unlockTime } = await loadFixture(
-  //         deployOneYearLockFixture
-  //       );
-
-  //       // Transactions are sent using the first signer by default
-  //       await time.increaseTo(unlockTime);
-
-  //       await expect(lock.withdraw()).not.to.be.reverted;
-  //     });
-  //   });
-
-  //   describe("Events", function () {
-  //     it("Should emit an event on withdrawals", async function () {
-  //       const { lock, unlockTime, lockedAmount } = await loadFixture(
-  //         deployOneYearLockFixture
-  //       );
-
-  //       await time.increaseTo(unlockTime);
-
-  //       await expect(lock.withdraw())
-  //         .to.emit(lock, "Withdrawal")
-  //         .withArgs(lockedAmount, anyValue); // We accept any value as `when` arg
-  //     });
-  //   });
-
-  //   describe("Transfers", function () {
-  //     it("Should transfer the funds to the owner", async function () {
-  //       const { lock, unlockTime, lockedAmount, owner } = await loadFixture(
-  //         deployOneYearLockFixture
-  //       );
-
-  //       await time.increaseTo(unlockTime);
-
-  //       await expect(lock.withdraw()).to.changeEtherBalances(
-  //         [owner, lock],
-  //         [lockedAmount, -lockedAmount]
-  //       );
-  //     });
-  //   });
-  // });
+  describe("BalanceOf", function () {});
 });
