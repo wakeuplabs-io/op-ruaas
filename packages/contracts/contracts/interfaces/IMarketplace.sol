@@ -12,7 +12,7 @@ interface IMarketplaceErrors {
 }
 
 interface IMarketplaceEvents {
-    event Withdrawal(address user, uint256 amount);
+    event Withdrawal(address user, uint256 orderId, uint256 amount);
     event Deposit(uint256 orderId, uint256 amount);
     event NewOffer(address vendor, uint256 offerId, uint256 pricePerHour, uint256 deploymentFee, uint256 fulfillmentTime, uint256 units);
     event NewOrder(address vendor, address client, uint256 offerId);

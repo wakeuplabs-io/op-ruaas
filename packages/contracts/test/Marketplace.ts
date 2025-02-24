@@ -412,27 +412,109 @@ describe("Marketplace", function () {
 
   describe("Withdraw", function () {
     it("Should revert if order already terminated", async function () {
-      throw new Error("Not implemented");
+      const {
+        marketplace,
+        client,
+        vendor,
+        vendorCreateOffer,
+        clientCreateOrder,
+      } = await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+      await marketplace.connect(vendor).fulfillOrder(orderId, "metadata");
+      await marketplace.connect(vendor).terminateOrder(orderId);
+
+      // act and assert
+      await expect(marketplace.connect(client).withdraw(orderId, 10n)).to.be
+        .reverted;
     });
 
     it("Should revert if not fulfilled and within fulfillment time", async function () {
-      throw new Error("Not implemented");
+      const { marketplace, client, vendorCreateOffer, clientCreateOrder } =
+        await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+
+      // act and assert
+      await expect(marketplace.connect(client).withdraw(orderId, 10n)).to.be
+        .reverted;
     });
 
     it("Should transfer balance to caller", async function () {
-      throw new Error("Not implemented");
+      const {
+        marketplace,
+        client,
+        vendor,
+        token,
+        vendorCreateOffer,
+        clientCreateOrder,
+      } = await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+      await marketplace.connect(vendor).fulfillOrder(orderId, "metadata");
+
+      const clientBalanceBefore = await token.balanceOf(client.address);
+      const orderBalanceBefore = (await marketplace.orders(orderId)).balance;
+
+      // act
+      await marketplace.connect(client).withdraw(orderId, 10n);
+
+      const clientBalanceAfter = await token.balanceOf(client.address);
+      const orderBalanceAfter = (await marketplace.orders(orderId)).balance;
+
+      // assert
+      expect(clientBalanceAfter).to.equal(clientBalanceBefore + 10n);
+      expect(orderBalanceAfter).to.equal(orderBalanceBefore - 10n);
     });
 
     it("Should emit Withdraw event", async function () {
-      throw new Error("Not implemented");
+      const {
+        marketplace,
+        client,
+        vendor,
+        vendorCreateOffer,
+        clientCreateOrder,
+      } = await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+      await marketplace.connect(vendor).fulfillOrder(orderId, "metadata");
+
+      // act
+      await expect(marketplace.connect(client).withdraw(orderId, 10n))
+        .to.emit(marketplace, "Withdrawal")
+        .withArgs(client.address, orderId, 10n);
     });
 
-    it("Should update lastWithdrawal", async function () {
-      throw new Error("Not implemented");
+    it("Should NOT update lastWithdrawal if client is withdrawing", async function () {
+      const {
+        marketplace,
+        client,
+        vendor,
+        vendorCreateOffer,
+        clientCreateOrder,
+      } = await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+      await marketplace.connect(vendor).fulfillOrder(orderId, "metadata");
+
+      // act
+      const tx = await marketplace.connect(client).withdraw(orderId, 10n);
+      const timestamp = (await tx.getBlock())?.timestamp;
+
+      await expect(
+        (await marketplace.orders(orderId)).lastWithdrawal
+      ).not.to.equal(timestamp);
     });
 
-    it("Should revert if trying to withdraw more than allowed", async function () {
-      throw new Error("Not implemented");
+    it.only("Should revert if trying to withdraw more than allowed", async function () {
+      const {
+        marketplace,
+        client,
+        vendor,
+        vendorCreateOffer,
+        clientCreateOrder,
+      } = await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+      await marketplace.connect(vendor).fulfillOrder(orderId, "metadata");
+
+      // act
+      await expect(marketplace.connect(client).withdraw(orderId, 100000000000n))
+        .to.be.reverted;
     });
   });
 

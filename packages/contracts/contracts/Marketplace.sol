@@ -181,7 +181,7 @@ contract Marketplace is IMarketplace, Initializable {
     }
 
     /// @inheritdoc IMarketplace
-    function withdraw(uint256 _orderId, uint256 _amount) public {
+    function withdraw(uint256 _orderId, uint256 _amount) public onlyVendorOrClient(_orderId) {
         Order storage order = orders[_orderId];
 
         // revert if already terminated
@@ -192,7 +192,7 @@ contract Marketplace is IMarketplace, Initializable {
         // reverts if not fulfilled and within fulfillment time
         if (
             order.fulfilledAt == 0 &&
-            (block.timestamp - order.fulfilledAt) <
+            (block.timestamp - order.createdAt) <
             offers[order.offerId].fulfillmentTime
         ) {
             revert OrderNotFulfilled();
@@ -205,12 +205,16 @@ contract Marketplace is IMarketplace, Initializable {
 
         // update order balance
         order.balance -= _amount;
-        order.lastWithdrawal = block.timestamp;
+
+        // update lastWithdrawal only if vendor
+        if (msg.sender != order.client) {
+            order.lastWithdrawal = block.timestamp;
+        }
 
         // transfer tokens
         paymentToken.transfer(msg.sender, _amount);
 
-        emit Withdrawal(msg.sender, _amount);
+        emit Withdrawal(msg.sender, _orderId, _amount);
     }
 
     /// @inheritdoc IMarketplace
@@ -226,7 +230,10 @@ contract Marketplace is IMarketplace, Initializable {
             return order.balance;
         }
 
-        uint256 hoursElapsed = (block.timestamp - order.lastWithdrawal + 3600 - 1) / 3600;
+        uint256 hoursElapsed = (block.timestamp -
+            order.lastWithdrawal +
+            3600 -
+            1) / 3600;
         uint256 acc = hoursElapsed * offer.pricePerHour;
 
         if (_address == offer.vendor) {
