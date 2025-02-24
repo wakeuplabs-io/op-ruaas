@@ -177,7 +177,7 @@ contract Marketplace is IMarketplace, Initializable {
         paymentToken.transferFrom(msg.sender, address(this), _amount);
         order.balance += _amount;
 
-        emit Deposit(msg.sender, _amount);
+        emit Deposit(_orderId, _amount);
     }
 
     /// @inheritdoc IMarketplace

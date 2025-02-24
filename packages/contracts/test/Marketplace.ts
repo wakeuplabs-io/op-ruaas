@@ -348,15 +348,65 @@ describe("Marketplace", function () {
 
   describe("Deposit", function () {
     it("Should revert if order already terminated", async function () {
-      throw new Error("Not implemented");
+      const {
+        marketplace,
+        client,
+        vendor,
+        vendorCreateOffer,
+        clientCreateOrder,
+      } = await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+      await marketplace.connect(vendor).fulfillOrder(orderId, "metadata");
+      await marketplace.connect(vendor).terminateOrder(orderId);
+
+      // act and assert
+      await expect(marketplace.connect(client).deposit(orderId, 10n)).to.be
+        .reverted;
     });
 
     it("Should transfer balance to contract", async function () {
-      throw new Error("Not implemented");
+      const {
+        marketplace,
+        marketplaceAddress,
+        client,
+        token,
+        vendor,
+        vendorCreateOffer,
+        clientCreateOrder,
+      } = await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+      await marketplace.connect(vendor).fulfillOrder(orderId, "metadata");
+
+      const marketplaceBalanceBefore =
+        await token.balanceOf(marketplaceAddress);
+      const orderBalanceBefore = (await marketplace.orders(orderId)).balance;
+
+      // act
+      await marketplace.connect(client).deposit(orderId, 10n);
+
+      const marketplaceBalanceAfter = await token.balanceOf(marketplaceAddress);
+      const orderBalanceAfter = (await marketplace.orders(orderId)).balance;
+
+      // assert
+      expect(marketplaceBalanceAfter).to.equal(marketplaceBalanceBefore + 10n);
+      expect(orderBalanceAfter).to.equal(orderBalanceBefore + 10n);
     });
 
     it("Should emit Deposit event", async function () {
-      throw new Error("Not implemented");
+      const {
+        marketplace,
+        client,
+        vendor,
+        vendorCreateOffer,
+        clientCreateOrder,
+      } = await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+      await marketplace.connect(vendor).fulfillOrder(orderId, "metadata");
+
+      // act and assert
+      await expect(marketplace.connect(client).deposit(orderId, 10n))
+        .to.emit(marketplace, "Deposit")
+        .withArgs(orderId, 10n);
     });
   });
 
