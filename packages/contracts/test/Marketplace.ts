@@ -5,35 +5,37 @@ import {
 import { expect } from "chai";
 import hre from "hardhat";
 
+// test constants
+const PRICE_PER_HOUR = 100n;
+const DEPLOYMENT_FEE = 10n;
+const FULFILLMENT_TIME = 100n;
+const UNITS = 100n;
+const INITIAL_AMOUNT = 200n;
+
 describe("Marketplace", function () {
   async function deployMarketplaceFixture() {
     const [vendor, client] = await hre.ethers.getSigners();
-
-    const Marketplace = await hre.ethers.getContractFactory("Marketplace");
-    const marketplace = await Marketplace.deploy();
-    const marketplaceAddress = await marketplace.getAddress();
 
     const Token = await hre.ethers.getContractFactory("TestToken");
     const token = await Token.connect(client).deploy(1000000n);
     const tokenAddress = await token.getAddress();
 
+    const Marketplace = await hre.ethers.getContractFactory("Marketplace");
+    const marketplace = await Marketplace.deploy();
+    const marketplaceAddress = await marketplace.getAddress();
     await marketplace.initialize(await token.getAddress());
+    await token.connect(client).approve(marketplaceAddress, 1000000n);
 
-    async function vendorCreateOffer(
-      pricePerHour: bigint,
-      deploymentFee: bigint,
-      fulfillmentTime: bigint,
-      units: bigint
-    ): Promise<bigint> {
+    async function vendorCreateOffer(): Promise<bigint> {
       await marketplace
         .connect(vendor)
-        .createOffer(pricePerHour, deploymentFee, fulfillmentTime, units);
+        .createOffer(PRICE_PER_HOUR, DEPLOYMENT_FEE, FULFILLMENT_TIME, UNITS);
 
       return (await marketplace.offerCount()) - 1n;
     }
 
     async function clientCreateOrder(offerId: bigint) {
-      await marketplace.connect(client).createOrder(offerId, "metadata");
+      await marketplace.connect(client).createOrder(offerId, INITIAL_AMOUNT);
 
       return (await marketplace.orderCount()) - 1n;
     }
@@ -64,6 +66,7 @@ describe("Marketplace", function () {
         deployMarketplaceFixture
       );
 
+      // act and assert
       expect(await marketplace.paymentToken()).to.equal(
         await token.getAddress()
       );
@@ -74,6 +77,7 @@ describe("Marketplace", function () {
         deployMarketplaceFixture
       );
 
+      // act and assert
       await expect(marketplace.initialize(await token.getAddress())).to.be
         .reverted;
     });
@@ -85,8 +89,12 @@ describe("Marketplace", function () {
         deployMarketplaceFixture
       );
 
-      await expect(marketplace.connect(vendor).createOffer(1n, 2n, 3n, 4n)).not.to
-        .be.reverted;
+      // act and assert
+      await expect(
+        marketplace
+          .connect(vendor)
+          .createOffer(PRICE_PER_HOUR, DEPLOYMENT_FEE, FULFILLMENT_TIME, UNITS)
+      ).not.to.be.reverted;
     });
 
     it("Should emit NewOffer event", async function () {
@@ -94,14 +102,21 @@ describe("Marketplace", function () {
         deployMarketplaceFixture
       );
 
-      const [pricePerHour, deploymentFee, fulfillmentTime, units] = [1n, 2n, 3n, 4n];
+      // act and assert
       await expect(
         marketplace
           .connect(vendor)
-          .createOffer(pricePerHour, deploymentFee, fulfillmentTime, units)
+          .createOffer(PRICE_PER_HOUR, DEPLOYMENT_FEE, FULFILLMENT_TIME, UNITS)
       )
         .to.emit(marketplace, "NewOffer")
-        .withArgs(vendor.address, 0n, pricePerHour, deploymentFee, fulfillmentTime, units);
+        .withArgs(
+          vendor.address,
+          0n,
+          PRICE_PER_HOUR,
+          DEPLOYMENT_FEE,
+          FULFILLMENT_TIME,
+          UNITS
+        );
     });
   });
 
@@ -110,132 +125,228 @@ describe("Marketplace", function () {
       const { marketplace, vendorCreateOffer, vendor } = await loadFixture(
         deployMarketplaceFixture
       );
+      const offerId = await vendorCreateOffer();
 
-      await vendorCreateOffer(1n, 2n, 3n, 4n);
-
-      await expect(marketplace.connect(vendor).setOfferRemainingUnits(0n, 10n))
-        .not.to.be.reverted;
-      expect((await marketplace.offers(0n)).remainingUnits).to.equal(10n);
+      // act and assert
+      await expect(
+        marketplace.connect(vendor).setOfferRemainingUnits(offerId, 10n)
+      ).not.to.be.reverted;
+      expect((await marketplace.offers(offerId)).remainingUnits).to.equal(10n);
     });
 
     it("Should revert if caller is not the vendor", async function () {
       const { marketplace, client, vendorCreateOffer } = await loadFixture(
         deployMarketplaceFixture
       );
+      const offerId = await vendorCreateOffer();
 
-      // setup
-      await vendorCreateOffer(1n, 2n, 3n, 4n);
-
-      await expect(marketplace.connect(client).setOfferRemainingUnits(0n, 10n))
-        .to.be.reverted;
+      // act and assert
+      await expect(
+        marketplace.connect(client).setOfferRemainingUnits(offerId, 10n)
+      ).to.be.reverted;
     });
   });
 
   describe("CreateOrder", function () {
     it("Should transfer to contract initial amount", async function () {
-      throw new Error("Not implemented");
-    })
+      const {
+        marketplace,
+        marketplaceAddress,
+        client,
+        token,
+        vendorCreateOffer,
+      } = await loadFixture(deployMarketplaceFixture);
+      const offerId = await vendorCreateOffer();
+
+      // act and assert
+      await expect(
+        marketplace.connect(client).createOrder(offerId, INITIAL_AMOUNT)
+      ).not.to.be.reverted;
+      expect((await marketplace.orders(0n)).balance).to.equal(INITIAL_AMOUNT);
+      expect((await marketplace.offers(offerId)).remainingUnits).to.equal(
+        UNITS - 1n
+      );
+      expect(await token.balanceOf(marketplaceAddress)).to.equal(
+        INITIAL_AMOUNT
+      );
+    });
 
     it("Should revert if not enough for deployment fee", async function () {
-      throw new Error("Not implemented");
-    })
+      const { marketplace, client, vendorCreateOffer } = await loadFixture(
+        deployMarketplaceFixture
+      );
+      const offerId = await vendorCreateOffer();
+
+      // act and assert
+      await expect(
+        marketplace.connect(client).createOrder(offerId, DEPLOYMENT_FEE - 1n)
+      ).to.be.reverted;
+    });
 
     it("Should emit NewOrder event", async function () {
-      throw new Error("Not implemented");
-    })
+      const { marketplace, client, vendor, vendorCreateOffer } =
+        await loadFixture(deployMarketplaceFixture);
+      const offerId = await vendorCreateOffer();
+
+      // act and assert
+      await expect(
+        marketplace.connect(client).createOrder(offerId, INITIAL_AMOUNT)
+      )
+        .to.emit(marketplace, "NewOrder")
+        .withArgs(vendor.address, client.address, offerId);
+    });
   });
 
   describe("FulfillOrder", function () {
     it("Should transfer to vendor deployment fee", async function () {
-      throw new Error("Not implemented");
-    })
+      const {
+        marketplace,
+        vendor,
+        token,
+        vendorCreateOffer,
+        clientCreateOrder,
+      } = await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+
+      // act and assert
+      await expect(
+        marketplace.connect(vendor).fulfillOrder(orderId, "metadata")
+      ).not.to.be.reverted;
+      expect(await token.balanceOf(vendor.address)).to.equal(DEPLOYMENT_FEE);
+      expect((await marketplace.orders(orderId)).balance).to.equal(
+        INITIAL_AMOUNT - DEPLOYMENT_FEE
+      );
+    });
 
     it("Should update fulfilledAt and lastWithdrawal", async function () {
-      throw new Error("Not implemented");
-    })
+      const {
+        marketplace,
+        vendor,
+        vendorCreateOffer,
+        clientCreateOrder,
+      } = await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+
+      // act
+      const tx = await marketplace
+        .connect(vendor)
+        .fulfillOrder(orderId, "metadata");
+      const block = await tx.getBlock();
+
+      // act and assert
+      expect((await marketplace.orders(orderId)).fulfilledAt).to.equal(
+        block?.timestamp
+      );
+      expect((await marketplace.orders(orderId)).lastWithdrawal).to.equal(
+        block?.timestamp
+      );
+    });
 
     it("Should emit OrderFulfilled event", async function () {
-      throw new Error("Not implemented");
-    })
+      const {
+        marketplace,
+        vendor,
+        client,
+        vendorCreateOffer,
+        clientCreateOrder,
+      } = await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+
+      // act and assert
+      await expect(
+        marketplace.connect(vendor).fulfillOrder(orderId, "metadata")
+      ).to.emit(marketplace, "OrderFulfilled").withArgs(vendor.address, client.address, orderId);
+    });
 
     it("Should revert if caller is not the vendor", async function () {
-      throw new Error("Not implemented");
-    })
+      const {
+        marketplace,
+        client,
+        vendorCreateOffer,
+        clientCreateOrder,
+      } = await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+
+      // act and assert
+      await expect(
+        marketplace.connect(client).fulfillOrder(orderId, "metadata")
+      ).to.be.reverted;
+    });
   });
 
   describe("TerminateOrder", function () {
-    it("Should revert if order not fulfilled and within fulfillment time", async function () {
+    it.only("Should revert if order not fulfilled and within fulfillment time", async function () {
       throw new Error("Not implemented");
-    })
+    });
 
     it("Should empty order balance", async function () {
       throw new Error("Not implemented");
-    })
+    });
 
     it("Should revert if caller is not the vendor/client", async function () {
       throw new Error("Not implemented");
-    })
+    });
 
     it("Should emit OrderTerminated event", async function () {
       throw new Error("Not implemented");
-    })
+    });
   });
 
   describe("Deposit", function () {
     it("Should revert if order already terminated", async function () {
       throw new Error("Not implemented");
-    })
+    });
 
     it("Should transfer balance to contract", async function () {
       throw new Error("Not implemented");
-    })
+    });
 
     it("Should emit Deposit event", async function () {
       throw new Error("Not implemented");
-    })
+    });
   });
 
   describe("Withdraw", function () {
     it("Should revert if order already terminated", async function () {
       throw new Error("Not implemented");
-    })
+    });
 
     it("Should revert if not fulfilled and within fulfillment time", async function () {
       throw new Error("Not implemented");
-    })
+    });
 
     it("Should transfer balance to caller", async function () {
       throw new Error("Not implemented");
-    })
+    });
 
     it("Should emit Withdraw event", async function () {
       throw new Error("Not implemented");
-    })
+    });
 
     it("Should update lastWithdrawal", async function () {
       throw new Error("Not implemented");
-    })
+    });
 
     it("Should revert if trying to withdraw more than allowed", async function () {
       throw new Error("Not implemented");
-    })
+    });
   });
 
   describe("BalanceOf", function () {
     it("Should return all balance if not fulfilled", async function () {
       throw new Error("Not implemented");
-    })
+    });
 
     it("Should return 0 if terminated", async function () {
       throw new Error("Not implemented");
-    })
+    });
 
     it("Should return max withdrawal balance for client and vendor", async function () {
       throw new Error("Not implemented");
-    })
+    });
 
     it("Should return balance if accumulated exceeds it", async function () {
       throw new Error("Not implemented");
-    })
+    });
   });
 });

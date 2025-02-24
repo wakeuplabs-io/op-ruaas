@@ -81,7 +81,7 @@ contract Marketplace is IMarketplace, Initializable {
         uint256 _offerId,
         uint256 _initialDeposit
     ) public returns (uint256) {
-        Offer memory offer = offers[_offerId];
+        Offer storage offer = offers[_offerId];
 
         // verify offer still available
         if (offer.remainingUnits == 0) {
@@ -122,7 +122,7 @@ contract Marketplace is IMarketplace, Initializable {
         uint256 _orderId,
         string calldata _metadata
     ) public onlyOfferVendor(orders[_orderId].offerId) {
-        Order memory order = orders[_orderId];
+        Order storage order = orders[_orderId];
         Offer memory offer = offers[order.offerId];
 
         // set order metadata, deployment links, addresses, etc
@@ -134,18 +134,14 @@ contract Marketplace is IMarketplace, Initializable {
         order.balance -= offer.deploymentFee;
         paymentToken.transfer(offer.vendor, offer.deploymentFee);
 
-        emit OrderFulfilled(
-            offers[_orderId].vendor,
-            orders[_orderId].client,
-            _orderId
-        );
+        emit OrderFulfilled(offer.vendor, order.client, _orderId);
     }
 
     /// @inheritdoc IMarketplace
     function terminateOrder(
         uint256 _orderId
     ) public onlyVendorOrClient(_orderId) {
-        Order memory order = orders[_orderId];
+        Order storage order = orders[_orderId];
         Offer memory offer = offers[order.offerId];
 
         // cannot terminate if not fulfilled and within fulfillment time
@@ -170,7 +166,7 @@ contract Marketplace is IMarketplace, Initializable {
 
     /// @inheritdoc IMarketplace
     function deposit(uint256 _orderId, uint256 _amount) public {
-        Order memory order = orders[_orderId];
+        Order storage order = orders[_orderId];
 
         // revert if already terminated
         if (order.terminatedAt != 0) {
@@ -185,7 +181,7 @@ contract Marketplace is IMarketplace, Initializable {
 
     /// @inheritdoc IMarketplace
     function withdraw(uint256 _orderId, uint256 _amount) public {
-        Order memory order = orders[_orderId];
+        Order storage order = orders[_orderId];
 
         // revert if already terminated
         if (order.terminatedAt != 0) {
