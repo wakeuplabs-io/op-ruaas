@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
-import "./interfaces/IMarketplace.sol";
+import {IMarketplace} from "./interfaces/IMarketplace.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 contract Marketplace is IMarketplace, Initializable {
     IERC20 public paymentToken;
-    mapping(address => uint256) public deposits;
 
     uint256 public offerCount;
     mapping(uint256 => Offer) public offers;
@@ -16,7 +16,7 @@ contract Marketplace is IMarketplace, Initializable {
     mapping(address => uint256[]) private userOrders;
 
     /// @notice Only vendor
-    modifier onlyVendor(uint256 _offerId) {
+    modifier onlyOfferVendor(uint256 _offerId) {
         if (offers[_offerId].vendor != msg.sender) {
             revert Unauthorized("Only vendor");
         }
@@ -43,6 +43,7 @@ contract Marketplace is IMarketplace, Initializable {
     function createOffer(
         uint256 _pricePerHour,
         uint256 _deploymentFee,
+        uint256 _fulfillmentTime,
         uint256 _units
     ) public returns (uint256) {
         uint256 offerId = offerCount;
@@ -50,11 +51,19 @@ contract Marketplace is IMarketplace, Initializable {
             vendor: msg.sender,
             pricePerHour: _pricePerHour,
             remainingUnits: _units,
-            deploymentFee: _deploymentFee
+            deploymentFee: _deploymentFee,
+            fulfillmentTime: _fulfillmentTime
         });
         offerCount += 1;
 
-        emit NewOffer(msg.sender, offerId, _pricePerHour, _deploymentFee, _units);
+        emit NewOffer(
+            msg.sender,
+            offerId,
+            _pricePerHour,
+            _deploymentFee,
+            _fulfillmentTime,
+            _units
+        );
 
         return offerId;
     }
@@ -63,24 +72,31 @@ contract Marketplace is IMarketplace, Initializable {
     function setOfferRemainingUnits(
         uint256 _offerId,
         uint256 _remainingUnits
-    ) public onlyVendor(_offerId) {
+    ) public onlyOfferVendor(_offerId) {
         offers[_offerId].remainingUnits = _remainingUnits;
     }
 
     /// @inheritdoc IMarketplace
     function createOrder(
         uint256 _offerId,
-        string calldata _metadata
+        uint256 _initialDeposit
     ) public returns (uint256) {
         Offer memory offer = offers[_offerId];
 
+        // verify offer still available
         if (offer.remainingUnits == 0) {
             revert OfferNotFound(_offerId);
         }
         offer.remainingUnits -= 1;
 
-        uint256 orderId = offerCount + 1;
-        orderCount += 1;
+        // pull funds
+        if (_initialDeposit < offer.deploymentFee) {
+            revert InsufficientBalance(msg.sender, _initialDeposit);
+        }
+        paymentToken.transferFrom(msg.sender, address(this), _initialDeposit);
+
+        // create order
+        uint256 orderId = orderCount;
         orders[orderId] = Order({
             client: msg.sender,
             offerId: _offerId,
@@ -88,33 +104,39 @@ contract Marketplace is IMarketplace, Initializable {
             fulfilledAt: 0,
             terminatedAt: 0,
             lastWithdrawal: 0,
-            chainMetadata: _metadata,
-            deploymentMetadata: _metadata
+            balance: _initialDeposit,
+            metadata: ""
         });
-
-        // can be refunded if not fulfilled
-        deposits[msg.sender] -= offer.deploymentFee;
-        deposits[offer.vendor] += offer.deploymentFee;
+        orderCount += 1;
 
         userOrders[msg.sender].push(orderId);
         userOrders[offer.vendor].push(orderId);
 
         emit NewOrder(offer.vendor, msg.sender, orderId);
+
         return orderId;
     }
 
     /// @inheritdoc IMarketplace
     function fulfillOrder(
-        uint256 _offerId,
+        uint256 _orderId,
         string calldata _metadata
-    ) public onlyVendor(_offerId) {
-        orders[_offerId].fulfilledAt = block.timestamp;
-        orders[_offerId].deploymentMetadata = _metadata;
+    ) public onlyOfferVendor(orders[_orderId].offerId) {
+        Order memory order = orders[_orderId];
+        Offer memory offer = offers[order.offerId];
+
+        order.metadata = _metadata;
+        order.fulfilledAt = block.timestamp;
+
+        // transfer deployment fee
+        order.lastWithdrawal = block.timestamp;
+        order.balance -= offer.deploymentFee;
+        paymentToken.transfer(offer.vendor, offer.deploymentFee);
 
         emit OrderFulfilled(
-            offers[_offerId].vendor,
-            orders[_offerId].client,
-            _offerId
+            offers[_orderId].vendor,
+            orders[_orderId].client,
+            _orderId
         );
     }
 
@@ -123,7 +145,20 @@ contract Marketplace is IMarketplace, Initializable {
         uint256 _orderId
     ) public onlyVendorOrClient(_orderId) {
         Order memory order = orders[_orderId];
+        Offer memory offer = offers[order.offerId];
+
+        // cannot terminate if not fulfilled and within fulfillment time
+        if (offer.fulfillmentTime < (block.timestamp - order.fulfilledAt)) {
+            revert OrderNotFulfilled();
+        }
+
+        // we can already terminate
         order.terminatedAt = block.timestamp;
+
+        // empty balances
+        order.balance = 0;
+        paymentToken.transfer(order.client, balanceOf(_orderId, order.client));
+        paymentToken.transfer(offer.vendor, balanceOf(_orderId, offer.vendor));
 
         emit OrderTerminated(
             offers[order.offerId].vendor,
@@ -133,90 +168,78 @@ contract Marketplace is IMarketplace, Initializable {
     }
 
     /// @inheritdoc IMarketplace
-    function deposit(uint256 _amount) public {
-        deposits[msg.sender] += _amount;
+    function deposit(uint256 _orderId, uint256 _amount) public {
+        Order memory order = orders[_orderId];
+
+        // revert if already terminated
+        if (order.terminatedAt != 0) {
+            revert OrderAlreadyTerminated();
+        }
 
         paymentToken.transferFrom(msg.sender, address(this), _amount);
+        order.balance += _amount;
 
         emit Deposit(msg.sender, _amount);
     }
 
     /// @inheritdoc IMarketplace
-    function withdraw(uint256 _amount) public {
-        uint256 totalEligible = deposits[msg.sender];
+    function withdraw(uint256 _orderId, uint256 _amount) public {
+        Order memory order = orders[_orderId];
 
-        // iterate over all orders that involve this user as client or vendor
-        for (uint256 i = 0; i < userOrders[msg.sender].length; i++) {
-            Order memory order = orders[userOrders[msg.sender][i]];
-            Offer memory offer = offers[order.offerId];
-
-            if (
-                order.lastWithdrawal > order.terminatedAt ||
-                order.fulfilledAt == 0
-            ) {
-                // order already terminated and all withdrawals done or not fulfilled
-                continue;
-            }
-
-            uint256 elapsedTime = block.timestamp -
-                (
-                    order.lastWithdrawal == 0
-                        ? order.fulfilledAt
-                        : order.lastWithdrawal
-                );
-            uint256 elapsedPayment = elapsedTime * offer.pricePerHour;
-
-            if (order.client == msg.sender) {
-                totalEligible -= elapsedPayment;
-                deposits[offer.vendor] += elapsedPayment;
-            } else {
-                totalEligible += elapsedPayment;
-                deposits[order.client] -= elapsedPayment;
-            }
-
-            order.lastWithdrawal = block.timestamp;
+        // revert if already terminated
+        if (order.terminatedAt != 0) {
+            revert OrderAlreadyTerminated();
         }
 
-        uint256 withdrawAmount = _amount == 0 ? totalEligible : _amount;
-        deposits[msg.sender] = totalEligible - withdrawAmount;
+        // reverts if not fulfilled and within fulfillment time
+        if (
+            order.fulfilledAt == 0 &&
+            (block.timestamp - order.fulfilledAt) <
+            offers[order.offerId].fulfillmentTime
+        ) {
+            revert OrderNotFulfilled();
+        }
 
-        paymentToken.transfer(msg.sender, withdrawAmount);
+        uint256 maxWithdrawal = balanceOf(_orderId, msg.sender);
+        if (_amount > maxWithdrawal) {
+            revert InsufficientBalance(msg.sender, _amount);
+        }
 
-        emit Withdrawal(msg.sender, withdrawAmount);
+        // update order balance
+        order.balance -= _amount;
+        order.lastWithdrawal = block.timestamp;
+
+        // transfer tokens
+        paymentToken.transfer(msg.sender, _amount);
+
+        emit Withdrawal(msg.sender, _amount);
     }
 
     /// @inheritdoc IMarketplace
-    function balanceOf(address _address) public view returns (uint256) {
-        uint256 totalEligible = deposits[_address];
+    function balanceOf(
+        uint256 _orderId,
+        address _address
+    ) public view returns (uint256) {
+        Order memory order = orders[_orderId];
+        Offer memory offer = offers[order.offerId];
 
-        // iterate over all orders that involve this user as client or vendor
-        for (uint256 i = 0; i < userOrders[_address].length; i++) {
-            Order memory order = orders[userOrders[_address][i]];
-            Offer memory offer = offers[order.offerId];
-
-            if (
-                order.lastWithdrawal > order.terminatedAt ||
-                order.fulfilledAt == 0
-            ) {
-                // order already terminated and all withdrawals done or not fulfilled
-                continue;
-            }
-
-            uint256 elapsedTime = block.timestamp -
-                (
-                    order.lastWithdrawal == 0
-                        ? order.fulfilledAt
-                        : order.lastWithdrawal
-                );
-            uint256 elapsedPayment = elapsedTime * offer.pricePerHour;
-
-            if (order.client == msg.sender) {
-                totalEligible -= elapsedPayment;
-            } else {
-                totalEligible += elapsedPayment;
-            }
+        // if not fulfilled all is still available
+        if (order.fulfilledAt == 0) {
+            return order.balance;
         }
 
-        return totalEligible;
+        // if terminated nothing is available
+        if (order.terminatedAt != 0) {
+            return 0;
+        }
+
+        uint256 acc = ((block.timestamp - order.lastWithdrawal) / 3600) *
+            offer.pricePerHour;
+
+        if (_address == offer.vendor) {
+            return acc > order.balance ? order.balance : acc;
+        } else if (_address == order.client) {
+            return order.balance - acc;
+        }
     }
 }

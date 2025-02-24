@@ -13,7 +13,7 @@ Without terraform:
 2. Deploy nginx as follows
 
 ```bash
-  helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx && helm repo update
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx && helm repo update
 helm install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace
 ```
 

@@ -5,6 +5,8 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 interface IMarketplaceErrors {
     error Unauthorized(string message);
     error InsufficientBalance(address user, uint256 amount);
+    error OrderAlreadyTerminated();
+    error OrderNotFulfilled();
     error OfferNotFound(uint256 offerId);
     error OrderNotFound(uint256 orderId);
 }
@@ -12,11 +14,10 @@ interface IMarketplaceErrors {
 interface IMarketplaceEvents {
     event Withdrawal(address user, uint256 amount);
     event Deposit(address user, uint256 amount);
-    event NewOffer(address vendor, uint256 offerId, uint256 pricePerHour, uint256 deploymentFee, uint256 units);
+    event NewOffer(address vendor, uint256 offerId, uint256 pricePerHour, uint256 deploymentFee, uint256 fulfillmentTime, uint256 units);
     event NewOrder(address vendor, address client, uint256 offerId);
-    event OrderFulfilled(address vendor, address client, uint256 offerId);
-    event OrderTerminated(address vendor, address client, uint256 offerId);
-    event OrderPaused(address vendor, address client, uint256 offerId);
+    event OrderFulfilled(address vendor, address client, uint256 orderId);
+    event OrderTerminated(address vendor, address client, uint256 orderId);
 }
 
 interface IMarketplaceStructs {
@@ -25,6 +26,7 @@ interface IMarketplaceStructs {
         uint256 pricePerHour;
         uint256 deploymentFee; 
         uint256 remainingUnits;
+        uint256 fulfillmentTime; // in seconds, withdrawals locked during this time
     }
 
     struct Order {
@@ -32,14 +34,14 @@ interface IMarketplaceStructs {
         uint256 offerId;
 
         // timestamps for payment computation
+        uint256 balance;
         uint256 createdAt;
         uint256 fulfilledAt;
         uint256 terminatedAt;
         uint256 lastWithdrawal;
 
         // deployment metadata
-        string chainMetadata; // metadata for deployment, link to download assets like genesis.json, etc
-        string deploymentMetadata; // metadata for deployment, urls
+        string metadata;
     }
 }
 
@@ -53,6 +55,7 @@ interface IMarketplace is IMarketplaceStructs, IMarketplaceErrors, IMarketplaceE
     function createOffer(
         uint256 _pricePerHour,
         uint256 _deploymentFee,
+        uint256 _fulfillmentTime,
         uint256 _units
     ) external returns (uint256);
 
@@ -64,11 +67,10 @@ interface IMarketplace is IMarketplaceStructs, IMarketplaceErrors, IMarketplaceE
     ) external;
 
     /// @notice Creates an order from an offerId
-    /// @dev User must have at least funds for minimum commitment.
-    /// @dev Vendor must have funds for potential fee
+    /// @dev User commits initial deposit
     function createOrder(
         uint256 _offerId,
-        string calldata _metadata
+        uint256 _initialDeposit
     ) external returns (uint256);
 
     /// @notice Fulfils an order. Vendor submits endpoints and starts the service.
@@ -82,13 +84,11 @@ interface IMarketplace is IMarketplaceStructs, IMarketplaceErrors, IMarketplaceE
     function terminateOrder(uint256 _orderId) external;
 
     /// @notice Deposits funds into the marketplace
-    function deposit(uint256 _amount) external;
+    function deposit(uint256 _orderId, uint256 _amount) external;
 
-    /// @notice Withdraws funds from the marketplace
-    /// @dev If amount is 0, takes maximum available
-    function withdraw(uint256 _amount) external;
+    /// @notice Withdraws from order vault, maximum if amount is 0
+    function withdraw(uint256 _orderId, uint256 _amount) external;
 
-    /// @notice Returns the balance of an address. 
-    /// @dev Computes available balance based on orders
-    function balanceOf(address _address) external view returns (uint256);
+    /// @notice Returns the remaining balance of the order, computing at the moment
+    function balanceOf(uint256 _orderId, address _address) external view returns (uint256);
 }

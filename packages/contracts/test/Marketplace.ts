@@ -2,31 +2,62 @@ import {
   time,
   loadFixture,
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
 import hre from "hardhat";
 
+// TODO: handle case where user run out of funds
+// - Withdraw for user should fail if contract is ongoing
+
 describe("Marketplace", function () {
   async function deployMarketplaceFixture() {
-    const [owner, otherAccount] = await hre.ethers.getSigners();
+    const [vendor, client] = await hre.ethers.getSigners();
 
     const Marketplace = await hre.ethers.getContractFactory("Marketplace");
     const marketplace = await Marketplace.deploy();
     const marketplaceAddress = await marketplace.getAddress();
 
     const Token = await hre.ethers.getContractFactory("TestToken");
-    const token = await Token.deploy(1000000n);
+    const token = await Token.connect(client).deploy(1000000n);
     const tokenAddress = await token.getAddress();
 
     await marketplace.initialize(await token.getAddress());
+
+    async function vendorCreateOffer(
+      pricePerHour: bigint,
+      deploymentFee: bigint,
+      fulfillmentTime: bigint,
+      units: bigint
+    ): Promise<bigint> {
+      await marketplace
+        .connect(vendor)
+        .createOffer(pricePerHour, deploymentFee, fulfillmentTime, units);
+
+      return (await marketplace.offerCount()) - 1n;
+    }
+
+    async function clientCreateOrder(offerId: bigint) {
+      await marketplace.connect(client).createOrder(offerId, "metadata");
+
+      return (await marketplace.orderCount()) - 1n;
+    }
+
+    async function fulfillOrder(orderId: bigint): Promise<bigint> {
+      await marketplace.connect(vendor).fulfillOrder(orderId, "metadata");
+      const order = await marketplace.orders(orderId);
+
+      return order.fulfilledAt;
+    }
 
     return {
       marketplace,
       marketplaceAddress,
       token,
       tokenAddress,
-      owner,
-      otherAccount,
+      vendor,
+      client,
+      vendorCreateOffer,
+      clientCreateOrder,
+      fulfillOrder,
     };
   }
 
@@ -53,58 +84,65 @@ describe("Marketplace", function () {
 
   describe("CreateOffer", function () {
     it("Should create an offer", async function () {
-      const { marketplace } = await loadFixture(deployMarketplaceFixture);
+      const { marketplace, vendor } = await loadFixture(
+        deployMarketplaceFixture
+      );
 
-      await expect(marketplace.createOffer(1n, 2n, 3n)).not.to.be.reverted;
+      await expect(marketplace.connect(vendor).createOffer(1n, 2n, 3n, 4n)).not.to
+        .be.reverted;
     });
 
     it("Should emit NewOffer event", async function () {
-      const { marketplace, owner } = await loadFixture(deployMarketplaceFixture);
+      const { marketplace, vendor } = await loadFixture(
+        deployMarketplaceFixture
+      );
 
-      const [pricePerHour, deploymentFee, units] = [1n, 2n, 3n];
-      await expect(marketplace.createOffer(pricePerHour, deploymentFee, units))
+      const [pricePerHour, deploymentFee, fulfillmentTime, units] = [1n, 2n, 3n, 4n];
+      await expect(
+        marketplace
+          .connect(vendor)
+          .createOffer(pricePerHour, deploymentFee, fulfillmentTime, units)
+      )
         .to.emit(marketplace, "NewOffer")
-        .withArgs(owner.address, 0n, pricePerHour, deploymentFee, units);
+        .withArgs(vendor.address, 0n, pricePerHour, deploymentFee, units);
     });
   });
 
   describe("SetOfferRemainingUnits", function () {
     it("Should set remaining units", async function () {
-      const { marketplace } = await loadFixture(deployMarketplaceFixture);
+      const { marketplace, vendorCreateOffer, vendor } = await loadFixture(
+        deployMarketplaceFixture
+      );
 
-      await marketplace.createOffer(1n, 2n, 3n);
+      await vendorCreateOffer(1n, 2n, 3n, 4n);
 
-      await expect(marketplace.setOfferRemainingUnits(0n, 10n)).not.to.be
-        .reverted;
+      await expect(marketplace.connect(vendor).setOfferRemainingUnits(0n, 10n))
+        .not.to.be.reverted;
       expect((await marketplace.offers(0n)).remainingUnits).to.equal(10n);
+    });
+
+    it("Should revert if caller is not the vendor", async function () {
+      const { marketplace, client, vendorCreateOffer } = await loadFixture(
+        deployMarketplaceFixture
+      );
+
+      // setup
+      await vendorCreateOffer(1n, 2n, 3n, 4n);
+
+      await expect(marketplace.connect(client).setOfferRemainingUnits(0n, 10n))
+        .to.be.reverted;
     });
   });
 
   describe("Deposit", function () {
-    it("Should deposit tokens", async function () {
-      const { marketplace, marketplaceAddress, token, owner } =
-        await loadFixture(deployMarketplaceFixture);
-
-      await token.approve(marketplaceAddress, 10n);
-
-      expect(await marketplace.deposit(10n)).not.to.be.reverted;
-      expect(await token.balanceOf(marketplaceAddress)).to.equal(10n);
-      expect(await marketplace.deposits(owner.address)).to.equal(10n);
-    });
-
-    it("Should emit deposit event", async function () {
-      const { marketplace, marketplaceAddress, token, owner } =
-        await loadFixture(deployMarketplaceFixture);
-
-      await token.approve(marketplaceAddress, 10n);
-
-      expect(await marketplace.deposit(10n))
-        .to.emit(marketplace, "Deposit")
-        .withArgs(owner.address, 10n);
-    });
+   
   });
 
-  describe("Withdraw", function () {});
+  describe("Withdraw", function () {
 
-  describe("BalanceOf", function () {});
+  });
+
+  describe("BalanceOf", function () {
+
+  });
 });
