@@ -86,13 +86,13 @@ contract Marketplace is IMarketplace, Initializable {
 
         // verify offer still available
         if (offer.remainingUnits == 0) {
-            revert OfferNotFound(_offerId);
+            revert OfferNotFound();
         }
         offer.remainingUnits -= 1;
 
         // pull funds
         if (_initialDeposit < offer.deploymentFee) {
-            revert InsufficientBalance(msg.sender, _initialDeposit);
+            revert InsufficientBalance(msg.sender, offer.deploymentFee);
         }
         paymentToken.transferFrom(msg.sender, address(this), _initialDeposit);
 
@@ -200,7 +200,7 @@ contract Marketplace is IMarketplace, Initializable {
 
         uint256 maxWithdrawal = balanceOf(msg.sender, _orderId);
         if (_amount > maxWithdrawal) {
-            revert InsufficientBalance(msg.sender, _amount);
+            revert InsufficientBalance(msg.sender, maxWithdrawal);
         }
 
         // update order balance
