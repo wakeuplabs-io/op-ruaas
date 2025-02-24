@@ -14,7 +14,7 @@ const INITIAL_AMOUNT = 200n;
 
 describe("Marketplace", function () {
   async function deployMarketplaceFixture() {
-    const [vendor, client] = await hre.ethers.getSigners();
+    const [vendor, client, other] = await hre.ethers.getSigners();
 
     const Token = await hre.ethers.getContractFactory("TestToken");
     const token = await Token.connect(client).deploy(1000000n);
@@ -54,6 +54,7 @@ describe("Marketplace", function () {
       tokenAddress,
       vendor,
       client,
+      other,
       vendorCreateOffer,
       clientCreateOrder,
       fulfillOrder,
@@ -219,12 +220,8 @@ describe("Marketplace", function () {
     });
 
     it("Should update fulfilledAt and lastWithdrawal", async function () {
-      const {
-        marketplace,
-        vendor,
-        vendorCreateOffer,
-        clientCreateOrder,
-      } = await loadFixture(deployMarketplaceFixture);
+      const { marketplace, vendor, vendorCreateOffer, clientCreateOrder } =
+        await loadFixture(deployMarketplaceFixture);
       const orderId = await clientCreateOrder(await vendorCreateOffer());
 
       // act
@@ -255,16 +252,14 @@ describe("Marketplace", function () {
       // act and assert
       await expect(
         marketplace.connect(vendor).fulfillOrder(orderId, "metadata")
-      ).to.emit(marketplace, "OrderFulfilled").withArgs(vendor.address, client.address, orderId);
+      )
+        .to.emit(marketplace, "OrderFulfilled")
+        .withArgs(vendor.address, client.address, orderId);
     });
 
     it("Should revert if caller is not the vendor", async function () {
-      const {
-        marketplace,
-        client,
-        vendorCreateOffer,
-        clientCreateOrder,
-      } = await loadFixture(deployMarketplaceFixture);
+      const { marketplace, client, vendorCreateOffer, clientCreateOrder } =
+        await loadFixture(deployMarketplaceFixture);
       const orderId = await clientCreateOrder(await vendorCreateOffer());
 
       // act and assert
@@ -275,20 +270,79 @@ describe("Marketplace", function () {
   });
 
   describe("TerminateOrder", function () {
-    it.only("Should revert if order not fulfilled and within fulfillment time", async function () {
-      throw new Error("Not implemented");
+    it("Should revert if order not fulfilled and within fulfillment time", async function () {
+      const { marketplace, client, vendorCreateOffer, clientCreateOrder } =
+        await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+
+      // act and assert
+      await expect(marketplace.connect(client).terminateOrder(orderId)).to.be
+        .reverted;
     });
 
-    it("Should empty order balance", async function () {
-      throw new Error("Not implemented");
+    it("Should transfer out the remaining balance", async function () {
+      const {
+        marketplace,
+        client,
+        vendor,
+        token,
+        vendorCreateOffer,
+        clientCreateOrder,
+      } = await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+      await marketplace.connect(vendor).fulfillOrder(orderId, "metadata");
+
+      const orderBalanceBefore = (await marketplace.orders(orderId)).balance;
+      const clientBalanceBefore = await token.balanceOf(client.address);
+      const vendorBalanceBefore = await token.balanceOf(vendor.address);
+
+      // travel forward in time one hour to get exactly one payment in
+      await time.increaseTo(
+        (await marketplace.orders(orderId)).fulfilledAt! + 1n
+      );
+
+      // act and assert
+      await expect(marketplace.connect(client).terminateOrder(orderId)).not.to
+        .be.reverted;
+
+      const clientBalanceAfter = await token.balanceOf(client.address);
+      const vendorBalanceAfter = await token.balanceOf(vendor.address);
+
+      expect(vendorBalanceAfter).to.equal(vendorBalanceBefore + PRICE_PER_HOUR);
+      expect(clientBalanceAfter).to.equal(
+        clientBalanceBefore + orderBalanceBefore - PRICE_PER_HOUR
+      );
     });
 
     it("Should revert if caller is not the vendor/client", async function () {
-      throw new Error("Not implemented");
+      const {
+        marketplace,
+        other,
+        vendor,
+        vendorCreateOffer,
+        clientCreateOrder,
+      } = await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+      await marketplace.connect(vendor).fulfillOrder(orderId, "metadata");
+
+      await expect(marketplace.connect(other).terminateOrder(orderId)).to.be
+        .reverted;
     });
 
     it("Should emit OrderTerminated event", async function () {
-      throw new Error("Not implemented");
+      const {
+        marketplace,
+        client,
+        vendor,
+        vendorCreateOffer,
+        clientCreateOrder,
+      } = await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+      await marketplace.connect(vendor).fulfillOrder(orderId, "metadata");
+
+      await expect(marketplace.connect(vendor).terminateOrder(orderId))
+        .to.emit(marketplace, "OrderTerminated")
+        .withArgs(vendor.address, client.address, orderId);
     });
   });
 

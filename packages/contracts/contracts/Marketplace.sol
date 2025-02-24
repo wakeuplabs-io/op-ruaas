@@ -4,6 +4,7 @@ pragma solidity ^0.8.28;
 import {IMarketplace} from "./interfaces/IMarketplace.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "hardhat/console.sol";
 
 contract Marketplace is IMarketplace, Initializable {
     IERC20 public paymentToken;
@@ -28,7 +29,7 @@ contract Marketplace is IMarketplace, Initializable {
         Order memory order = orders[_orderId];
         Offer memory offer = offers[order.offerId];
 
-        if (order.client != msg.sender || offer.vendor != msg.sender) {
+        if (order.client != msg.sender && offer.vendor != msg.sender) {
             revert Unauthorized("Only vendor or client");
         }
         _;
@@ -149,13 +150,13 @@ contract Marketplace is IMarketplace, Initializable {
             revert OrderNotFulfilled();
         }
 
-        // we can already terminate
-        order.terminatedAt = block.timestamp;
-
         // empty balances
-        order.balance = 0;
         paymentToken.transfer(order.client, balanceOf(_orderId, order.client));
         paymentToken.transfer(offer.vendor, balanceOf(_orderId, offer.vendor));
+
+        // we can already terminate
+        order.terminatedAt = block.timestamp;
+        order.balance = 0;
 
         emit OrderTerminated(
             offers[order.offerId].vendor,
@@ -225,13 +226,13 @@ contract Marketplace is IMarketplace, Initializable {
             return order.balance;
         }
 
-        uint256 acc = ((block.timestamp - order.lastWithdrawal) / 3600) *
-            offer.pricePerHour;
+        uint256 hoursElapsed = (block.timestamp - order.lastWithdrawal + 3600 - 1) / 3600;
+        uint256 acc = hoursElapsed * offer.pricePerHour;
 
         if (_address == offer.vendor) {
             return acc > order.balance ? order.balance : acc;
         } else if (_address == order.client) {
-            return order.balance - acc;
+            return acc > order.balance ? 0 : order.balance - acc;
         }
     }
 }
