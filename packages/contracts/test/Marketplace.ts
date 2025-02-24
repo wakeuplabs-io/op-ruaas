@@ -5,9 +5,6 @@ import {
 import { expect } from "chai";
 import hre from "hardhat";
 
-// TODO: handle case where user run out of funds
-// - Withdraw for user should fail if contract is ongoing
-
 describe("Marketplace", function () {
   async function deployMarketplaceFixture() {
     const [vendor, client] = await hre.ethers.getSigners();
@@ -104,7 +101,7 @@ describe("Marketplace", function () {
           .createOffer(pricePerHour, deploymentFee, fulfillmentTime, units)
       )
         .to.emit(marketplace, "NewOffer")
-        .withArgs(vendor.address, 0n, pricePerHour, deploymentFee, units);
+        .withArgs(vendor.address, 0n, pricePerHour, deploymentFee, fulfillmentTime, units);
     });
   });
 
@@ -134,15 +131,111 @@ describe("Marketplace", function () {
     });
   });
 
+  describe("CreateOrder", function () {
+    it("Should transfer to contract initial amount", async function () {
+      throw new Error("Not implemented");
+    })
+
+    it("Should revert if not enough for deployment fee", async function () {
+      throw new Error("Not implemented");
+    })
+
+    it("Should emit NewOrder event", async function () {
+      throw new Error("Not implemented");
+    })
+  });
+
+  describe("FulfillOrder", function () {
+    it("Should transfer to vendor deployment fee", async function () {
+      throw new Error("Not implemented");
+    })
+
+    it("Should update fulfilledAt and lastWithdrawal", async function () {
+      throw new Error("Not implemented");
+    })
+
+    it("Should emit OrderFulfilled event", async function () {
+      throw new Error("Not implemented");
+    })
+
+    it("Should revert if caller is not the vendor", async function () {
+      throw new Error("Not implemented");
+    })
+  });
+
+  describe("TerminateOrder", function () {
+    it("Should revert if order not fulfilled and within fulfillment time", async function () {
+      throw new Error("Not implemented");
+    })
+
+    it("Should empty order balance", async function () {
+      throw new Error("Not implemented");
+    })
+
+    it("Should revert if caller is not the vendor/client", async function () {
+      throw new Error("Not implemented");
+    })
+
+    it("Should emit OrderTerminated event", async function () {
+      throw new Error("Not implemented");
+    })
+  });
+
   describe("Deposit", function () {
-   
+    it("Should revert if order already terminated", async function () {
+      throw new Error("Not implemented");
+    })
+
+    it("Should transfer balance to contract", async function () {
+      throw new Error("Not implemented");
+    })
+
+    it("Should emit Deposit event", async function () {
+      throw new Error("Not implemented");
+    })
   });
 
   describe("Withdraw", function () {
+    it("Should revert if order already terminated", async function () {
+      throw new Error("Not implemented");
+    })
 
+    it("Should revert if not fulfilled and within fulfillment time", async function () {
+      throw new Error("Not implemented");
+    })
+
+    it("Should transfer balance to caller", async function () {
+      throw new Error("Not implemented");
+    })
+
+    it("Should emit Withdraw event", async function () {
+      throw new Error("Not implemented");
+    })
+
+    it("Should update lastWithdrawal", async function () {
+      throw new Error("Not implemented");
+    })
+
+    it("Should revert if trying to withdraw more than allowed", async function () {
+      throw new Error("Not implemented");
+    })
   });
 
   describe("BalanceOf", function () {
+    it("Should return all balance if not fulfilled", async function () {
+      throw new Error("Not implemented");
+    })
 
+    it("Should return 0 if terminated", async function () {
+      throw new Error("Not implemented");
+    })
+
+    it("Should return max withdrawal balance for client and vendor", async function () {
+      throw new Error("Not implemented");
+    })
+
+    it("Should return balance if accumulated exceeds it", async function () {
+      throw new Error("Not implemented");
+    })
   });
 });

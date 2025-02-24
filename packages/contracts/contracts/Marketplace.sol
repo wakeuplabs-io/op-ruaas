@@ -125,10 +125,11 @@ contract Marketplace is IMarketplace, Initializable {
         Order memory order = orders[_orderId];
         Offer memory offer = offers[order.offerId];
 
+        // set order metadata, deployment links, addresses, etc
         order.metadata = _metadata;
-        order.fulfilledAt = block.timestamp;
 
-        // transfer deployment fee
+        // transfer deployment fee and start payments
+        order.fulfilledAt = block.timestamp;
         order.lastWithdrawal = block.timestamp;
         order.balance -= offer.deploymentFee;
         paymentToken.transfer(offer.vendor, offer.deploymentFee);
@@ -226,11 +227,6 @@ contract Marketplace is IMarketplace, Initializable {
         // if not fulfilled all is still available
         if (order.fulfilledAt == 0) {
             return order.balance;
-        }
-
-        // if terminated nothing is available
-        if (order.terminatedAt != 0) {
-            return 0;
         }
 
         uint256 acc = ((block.timestamp - order.lastWithdrawal) / 3600) *
