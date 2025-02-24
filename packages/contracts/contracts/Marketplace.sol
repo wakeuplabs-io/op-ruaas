@@ -151,8 +151,8 @@ contract Marketplace is IMarketplace, Initializable {
         }
 
         // empty balances
-        paymentToken.transfer(order.client, balanceOf(_orderId, order.client));
-        paymentToken.transfer(offer.vendor, balanceOf(_orderId, offer.vendor));
+        paymentToken.transfer(order.client, balanceOf(order.client, _orderId));
+        paymentToken.transfer(offer.vendor, balanceOf(offer.vendor, _orderId));
 
         // we can already terminate
         order.terminatedAt = block.timestamp;
@@ -198,7 +198,7 @@ contract Marketplace is IMarketplace, Initializable {
             revert OrderNotFulfilled();
         }
 
-        uint256 maxWithdrawal = balanceOf(_orderId, msg.sender);
+        uint256 maxWithdrawal = balanceOf(msg.sender, _orderId);
         if (_amount > maxWithdrawal) {
             revert InsufficientBalance(msg.sender, _amount);
         }
@@ -219,16 +219,16 @@ contract Marketplace is IMarketplace, Initializable {
 
     /// @inheritdoc IMarketplace
     function balanceOf(
-        uint256 _orderId,
-        address _address
+        address _address,
+        uint256 _orderId
     ) public view returns (uint256) {
         Order memory order = orders[_orderId];
         Offer memory offer = offers[order.offerId];
 
         // if not fulfilled all is still available
         if (order.fulfilledAt == 0) {
-            return order.balance;
-        }
+            return _address == order.client ? order.balance : 0;
+        } 
 
         uint256 hoursElapsed = (block.timestamp -
             order.lastWithdrawal +

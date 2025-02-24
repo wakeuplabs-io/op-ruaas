@@ -90,5 +90,5 @@ interface IMarketplace is IMarketplaceStructs, IMarketplaceErrors, IMarketplaceE
     function withdraw(uint256 _orderId, uint256 _amount) external;
 
     /// @notice Returns the remaining balance of the order, computing at the moment
-    function balanceOf(uint256 _orderId, address _address) external view returns (uint256);
+    function balanceOf(address _address, uint256 _orderId) external view returns (uint256);
 }

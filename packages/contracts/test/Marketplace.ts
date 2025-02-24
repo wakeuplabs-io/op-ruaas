@@ -301,13 +301,13 @@ describe("Marketplace", function () {
         (await marketplace.orders(orderId)).fulfilledAt! + 1n
       );
 
-      // act and assert
-      await expect(marketplace.connect(client).terminateOrder(orderId)).not.to
-        .be.reverted;
+      // act
+      await marketplace.connect(client).terminateOrder(orderId);
 
       const clientBalanceAfter = await token.balanceOf(client.address);
       const vendorBalanceAfter = await token.balanceOf(vendor.address);
 
+      // assert
       expect(vendorBalanceAfter).to.equal(vendorBalanceBefore + PRICE_PER_HOUR);
       expect(clientBalanceAfter).to.equal(
         clientBalanceBefore + orderBalanceBefore - PRICE_PER_HOUR
@@ -325,6 +325,7 @@ describe("Marketplace", function () {
       const orderId = await clientCreateOrder(await vendorCreateOffer());
       await marketplace.connect(vendor).fulfillOrder(orderId, "metadata");
 
+      // act and assert
       await expect(marketplace.connect(other).terminateOrder(orderId)).to.be
         .reverted;
     });
@@ -340,6 +341,7 @@ describe("Marketplace", function () {
       const orderId = await clientCreateOrder(await vendorCreateOffer());
       await marketplace.connect(vendor).fulfillOrder(orderId, "metadata");
 
+      // act and assert
       await expect(marketplace.connect(vendor).terminateOrder(orderId))
         .to.emit(marketplace, "OrderTerminated")
         .withArgs(vendor.address, client.address, orderId);
@@ -501,7 +503,7 @@ describe("Marketplace", function () {
       ).not.to.equal(timestamp);
     });
 
-    it.only("Should revert if trying to withdraw more than allowed", async function () {
+    it("Should revert if trying to withdraw more than allowed", async function () {
       const {
         marketplace,
         client,
@@ -520,19 +522,101 @@ describe("Marketplace", function () {
 
   describe("BalanceOf", function () {
     it("Should return all balance if not fulfilled", async function () {
-      throw new Error("Not implemented");
+      const {
+        marketplace,
+        client,
+        vendor,
+        vendorCreateOffer,
+        clientCreateOrder,
+      } = await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+
+      // act and assert
+      expect(
+        await marketplace.balanceOf(await client.getAddress(), orderId)
+      ).to.equal(INITIAL_AMOUNT);
+      expect(
+        await marketplace.balanceOf(await vendor.getAddress(), orderId)
+      ).to.equal(0n);
     });
 
     it("Should return 0 if terminated", async function () {
-      throw new Error("Not implemented");
+      const {
+        marketplace,
+        client,
+        vendor,
+        vendorCreateOffer,
+        clientCreateOrder,
+      } = await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+      await marketplace.connect(vendor).fulfillOrder(orderId, "metadata");
+      await marketplace.connect(vendor).terminateOrder(orderId);
+
+      // act and assert
+      expect(
+        await marketplace.balanceOf(await client.getAddress(), orderId)
+      ).to.equal(0n);
+      expect(
+        await marketplace.balanceOf(await vendor.getAddress(), orderId)
+      ).to.equal(0n);
     });
 
     it("Should return max withdrawal balance for client and vendor", async function () {
-      throw new Error("Not implemented");
+      const {
+        marketplace,
+        client,
+        vendor,
+        vendorCreateOffer,
+        clientCreateOrder,
+      } = await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+
+      // act and assert
+      expect(
+        await marketplace.balanceOf(await client.getAddress(), orderId)
+      ).to.equal(INITIAL_AMOUNT);
+      expect(
+        await marketplace.balanceOf(await vendor.getAddress(), orderId)
+      ).to.equal(0n);
+
+      // fullfill and travel forward in time one hour to get exactly one payment in
+      await marketplace.connect(vendor).fulfillOrder(orderId, "metadata");
+      await time.increaseTo(
+        (await marketplace.orders(orderId)).fulfilledAt! + 1n
+      );
+
+      // act and assert
+      expect(
+        await marketplace.balanceOf(await client.getAddress(), orderId)
+      ).to.equal(INITIAL_AMOUNT - PRICE_PER_HOUR - DEPLOYMENT_FEE);
+      expect(
+        await marketplace.balanceOf(await vendor.getAddress(), orderId)
+      ).to.equal(PRICE_PER_HOUR); // deployment fee already withdrawn on fulfillment
     });
 
     it("Should return balance if accumulated exceeds it", async function () {
-      throw new Error("Not implemented");
+      const {
+        marketplace,
+        client,
+        vendor,
+        vendorCreateOffer,
+        clientCreateOrder,
+      } = await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+
+      // fulfill and travel forward in time one hour to get exactly one payment in
+      await marketplace.connect(vendor).fulfillOrder(orderId, "metadata");
+      await time.increaseTo(
+        (await marketplace.orders(orderId)).fulfilledAt! * 1000n // Sure not enough money deposited
+      );
+
+      // act and assert
+      expect(
+        await marketplace.balanceOf(await client.getAddress(), orderId)
+      ).to.equal(0n);
+      expect(
+        await marketplace.balanceOf(await vendor.getAddress(), orderId)
+      ).to.equal(INITIAL_AMOUNT - DEPLOYMENT_FEE); // deployment fee already withdrawn on fulfillment
     });
   });
 });
