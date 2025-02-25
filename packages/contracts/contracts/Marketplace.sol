@@ -3,10 +3,8 @@ pragma solidity ^0.8.28;
 
 import {IMarketplace} from "./interfaces/IMarketplace.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import "hardhat/console.sol";
 
-contract Marketplace is IMarketplace, Initializable {
+contract Marketplace is IMarketplace {
     IERC20 public paymentToken;
 
     uint256 public offerCount;
@@ -35,8 +33,7 @@ contract Marketplace is IMarketplace, Initializable {
         _;
     }
 
-    /// @inheritdoc IMarketplace
-    function initialize(IERC20 _paymentToken) public initializer {
+    constructor(IERC20 _paymentToken) {
         paymentToken = _paymentToken;
     }
 
