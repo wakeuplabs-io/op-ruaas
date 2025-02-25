@@ -130,9 +130,6 @@ interface IMarketplace is
     IMarketplaceErrors,
     IMarketplaceEvents
 {
-    /// @notice Initializes the marketplace
-    function initialize(IERC20 _paymentToken) external;
-
     /// @notice Vendor creates an offering
     function createOffer(
         uint256 _pricePerHour,
