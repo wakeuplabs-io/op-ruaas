@@ -1,6 +1,6 @@
 /// <reference path="./.sst/platform/config.d.ts" />
 
-const PROJECT_NAME = "opruaas";
+const PROJECT_NAME = "opruaas-marketplace";
 const REGION = "us-east-1";
 
 export default $config({
@@ -22,31 +22,20 @@ export default $config({
     };
   },
   async run() {
-    // auth
-    const userPool = new sst.aws.CognitoUserPool(`${PROJECT_NAME}-user-pool`, {
-      usernames: ["email"],
-    });
-    const userPoolClient = userPool.addClient("Web");
-
-    // api bucket for deployment artifacts
-    const bucket = new sst.aws.Bucket(`${PROJECT_NAME}-artifacts`);
 
     // static website
     const ui = new sst.aws.StaticSite(`${PROJECT_NAME}-ui`, {
-      path: "packages/ui",
+      path: "packages/marketplace/ui",
       build: {
         command: "npm run build",
         output: "dist",
       },
       dev: {
         command: "npm run dev",
-        directory: "packages/ui",
+        directory: "packages/marketplace/ui",
       },
       environment: {
-        VITE_SERVER_URL: api.url,
         VITE_APP_REGION: REGION,
-        VITE_USER_POOL_ID: userPool.id,
-        VITE_USER_POOL_CLIENT_ID: userPoolClient.id,
       },
       indexPage: "index.html",
       errorPage: "index.html",
