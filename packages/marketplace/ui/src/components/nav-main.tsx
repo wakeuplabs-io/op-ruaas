@@ -22,7 +22,6 @@ export function NavMain({
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Create</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item, index) => (
           <SidebarMenuItem key={index}>
