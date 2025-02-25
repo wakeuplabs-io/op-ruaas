@@ -17,13 +17,6 @@ export default function CustomConnectButton() {
         >
           <LogOut className="text-white w-5 h-5" />
         </button>
-
-        <button
-          className="bg-gray-200 p-2 rounded-lg flex items-center justify-center cursor-not-allowed"
-          type="button"
-        >
-          <Lock className="text-gray-500 w-5 h-5" />
-        </button>
       </div>
     );
   }

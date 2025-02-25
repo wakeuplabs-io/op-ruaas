@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Rocket, SettingsIcon } from "lucide-react";
+import { BookMarked, FilePlus2 } from "lucide-react";
 import { NavMain } from "@/components/nav-main";
 import {
   Sidebar,
@@ -18,12 +18,12 @@ const navMain = [
   {
     title: "New rollup",
     url: "/app",
-    icon: SettingsIcon,
+    icon: FilePlus2,
   },
   {
     title: "My rollups",
     url: "/app/deploy",
-    icon: Rocket,
+    icon: BookMarked,
   },
 ];
 
@@ -48,20 +48,16 @@ export function AppSidebar({
           }))}
         />
       </SidebarContent>
-
+      <CustomConnectButton />
       <SidebarFooter className="pb-4 px-4 flex flex-col items-center space-y-6">
-  <div className="w-full flex justify-center">
-    <CustomConnectButton />
-  </div>
-
-  <a
-    href="https://www.wakeuplabs.io/"
-    target="_blank"
-    className={cn(buttonVariants({ variant: "secondary" }), "w-full h-[74px] flex justify-center items-center")}
-  >
-    <img className="h-[45px]" src="/wakeuplabs.png" alt="logo" />
-  </a>
-</SidebarFooter>
+        <a
+          href="https://www.wakeuplabs.io/"
+          target="_blank"
+          className={cn(buttonVariants({ variant: "secondary" }), "w-full h-[74px] flex justify-center items-center")}
+        >
+          <img className="h-[45px]" src="/wakeuplabs.png" alt="logo" />
+        </a>
+      </SidebarFooter>
 
 
     </Sidebar>
