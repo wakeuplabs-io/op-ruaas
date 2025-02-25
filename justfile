@@ -62,6 +62,14 @@ console-migrate stage:
 	echo "Ensure tunnel is installed 'sudo npx sst tunnel install --stage {{stage}}' and running 'npx sst tunnel --stage {{stage}}' or 'just console-tunnel {{stage}}'"
 	npx sst shell --target db --stage {{stage}} sqlx migrate run
 
+# contracts
+
+contracts-test:
+	(cd packages/contracts && npm test)
+
+contracts-lint:
+	(cd packages/contracts && npm run lint)
+
 # utils
 
 clean-apple:
