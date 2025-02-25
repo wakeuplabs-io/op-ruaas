@@ -7,9 +7,6 @@ import {
   SidebarFooter,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-import { NavDeployments } from "./nav-deployments";
-import { capitalize } from "@/lib/strings";
-import { Deployment } from "@/lib/services/deployment";
 import { cn } from "@/lib/utils";
 import CustomConnectButton from "./connect-wallet";
 import { buttonVariants } from "./ui/button";
@@ -28,9 +25,8 @@ const navMain = [
 ];
 
 export function AppSidebar({
-  deployments,
   ...props
-}: React.ComponentProps<typeof Sidebar> & { deployments: Deployment[] }) {
+}: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -41,12 +37,6 @@ export function AppSidebar({
 
       <SidebarContent className="px-2">
         <NavMain items={navMain} />
-        <NavDeployments
-          deployments={deployments.map((d) => ({
-            id: d.id,
-            name: capitalize(d.name),
-          }))}
-        />
       </SidebarContent>
       <CustomConnectButton />
       <SidebarFooter className="pb-4 px-4 flex flex-col items-center space-y-6">

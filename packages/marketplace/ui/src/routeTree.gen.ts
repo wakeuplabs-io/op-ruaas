@@ -15,16 +15,10 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Route as rootRoute } from './routes/__root'
 import { Route as AppImport } from './routes/app'
 import { Route as IndexImport } from './routes/index'
-import { Route as AuthSignupImport } from './routes/auth/signup'
-import { Route as AuthSigninImport } from './routes/auth/signin'
-import { Route as AuthConfirmImport } from './routes/auth/confirm'
-import { Route as AppDeploymentsIdImport } from './routes/app/deployments.$id'
 
 // Create Virtual Routes
 
 const AppIndexLazyImport = createFileRoute('/app/')()
-const AppVerifyIndexLazyImport = createFileRoute('/app/verify/')()
-const AppDeployIndexLazyImport = createFileRoute('/app/deploy/')()
 
 // Create/Update Routes
 
@@ -46,46 +40,6 @@ const AppIndexLazyRoute = AppIndexLazyImport.update({
   getParentRoute: () => AppRoute,
 } as any).lazy(() => import('./routes/app/index.lazy').then((d) => d.Route))
 
-const AuthSignupRoute = AuthSignupImport.update({
-  id: '/auth/signup',
-  path: '/auth/signup',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const AuthSigninRoute = AuthSigninImport.update({
-  id: '/auth/signin',
-  path: '/auth/signin',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const AuthConfirmRoute = AuthConfirmImport.update({
-  id: '/auth/confirm',
-  path: '/auth/confirm',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const AppVerifyIndexLazyRoute = AppVerifyIndexLazyImport.update({
-  id: '/verify/',
-  path: '/verify/',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() =>
-  import('./routes/app/verify.index.lazy').then((d) => d.Route),
-)
-
-const AppDeployIndexLazyRoute = AppDeployIndexLazyImport.update({
-  id: '/deploy/',
-  path: '/deploy/',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() =>
-  import('./routes/app/deploy.index.lazy').then((d) => d.Route),
-)
-
-const AppDeploymentsIdRoute = AppDeploymentsIdImport.update({
-  id: '/deployments/$id',
-  path: '/deployments/$id',
-  getParentRoute: () => AppRoute,
-} as any)
-
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -104,53 +58,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppImport
       parentRoute: typeof rootRoute
     }
-    '/auth/confirm': {
-      id: '/auth/confirm'
-      path: '/auth/confirm'
-      fullPath: '/auth/confirm'
-      preLoaderRoute: typeof AuthConfirmImport
-      parentRoute: typeof rootRoute
-    }
-    '/auth/signin': {
-      id: '/auth/signin'
-      path: '/auth/signin'
-      fullPath: '/auth/signin'
-      preLoaderRoute: typeof AuthSigninImport
-      parentRoute: typeof rootRoute
-    }
-    '/auth/signup': {
-      id: '/auth/signup'
-      path: '/auth/signup'
-      fullPath: '/auth/signup'
-      preLoaderRoute: typeof AuthSignupImport
-      parentRoute: typeof rootRoute
-    }
     '/app/': {
       id: '/app/'
       path: '/'
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexLazyImport
-      parentRoute: typeof AppImport
-    }
-    '/app/deployments/$id': {
-      id: '/app/deployments/$id'
-      path: '/deployments/$id'
-      fullPath: '/app/deployments/$id'
-      preLoaderRoute: typeof AppDeploymentsIdImport
-      parentRoute: typeof AppImport
-    }
-    '/app/deploy/': {
-      id: '/app/deploy/'
-      path: '/deploy'
-      fullPath: '/app/deploy'
-      preLoaderRoute: typeof AppDeployIndexLazyImport
-      parentRoute: typeof AppImport
-    }
-    '/app/verify/': {
-      id: '/app/verify/'
-      path: '/verify'
-      fullPath: '/app/verify'
-      preLoaderRoute: typeof AppVerifyIndexLazyImport
       parentRoute: typeof AppImport
     }
   }
@@ -160,16 +72,10 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppIndexLazyRoute: typeof AppIndexLazyRoute
-  AppDeploymentsIdRoute: typeof AppDeploymentsIdRoute
-  AppDeployIndexLazyRoute: typeof AppDeployIndexLazyRoute
-  AppVerifyIndexLazyRoute: typeof AppVerifyIndexLazyRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppIndexLazyRoute: AppIndexLazyRoute,
-  AppDeploymentsIdRoute: AppDeploymentsIdRoute,
-  AppDeployIndexLazyRoute: AppDeployIndexLazyRoute,
-  AppVerifyIndexLazyRoute: AppVerifyIndexLazyRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -177,89 +83,38 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
-  '/auth/confirm': typeof AuthConfirmRoute
-  '/auth/signin': typeof AuthSigninRoute
-  '/auth/signup': typeof AuthSignupRoute
   '/app/': typeof AppIndexLazyRoute
-  '/app/deployments/$id': typeof AppDeploymentsIdRoute
-  '/app/deploy': typeof AppDeployIndexLazyRoute
-  '/app/verify': typeof AppVerifyIndexLazyRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth/confirm': typeof AuthConfirmRoute
-  '/auth/signin': typeof AuthSigninRoute
-  '/auth/signup': typeof AuthSignupRoute
   '/app': typeof AppIndexLazyRoute
-  '/app/deployments/$id': typeof AppDeploymentsIdRoute
-  '/app/deploy': typeof AppDeployIndexLazyRoute
-  '/app/verify': typeof AppVerifyIndexLazyRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
-  '/auth/confirm': typeof AuthConfirmRoute
-  '/auth/signin': typeof AuthSigninRoute
-  '/auth/signup': typeof AuthSignupRoute
   '/app/': typeof AppIndexLazyRoute
-  '/app/deployments/$id': typeof AppDeploymentsIdRoute
-  '/app/deploy/': typeof AppDeployIndexLazyRoute
-  '/app/verify/': typeof AppVerifyIndexLazyRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/app'
-    | '/auth/confirm'
-    | '/auth/signin'
-    | '/auth/signup'
-    | '/app/'
-    | '/app/deployments/$id'
-    | '/app/deploy'
-    | '/app/verify'
+  fullPaths: '/' | '/app' | '/app/'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/auth/confirm'
-    | '/auth/signin'
-    | '/auth/signup'
-    | '/app'
-    | '/app/deployments/$id'
-    | '/app/deploy'
-    | '/app/verify'
-  id:
-    | '__root__'
-    | '/'
-    | '/app'
-    | '/auth/confirm'
-    | '/auth/signin'
-    | '/auth/signup'
-    | '/app/'
-    | '/app/deployments/$id'
-    | '/app/deploy/'
-    | '/app/verify/'
+  to: '/' | '/app'
+  id: '__root__' | '/' | '/app' | '/app/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
-  AuthConfirmRoute: typeof AuthConfirmRoute
-  AuthSigninRoute: typeof AuthSigninRoute
-  AuthSignupRoute: typeof AuthSignupRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
-  AuthConfirmRoute: AuthConfirmRoute,
-  AuthSigninRoute: AuthSigninRoute,
-  AuthSignupRoute: AuthSignupRoute,
 }
 
 export const routeTree = rootRoute
@@ -273,10 +128,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/app",
-        "/auth/confirm",
-        "/auth/signin",
-        "/auth/signup"
+        "/app"
       ]
     },
     "/": {
@@ -285,35 +137,11 @@ export const routeTree = rootRoute
     "/app": {
       "filePath": "app.tsx",
       "children": [
-        "/app/",
-        "/app/deployments/$id",
-        "/app/deploy/",
-        "/app/verify/"
+        "/app/"
       ]
-    },
-    "/auth/confirm": {
-      "filePath": "auth/confirm.tsx"
-    },
-    "/auth/signin": {
-      "filePath": "auth/signin.tsx"
-    },
-    "/auth/signup": {
-      "filePath": "auth/signup.tsx"
     },
     "/app/": {
       "filePath": "app/index.lazy.tsx",
-      "parent": "/app"
-    },
-    "/app/deployments/$id": {
-      "filePath": "app/deployments.$id.tsx",
-      "parent": "/app"
-    },
-    "/app/deploy/": {
-      "filePath": "app/deploy.index.lazy.tsx",
-      "parent": "/app"
-    },
-    "/app/verify/": {
-      "filePath": "app/verify.index.lazy.tsx",
       "parent": "/app"
     }
   }
