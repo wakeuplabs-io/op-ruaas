@@ -1,6 +1,6 @@
 /// <reference path="./.sst/platform/config.d.ts" />
 
-const PROJECT_NAME = "opruaas";
+const PROJECT_NAME = "opruaas-console";
 const REGION = "us-east-1";
 
 export default $config({
@@ -14,7 +14,7 @@ export default $config({
           region: REGION,
           defaultTags: {
             tags: {
-              customer: "op-ruaas",
+              customer: "op-ruaas-console",
             },
           },
         },
@@ -51,7 +51,7 @@ export default $config({
     const api = new sst.aws.Function(`${PROJECT_NAME}-api`, {
       vpc,
       handler: "bootstrap",
-      bundle: "target/lambda/opraas_server",
+      bundle: "target/lambda/opraas_console_server",
       architecture: "arm64", // or x86_64
       runtime: "provided.al2023",
       url: true,
