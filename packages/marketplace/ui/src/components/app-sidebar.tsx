@@ -1,6 +1,5 @@
 import * as React from "react";
-import { LogInIcon, Rocket, SettingsIcon, ShieldCheck } from "lucide-react";
-import { useRouter } from "@tanstack/react-router";
+import { Rocket, SettingsIcon } from "lucide-react";
 import { NavMain } from "@/components/nav-main";
 import {
   Sidebar,
@@ -9,27 +8,22 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { NavDeployments } from "./nav-deployments";
-import { Button, buttonVariants } from "./ui/button";
-import { useAuth } from "@/lib/hooks/use-auth";
 import { capitalize } from "@/lib/strings";
 import { Deployment } from "@/lib/services/deployment";
 import { cn } from "@/lib/utils";
+import CustomConnectButton from "./connect-wallet";
+import { buttonVariants } from "./ui/button";
 
 const navMain = [
   {
-    title: "Setup",
+    title: "New rollup",
     url: "/app",
     icon: SettingsIcon,
   },
   {
-    title: "Deploy",
+    title: "My rollups",
     url: "/app/deploy",
     icon: Rocket,
-  },
-  {
-    title: "Verify",
-    url: "/app/verify",
-    icon: ShieldCheck,
   },
 ];
 
@@ -37,9 +31,6 @@ export function AppSidebar({
   deployments,
   ...props
 }: React.ComponentProps<typeof Sidebar> & { deployments: Deployment[] }) {
-  const router = useRouter();
-  const { user, signOut } = useAuth();
-
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -58,26 +49,21 @@ export function AppSidebar({
         />
       </SidebarContent>
 
-      <SidebarFooter className="pb-4 px-4">
-        <a href="https://www.wakeuplabs.io/" target="_blank" className={cn(buttonVariants({ variant: "secondary" }), "w-full h-[74px]")}>
-          <img className="h-[45px]" src="/wakeuplabs.png" alt="logo" />
-        </a>
+      <SidebarFooter className="pb-4 px-4 flex flex-col items-center space-y-6">
+  <div className="w-full flex justify-center">
+    <CustomConnectButton />
+  </div>
 
-        {user ? (
-          <Button variant="ghost" onClick={() => signOut()}>
-            <LogInIcon className="h-4 w-4" />
-            <span>Logout</span>
-          </Button>
-        ) : (
-          <Button
-            variant="ghost"
-            onClick={() => router.navigate({ to: "/auth/signin" })}
-          >
-            <LogInIcon className="h-4 w-4" />
-            <span>Login</span>
-          </Button>
-        )}
-      </SidebarFooter>
+  <a
+    href="https://www.wakeuplabs.io/"
+    target="_blank"
+    className={cn(buttonVariants({ variant: "secondary" }), "w-full h-[74px] flex justify-center items-center")}
+  >
+    <img className="h-[45px]" src="/wakeuplabs.png" alt="logo" />
+  </a>
+</SidebarFooter>
+
+
     </Sidebar>
   );
 }
