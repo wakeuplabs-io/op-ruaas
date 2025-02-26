@@ -4,7 +4,9 @@
   "description": "Easy optimism rollups",
   "workspaces": [
     "packages/cli",
-    "packages/ui"
+    "packages/console-ui",
+    "packages/marketplace/ui",
+    "packages/marketplace"
   ],
   "scripts": {
     "format:md": "prettier --write \"**/*.md\"",
