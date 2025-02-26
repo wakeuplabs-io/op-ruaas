@@ -69,6 +69,14 @@ marketplace-ui-run:
 
 marketplace-deploy stage:
   cd packages/marketplace && npx sst deploy --stage {{stage}}
+  
+# contracts
+
+contracts-test:
+	(cd packages/contracts && npm test)
+
+contracts-lint:
+	(cd packages/contracts && npm run lint)
 
 # utils
 
