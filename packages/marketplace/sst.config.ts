@@ -25,14 +25,14 @@ export default $config({
 
     // static website
     const ui = new sst.aws.StaticSite(`${PROJECT_NAME}-ui`, {
-      path: "packages/marketplace/ui",
+      path: "ui",
       build: {
         command: "npm run build",
         output: "dist",
       },
       dev: {
         command: "npm run dev",
-        directory: "packages/marketplace/ui",
+        directory: "ui",
       },
       environment: {
         VITE_APP_REGION: REGION,
