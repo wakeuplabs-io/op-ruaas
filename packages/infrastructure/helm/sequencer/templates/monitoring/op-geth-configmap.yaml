@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: op-geth-dashboard
+  labels:
+    grafana_dashboard: "1"
+data:
+    {{- $file := .Files.Get "assets/op-geth-dashboard.json" }}
+  op-geth.json: |-
+    {{ $file | nindent 6 }}
+  

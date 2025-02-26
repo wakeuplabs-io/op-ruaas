@@ -5,7 +5,7 @@ metadata:
   labels:
     grafana_dashboard: "1"
 data:
-    {{- $file := .Files.Get "dashboards/op-stack.json" }}
+    {{- $file := .Files.Get "assets/op-stack-dashboard.json" }}
   op-stack.json: |-
     {{ $file | nindent 6 }}
   

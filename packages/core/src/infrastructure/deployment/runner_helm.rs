@@ -146,6 +146,7 @@ impl HelmDeploymentRunner {
                 "ingress-nginx",
                 "ingress-nginx/ingress-nginx",
                 vec!["--version", "v4.6.0"],
+                // TODO: helm -n ingress-nginx upgrade ingress-nginx ingress-nginx/ingress-nginx --version "v4.6.0" --set tcp.30313="op-geth-sequencer-service/:30313" TODO: also udp and so on. TODO: also in terraform
             ),
             (
                 "cert-manager",

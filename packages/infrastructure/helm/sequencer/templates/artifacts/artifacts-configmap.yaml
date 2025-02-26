@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: core-config-files
+  labels:
+    app: configurations
+binaryData:
+  artifacts.zip: {{ .Files.Get (required "chain.artifacts is required" .Values.chain.artifacts) | b64enc }}
