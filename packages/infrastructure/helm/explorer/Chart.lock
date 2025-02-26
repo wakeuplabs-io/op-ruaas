@@ -1,0 +1,9 @@
+dependencies:
+- name: kube-prometheus-stack
+  repository: https://prometheus-community.github.io/helm-charts
+  version: 65.5.1
+- name: blockscout-stack
+  repository: https://blockscout.github.io/helm-charts
+  version: 1.7.0
+digest: sha256:b051f5df192854286defe345dd7a376de0eb08abf69f5ab93e33faa09b9fe7af
+generated: "2024-11-11T10:59:30.092408854-03:00"

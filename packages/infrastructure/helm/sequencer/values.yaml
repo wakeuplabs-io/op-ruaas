@@ -1,7 +1,7 @@
 # global configs ===============================================================
 
 global:
-  host: localhost # demo.example.com
+  host: localhost # demo.example.com TODO: should be an array
   protocol: http
   email: email@email.com
   storageClassName: gp2 # Override with "" for default (recommended in local environment)

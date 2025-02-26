@@ -178,9 +178,16 @@ impl DevCommand {
             "⏳ Installing infra in local kubernetes...",
         );
 
+        // TODO: run sequencer or replica
         self.deployment_runner
             .run(&project, &deployment, enable_monitoring, enable_explorer)
             .await?;
+
+        // TODO: run monitoring
+
+        // TODO: run explorer
+
+        
 
         infra_spinner.finish_with_message("✔️ Infra installed...");
 
