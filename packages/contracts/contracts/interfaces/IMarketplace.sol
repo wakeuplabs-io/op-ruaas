@@ -1,6 +1,5 @@
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
-
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @title Marketplace Errors Interface
 /// @notice Defines common errors used in the Marketplace contract
@@ -170,4 +169,10 @@ interface IMarketplace is
         address _address,
         uint256 _orderId
     ) external view returns (uint256);
+
+    /// @notice Returns the list of orders where the given address is the client.
+    function getClientOrders(address _user) external view returns (uint256[] memory);
+
+    /// @notice Returns the list of orders where the given address is the vendor.
+    function getVendorOrders(address _user) external view returns (uint256[] memory);
 }
