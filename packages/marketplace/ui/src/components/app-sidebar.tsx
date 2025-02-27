@@ -1,6 +1,5 @@
 import * as React from "react";
-import { BookMarked, FilePlus2 } from "lucide-react";
-import { NavMain } from "@/components/nav-main";
+import { Plus, CircleDot, MoreHorizontal } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -10,23 +9,11 @@ import {
 import { cn } from "@/lib/utils";
 import CustomConnectButton from "./connect-wallet";
 import { buttonVariants } from "./ui/button";
+import { useGetUserRollups } from "@/hooks/use-get-user-orders";
 
-const navMain = [
-  {
-    title: "New rollup",
-    url: "/app",
-    icon: FilePlus2,
-  },
-  {
-    title: "My rollups",
-    url: "/app/deploy",
-    icon: BookMarked,
-  },
-];
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { userOrders: rollups } = useGetUserRollups();
 
-export function AppSidebar({
-  ...props
-}: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -35,11 +22,46 @@ export function AppSidebar({
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-2">
-        <NavMain items={navMain} />
+      <SidebarContent className="px-4 space-y-4">
+        <button
+          className="w-full flex items-center gap-2 py-2 px-4 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+        >
+          <Plus size={16} className="text-red-500" /> 
+          <span className="font-medium">New Rollup</span>
+        </button>
+
+        <div className="mt-4">
+          <h4 className="text-sm text-gray-500 font-medium mb-2">My Rollups</h4>
+          <ul className="space-y-2">
+            {/* {rollups.map((rollup, index) => (
+              <li 
+                key={index} 
+                className="flex items-center gap-2 text-gray-700 text-sm cursor-pointer hover:text-black transition"
+              >
+                <CircleDot size={12} className="text-gray-500" /> 
+                {rollup.name}
+              </li>
+            ))} */}
+          </ul>
+
+          <button className="mt-2 flex items-center gap-1 text-gray-500 text-sm hover:text-black transition">
+            <MoreHorizontal size={14} className="text-gray-500" /> 
+            View all Rounds
+          </button>
+        </div>
       </SidebarContent>
-      <CustomConnectButton />
-      <SidebarFooter className="pb-4 px-4 flex flex-col items-center space-y-6">
+
+      <div className="px-4 mt-auto text-sm text-gray-700">
+        <h4 className="text-gray-500 text-xs mb-1">Provider</h4>
+        <p className="font-medium">John Doe</p>
+        <p className="text-xs text-gray-500">0x11247237...ashy760</p>
+      </div>
+
+      <div className="px-4 mt-4">
+        <CustomConnectButton/>
+      </div>
+
+      <SidebarFooter className="pb-4 px-4 flex flex-col items-center mt-4">
         <a
           href="https://www.wakeuplabs.io/"
           target="_blank"
@@ -48,8 +70,6 @@ export function AppSidebar({
           <img className="h-[45px]" src="/wakeuplabs.png" alt="logo" />
         </a>
       </SidebarFooter>
-
-
     </Sidebar>
   );
 }
