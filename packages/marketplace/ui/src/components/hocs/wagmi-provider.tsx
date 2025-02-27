@@ -4,19 +4,15 @@ import { defineChain, http, Chain } from "viem";
 import { connectorsForWallets } from "@rainbow-me/rainbowkit";
 import { metaMaskWallet } from "@rainbow-me/rainbowkit/wallets";
 import { braveWallet } from "@rainbow-me/rainbowkit/wallets";
-import { customMainnet, customSepolia } from "@/lib/wagmi-config";
+import { optimismTestnet } from "@/lib/wagmi-config";
 
 function WagmiSetup({ children }: { children: React.ReactNode }) {
 
   const definedChains: [Chain, ...Chain[]] = useMemo(() => {
     let myChains: [Chain, ...Chain[]] = [
       defineChain({
-        ...customMainnet,
-        id: customMainnet.chainId,
-      }),
-      defineChain({
-        ...customSepolia,
-        id: customSepolia.chainId,
+        ... optimismTestnet,
+        id:  optimismTestnet.chainId,
       }),
     ];
     return myChains;

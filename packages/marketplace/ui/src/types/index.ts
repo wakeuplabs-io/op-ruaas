@@ -29,3 +29,11 @@ export type NetworkConfig = {
   isTestnet?: boolean;
   chainId: number;
 };
+
+export type Plan = {
+  title: string;
+  price: number;
+  features: string[];
+  buttonText: string;
+  deploymentFee: bigint;
+};
