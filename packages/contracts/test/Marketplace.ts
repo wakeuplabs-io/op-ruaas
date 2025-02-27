@@ -21,9 +21,8 @@ describe("Marketplace", function () {
     const tokenAddress = await token.getAddress();
 
     const Marketplace = await hre.ethers.getContractFactory("Marketplace");
-    const marketplace = await Marketplace.deploy();
+    const marketplace = await Marketplace.deploy(tokenAddress);
     const marketplaceAddress = await marketplace.getAddress();
-    await marketplace.initialize(await token.getAddress());
     await token.connect(client).approve(marketplaceAddress, 1000000n);
 
     async function vendorCreateOffer(): Promise<bigint> {
@@ -71,16 +70,6 @@ describe("Marketplace", function () {
       expect(await marketplace.paymentToken()).to.equal(
         await token.getAddress()
       );
-    });
-
-    it("Should fail if already initialized", async function () {
-      const { marketplace, token } = await loadFixture(
-        deployMarketplaceFixture
-      );
-
-      // act and assert
-      await expect(marketplace.initialize(await token.getAddress())).to.be
-        .reverted;
     });
   });
 
@@ -619,4 +608,63 @@ describe("Marketplace", function () {
       ).to.equal(INITIAL_AMOUNT - DEPLOYMENT_FEE); // deployment fee already withdrawn on fulfillment
     });
   });
+
+
+  describe("getUserOrders", function () {
+    it("Should return user orders correctly", async function () {
+      const { marketplace, client, vendorCreateOffer, clientCreateOrder } = await loadFixture(deployMarketplaceFixture);
+      const offerId = await vendorCreateOffer();
+      const orderId1 = await clientCreateOrder(offerId);
+      const orderId2 = await clientCreateOrder(offerId);
+      
+      const userOrders = await marketplace.getClientOrders(client.address);
+      
+      expect(userOrders).to.deep.equal([orderId1, orderId2]);
+    });
+  
+    it("Should return an empty array for users with no orders", async function () {
+      const { marketplace, other } = await loadFixture(deployMarketplaceFixture);
+      const userOrders = await marketplace.getClientOrders(other.address);
+      expect(userOrders).to.deep.equal([]);
+    });
+  
+    it("Should return an empty array for vendors who have not placed orders as clients", async function () {
+      const { marketplace, vendor, vendorCreateOffer } = await loadFixture(deployMarketplaceFixture);
+      await vendorCreateOffer();
+      
+      const vendorOrders = await marketplace.getClientOrders(vendor.address);
+      expect(vendorOrders).to.deep.equal([]);
+    });
+  });
+  
+  
+  describe("getVendorOrders", function () {
+    it("Should return vendor orders correctly", async function () {
+      const { marketplace, vendor, vendorCreateOffer, clientCreateOrder } = await loadFixture(deployMarketplaceFixture);
+      const offerId = await vendorCreateOffer();
+      const orderId1 = await clientCreateOrder(offerId);
+      const orderId2 = await clientCreateOrder(offerId);
+  
+      const vendorOrders = await marketplace.getVendorOrders(vendor.address);
+  
+      expect(vendorOrders).to.deep.equal([orderId1, orderId2]);
+    });
+  
+    it("Should return an empty array for vendors with no orders", async function () {
+      const { marketplace, other } = await loadFixture(deployMarketplaceFixture);
+      const vendorOrders = await marketplace.getVendorOrders(other.address);
+      expect(vendorOrders).to.deep.equal([]);
+    });
+  
+    it("Should return an empty array when querying a client address", async function () {
+      const { marketplace, client, vendorCreateOffer, clientCreateOrder } = await loadFixture(deployMarketplaceFixture);
+      const offerId = await vendorCreateOffer();
+      await clientCreateOrder(offerId);
+  
+      const clientOrders = await marketplace.getVendorOrders(client.address);
+  
+      expect(clientOrders).to.deep.equal([]);
+    });
+  });
+
 });
