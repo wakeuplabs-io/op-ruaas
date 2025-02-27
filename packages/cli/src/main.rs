@@ -42,10 +42,13 @@ enum Commands {
         #[arg(value_enum, default_value_t = StartDeploymentKind::Sequencer)]
         kind: StartDeploymentKind,
 
+        #[arg(value_enum, default_value = "http://host.docker.internal:80/rpc")]
+        sequencer_url: String,
+        
         #[arg(long, default_value_t = false)]
         default: bool,
+        
         // TODO: values file
-        // TODO: sequencer_url for replica
     },
     /// Deploy your blockchain. Target must be one of: contracts, infra, all
     Deploy {
@@ -115,7 +118,15 @@ async fn main() {
         Commands::Init { target } => InitCommand::new().run(&ctx, &target),
         Commands::Build { target } => BuildCommand::new().run(&ctx, &target),
         Commands::Release { target } => ReleaseCommand::new().run(&ctx, target),
-        Commands::Start { default, kind } => StartCommand::new().run(&ctx, kind, default).await,
+        Commands::Start {
+            default,
+            kind,
+            sequencer_url,
+        } => {
+            StartCommand::new()
+                .run(&ctx, kind, &sequencer_url, default)
+                .await
+        }
         Commands::Deploy {
             target,
             deployment_id,

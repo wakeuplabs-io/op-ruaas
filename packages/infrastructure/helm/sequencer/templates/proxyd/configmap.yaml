@@ -30,7 +30,8 @@ data:
       "eth_syncing",
       "net_peerCount",
       "eth_feeHistory",
-      "eth_getTransactionReceipt"
+      "eth_getTransactionReceipt",
+      "admin_nodeInfo"
     ]
     ws_backend_group = "main"
 
@@ -105,3 +106,4 @@ data:
     net_peerCount = "sequencer"      
     eth_getTransactionReceipt = "sequencer"         
     eth_feeHistory = "main"
+    admin_nodeInfo = "sequencer"

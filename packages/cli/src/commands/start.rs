@@ -9,7 +9,9 @@ use assert_cmd::Command;
 use clap::ValueEnum;
 use indicatif::ProgressBar;
 use opraas_core::{
-    application::deployment::{deploy_contracts::ContractsDeployerService, run::DeploymentRunnerService},
+    application::deployment::{
+        deploy_contracts::ContractsDeployerService, manager::DeploymentManagerService, run::DeploymentRunnerService,
+    },
     config::CoreConfig,
     domain::{Deployment, DeploymentKind, DeploymentOptions, Project},
     infrastructure::{
@@ -53,6 +55,7 @@ pub struct StartCommand {
     dialoguer: Dialoguer,
     l1_node: Box<dyn TTestnetNode>,
     deployment_runner: DeploymentRunnerService<HelmDeploymentRunner, InMemoryProjectInfraRepository>,
+    deployments_manager: DeploymentManagerService<InMemoryDeploymentRepository, InMemoryDeploymentArtifactsRepository>,
     system_requirement_checker: SystemRequirementsChecker,
     contracts_deployer: ContractsDeployerService<
         InMemoryDeploymentRepository,
@@ -80,6 +83,10 @@ impl StartCommand {
                 ))),
                 InMemoryProjectInfraRepository::new(),
             ),
+            deployments_manager: DeploymentManagerService::new(
+                InMemoryDeploymentRepository::new(&project.root),
+                InMemoryDeploymentArtifactsRepository::new(&project.root),
+            ),
             system_requirement_checker: SystemRequirementsChecker::new(),
             contracts_deployer: ContractsDeployerService::new(
                 InMemoryDeploymentRepository::new(&project.root),
@@ -96,6 +103,7 @@ impl StartCommand {
         &mut self,
         ctx: &AppContext,
         kind: StartDeploymentKind,
+        sequencer_url: &str,
         default: bool,
     ) -> Result<(), Box<dyn std::error::Error>> {
         self.system_requirement_checker
@@ -171,21 +179,15 @@ impl StartCommand {
 
         // start local network ===========================
 
-        // TODO: only if sequencer
-        let l1_spinner = style_spinner(ProgressBar::new_spinner(), "⏳ Starting l1 node...");
+        if let StartDeploymentKind::Sequencer = kind {
+            let l1_spinner = style_spinner(ProgressBar::new_spinner(), "⏳ Starting l1 node...");
 
-        self.l1_node.start(config.network.l1_chain_id, 8545)?;
+            self.l1_node.start(config.network.l1_chain_id, 8545)?;
 
-        l1_spinner.finish_with_message("✔️ L1 node ready...");
+            l1_spinner.finish_with_message("✔️ L1 node ready...");
+        }
 
         // Deploy contracts ===========================
-
-        // TODO: only for sequencer, otherwise assume it's ready
-
-        let contracts_spinner = style_spinner(
-            ProgressBar::new_spinner(),
-            "⏳ Deploying contracts to local network...",
-        );
 
         let mut deployment = Deployment::new(
             "dev",
@@ -197,11 +199,26 @@ impl StartCommand {
             config.accounts,
         )?;
 
-        self.contracts_deployer
-            .deploy(&project, &mut deployment, true, false)
-            .await?;
+        if let StartDeploymentKind::Sequencer = kind {
+            let contracts_spinner = style_spinner(
+                ProgressBar::new_spinner(),
+                "⏳ Deploying contracts to local network...",
+            );
 
-        contracts_spinner.finish_with_message("✔️ Contracts deployed...");
+            self.contracts_deployer
+                .deploy(&project, &mut deployment, true, false)
+                .await?;
+
+            contracts_spinner.finish_with_message("✔️ Contracts deployed...");
+        } else {
+            let contracts_depl = self
+                .deployments_manager
+                .find_by_id(&deployment.id)
+                .await?
+                .ok_or("Deployment not found")?;
+
+            deployment.contracts_addresses = contracts_depl.contracts_addresses;
+        }
 
         // start stack ===========================
 
@@ -222,6 +239,11 @@ impl StartCommand {
             }
         }
 
+        let host = match kind {
+            StartDeploymentKind::Replica => "replica.localhost",
+            StartDeploymentKind::Sequencer => "localhost",
+        };
+
         // run sequencer or replica
         self.deployment_runner
             .run(
@@ -231,9 +253,10 @@ impl StartCommand {
                     kind: kind.into(),
                     explorer: enable_explorer,
                     monitoring: enable_monitoring,
-                    host: "localhost".to_string(),
+                    host: host.to_string(),
                     release_namespace: self.release_namespace.clone().unwrap(),
                     release_tag: self.release_tag.clone().unwrap(),
+                    sequencer_url: Some(sequencer_url.to_string()),
                     storage_class_name: "".to_string(),
                 },
             )
@@ -245,13 +268,16 @@ impl StartCommand {
 
         print_info("\n\n================================================\n\n");
 
-        print_info("L1 rpc available at http://localhost:8545");
-        print_info("L2 rpc available at http://localhost:80/rpc");
+        print_info(&format!("L1 rpc available at http://{}:8545", host));
+        print_info(&format!("L2 rpc available at http://{}:80/rpc", host));
         if enable_monitoring {
-            print_info("L2 monitoring available at http://localhost:80/monitoring");
+            print_info(&format!(
+                "L2 monitoring available at http://{}:80/monitoring",
+                host
+            ));
         }
         if enable_explorer {
-            print_info("L2 explorer available at http://localhost:80");
+            print_info(&format!("L2 explorer available at http://{}:80", host));
         }
         print_warning("It may take a little bit for rpc to respond and explorer to index...");
 
