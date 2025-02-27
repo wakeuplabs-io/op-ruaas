@@ -1,13 +1,12 @@
 import "./index.css";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { Amplify } from "aws-amplify";
 import { Toaster } from "./components/ui/toaster.tsx";
 import { RouterProvider } from "@tanstack/react-router";
 import { routeTree } from "@/routeTree.gen";
 import { createRouter } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { lightTheme, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import {  RainbowKitProvider } from "@rainbow-me/rainbowkit";
 
 import '@rainbow-me/rainbowkit/styles.css';
 
