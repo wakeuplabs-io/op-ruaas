@@ -1,7 +1,7 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 export default buildModule("CreateOffer", (m) => {
-  const MARKETPLACE_ADDRESS = "0xE49dA88395d76bB4385DfD4d5E0deA19BfDCB3Bd";
+  const MARKETPLACE_ADDRESS = "0x232d520FD20C8fE0B6CE27A844653a0eC09298ea";
 
   const PRICE_PER_HOUR = 1n;
   const DEPLOYMENT_FEE = 2n;
