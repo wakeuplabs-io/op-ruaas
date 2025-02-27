@@ -1,6 +1,6 @@
 /// <reference path="./.sst/platform/config.d.ts" />
 
-const PROJECT_NAME = "opruaas";
+const PROJECT_NAME = "opruaas-console";
 const REGION = "us-east-1";
 
 export default $config({
@@ -14,7 +14,7 @@ export default $config({
           region: REGION,
           defaultTags: {
             tags: {
-              customer: "op-ruaas",
+              customer: "op-ruaas-console",
             },
           },
         },

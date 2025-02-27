@@ -1,0 +1,12 @@
+/optimism
+/op-geth
+/bin
+/target
+/deployments
+/releases
+.env
+/node_modules
+*.tgz
+/demo
+/alias.sh
+.sst
