@@ -150,7 +150,7 @@ impl HelmDeploymentRunner {
                     "v4.6.0",
                     "--set",
                     "tcp.30313=op-geth-sequencer-service:30313",
-                ], 
+                ],
             ),
             (
                 "cert-manager",

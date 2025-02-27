@@ -280,9 +280,12 @@ impl StartCommand {
             print_info(&format!("L2 explorer available at http://{}:80", host));
         }
         print_warning("It may take a little bit for rpc to respond and explorer to index...");
-        
+
         if host != "localhost" {
-            print_warning(&format!("Remember to add `127.0.0.1 {}` to `/etc/hosts`", host));
+            print_warning(&format!(
+                "Remember to add `127.0.0.1 {}` to `/etc/hosts`",
+                host
+            ));
         }
 
         print_info("\n\n================================================\n\n");

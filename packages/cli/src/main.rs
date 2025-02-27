@@ -64,7 +64,7 @@ enum Commands {
 
         #[arg(long, default_value_t = false)]
         deploy_deterministic_deployer: bool,
-        
+
         #[arg(long, default_value = "")]
         sequencer_url: String,
     },
@@ -138,7 +138,7 @@ async fn main() {
             deployment_name,
             deploy_deterministic_deployer,
             kind,
-            sequencer_url
+            sequencer_url,
         } => {
             DeployCommand::new()
                 .run(
@@ -148,7 +148,7 @@ async fn main() {
                     &deployment_name,
                     deploy_deterministic_deployer,
                     kind,
-                    &sequencer_url
+                    &sequencer_url,
                 )
                 .await
         }
