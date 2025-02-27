@@ -44,7 +44,6 @@ enum Commands {
 
         #[arg(long, default_value_t = false)]
         default: bool,
-
         // TODO: values file
         // TODO: sequencer_url for replica
     },

@@ -81,11 +81,7 @@ pub trait TDeploymentRunner {
         deployment: &Deployment,
         opts: &DeploymentOptions,
     ) -> Result<(), Box<dyn std::error::Error>>;
-    fn stop(
-        &self,
-        release_tag: &str,
-        release_namespace: &str,
-    ) -> Result<(), Box<dyn std::error::Error>>;
+    fn stop(&self, release_tag: &str, release_namespace: &str) -> Result<(), Box<dyn std::error::Error>>;
 }
 
 // implementations ========================================================
@@ -451,10 +447,7 @@ blockscout-stack:
         Ok(yaml)
     }
 
-    pub fn build_replica_values_yaml(
-        &self,
-        opts: &DeploymentOptions
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    pub fn build_replica_values_yaml(&self, opts: &DeploymentOptions) -> Result<String, Box<dyn std::error::Error>> {
         Ok("".to_string())
     }
 }

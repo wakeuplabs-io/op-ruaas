@@ -6,6 +6,7 @@ use crate::{
     AppContext,
 };
 use assert_cmd::Command;
+use clap::ValueEnum;
 use indicatif::ProgressBar;
 use opraas_core::{
     application::deployment::{deploy_contracts::ContractsDeployerService, run::DeploymentRunnerService},
@@ -29,7 +30,6 @@ use std::{
     thread,
     time::Duration,
 };
-use clap::ValueEnum;
 
 #[derive(Debug, Clone, ValueEnum)]
 pub enum StartDeploymentKind {
@@ -45,7 +45,6 @@ impl Into<DeploymentKind> for StartDeploymentKind {
         }
     }
 }
-
 
 pub struct StartCommand {
     release_tag: Option<String>,

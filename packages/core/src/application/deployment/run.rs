@@ -25,7 +25,7 @@ where
         &self,
         project: &Project,
         deployment: &Deployment,
-        opts: &DeploymentOptions
+        opts: &DeploymentOptions,
     ) -> Result<(), Box<dyn std::error::Error>> {
         self.project_infra_repository.pull(project)?;
 
@@ -37,10 +37,8 @@ where
     }
 
     pub fn stop(&self, release_tag: &str, release_namespace: &str) -> Result<(), Box<dyn std::error::Error>> {
-        self.deployment_runner.stop(
-            release_tag,
-            release_namespace
-        )?;
+        self.deployment_runner
+            .stop(release_tag, release_namespace)?;
 
         Ok(())
     }

@@ -2,7 +2,7 @@ use std::path::Path;
 
 use crate::{
     config::CoreConfig,
-    domain::{self, Dockerfiles, Infrastructure, HelmCharts, Project, Src},
+    domain::{self, Dockerfiles, HelmCharts, Infrastructure, Project, Src},
 };
 
 pub struct InMemoryProjectRepository;
