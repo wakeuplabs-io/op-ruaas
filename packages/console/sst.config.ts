@@ -51,7 +51,7 @@ export default $config({
     const api = new sst.aws.Function(`${PROJECT_NAME}-api`, {
       vpc,
       handler: "bootstrap",
-      bundle: "target/lambda/opraas_console_server",
+      bundle: "target/lambda/opraas_server",
       architecture: "arm64", // or x86_64
       runtime: "provided.al2023",
       url: true,
