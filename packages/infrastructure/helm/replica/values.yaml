@@ -1,7 +1,8 @@
 # global configs ===============================================================
 
 global:
-  host: localhost # demo.example.com
+  hosts: 
+    - localhost 
   protocol: http
   email: email@email.com
   storageClassName: "" # Override with "" for default (recommended in local environment)
@@ -117,3 +118,50 @@ prometheus:
 
   prometheus-node-exporter:
     enabled: false
+
+# explorer ===============================================================
+
+explorer:
+  enabled: false
+
+blockscout:
+  postgres:
+    dbName: blockscout-db
+    user: user
+    password: password
+    image:
+      repository: postgres
+      tag: latest
+    storage: 5Gi
+
+blockscout-stack:
+  config:
+    prometheus:
+      enabled: false
+  blockscout:
+    ingress:
+      enabled: true
+      className: nginx
+      hostname: self.global.host
+
+    env:
+      CHAIN_ID: self.chain.id
+      NETWORK: "Optimism"
+      ECTO_USE_SSL: "false"
+      ETHEREUM_JSONRPC_VARIANT: "geth"
+      ETHEREUM_JSONRPC_HTTP_URL: self.proxyd.urls.http
+      ETHEREUM_JSONRPC_WS_URL: self.proxyd.urls.ws
+    extraEnv:
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: blockscout-secret
+            key: DATABASE_URL
+            
+  frontend:
+    ingress:
+      enabled: true
+      className: nginx
+      hostname: self.global.host
+    env:
+      NEXT_PUBLIC_API_PROTOCOL: self.global.protocol

@@ -1,8 +1,7 @@
 use super::Project;
 use crate::config::{AccountsConfig, NetworkConfig};
 use serde::{Deserialize, Serialize};
-use serde_yaml::Value;
-use std::{collections::HashMap, error::Error};
+use std::error::Error;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Deployment {
@@ -15,6 +14,23 @@ pub struct Deployment {
     pub contracts_addresses: Option<String>,
     pub network_config: NetworkConfig,
     pub accounts_config: AccountsConfig,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeploymentOptions {
+    pub host: String,
+    pub kind: DeploymentKind,
+    pub monitoring: bool,
+    pub explorer: bool,
+    pub release_tag: String,
+    pub release_namespace: String,
+    pub storage_class_name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum DeploymentKind {
+    Sequencer,
+    Replica,
 }
 
 pub type DeploymentArtifact = Vec<u8>;
@@ -63,9 +79,13 @@ pub trait TDeploymentRunner {
         &self,
         project: &Project,
         deployment: &Deployment,
-        values: &HashMap<&str, Value>,
+        opts: &DeploymentOptions,
     ) -> Result<(), Box<dyn std::error::Error>>;
-    fn stop(&self) -> Result<(), Box<dyn std::error::Error>>;
+    fn stop(
+        &self,
+        release_tag: &str,
+        release_namespace: &str,
+    ) -> Result<(), Box<dyn std::error::Error>>;
 }
 
 // implementations ========================================================
@@ -96,7 +116,6 @@ impl Deployment {
         })
     }
 
-    // TODO: probably move to deployer
     pub fn build_deploy_config(&self) -> Result<String, Box<dyn std::error::Error>> {
         let json = format!(
             r#"{{
@@ -221,5 +240,221 @@ impl Deployment {
         );
 
         Ok(json)
+    }
+
+    pub fn build_sequencer_values_yaml(&self, opts: &DeploymentOptions) -> Result<String, Box<dyn std::error::Error>> {
+        let yaml = format!(
+            r#"
+# NOTE: 
+# This values.yaml is particularly crafter for use with the opruaas CLI.
+# In any other case you'll need to properly place files and values.
+
+# global configs ===============================================================
+
+global:
+  hosts: 
+    - host.docker.internal
+    - {host}
+  protocol: http
+  email: email@email.com
+  storageClassName: "{storage_class_name}"
+  image:
+    pullPolicy: IfNotPresent
+
+chain:
+  id: "{l2_chain_id}" 
+  l1Rpc: "{l1_rpc_url}"
+  artifacts: ".tmp/artifacts.zip"
+  addresses: ".tmp/addresses.json"
+
+wallets:
+  batcher: {batcher_private_key}
+  proposer: {proposer_private_key}
+
+# core ===============================================================
+
+geth:
+  name: op-geth
+  image:
+    repository: wakeuplabs/op-geth
+    tag: v0.0.4
+  ports:
+    rpcHttp: 8545 
+    rpcWs: 8546
+    rpcAuth: 9551
+    metrics: 7300
+    p2p: 30313
+  datadir: /app/data/datadir/data
+  storage:
+    sequencer: 5Gi
+    replica: 5Gi
+
+node:
+  name: op-node
+  image:
+    repository: wakeuplabs/op-node
+    tag: v0.0.4
+  ports:
+    rpc: 7545
+    p2p: 9222
+    metrics: 7300
+
+batcher:
+  name: op-batcher
+  image:
+    repository: wakeuplabs/op-batcher
+    tag: v0.0.4
+  ports:
+    rpc: 6545 
+    metrics: 7300
+
+proposer:
+  name: op-proposer
+  image:
+    repository: wakeuplabs/op-proposer
+    tag: v0.0.4
+  ports:
+    rpc: 5545 
+    metrics: 7300
+
+proxyd:
+  name: proxyd
+  image:
+    repository: us-docker.pkg.dev/oplabs-tools-artifacts/images/proxyd
+    tag: latest
+  port: 8080
+  urls:
+    http: http://proxyd-service:8080
+    ws: ws://proxyd-service:8080
+  ingress:
+    nodePath: /rpc
+  redis:
+    name: proxyd-redis
+    port: 6379
+    image:
+      repository: redis
+      tag: latest
+
+# monitoring ===============================================================
+
+monitoring:
+  enabled: {monitoring_enabled}
+
+grafana:
+  enabled: true
+
+  adminUser: admin
+  adminPassword: admin
+
+  sidecar:
+    dashboards:
+      enabled: true
+  
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          access: proxy
+          url: http://{{ .Release.Name }}-prometheus-server
+          isDefault: true
+          uid: prometheus-datasource
+  ingress:
+    enabled: true
+    path: /monitoring(/|$)(.*)
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/rewrite-target: /$2
+    hosts:
+      - {host}
+
+  grafana.ini:
+    server:
+      root_url: "%(protocol)s://%(domain)s/monitoring"  # Dynamically adapts to ingress host
+
+prometheus:
+  enabled: true
+  
+  alertmanager:
+    enabled: false
+  
+  pushgateway:
+    enabled: false
+  
+  server:
+    enabled: true
+    service:
+      type: ClusterIP
+
+  prometheus-node-exporter:
+    enabled: false
+
+# explorer ===============================================================
+
+explorer:
+  enabled: {explorer_enabled}
+
+blockscout:
+  postgres:
+    dbName: blockscout-db
+    user: user
+    password: password
+    image:
+      repository: postgres
+      tag: latest
+    storage: 5Gi
+
+blockscout-stack:
+  config:
+    prometheus:
+      enabled: false
+  blockscout:
+    ingress:
+      enabled: true
+      className: nginx
+      hostname: {host}
+
+    env:
+      CHAIN_ID: "{l2_chain_id}"
+      NETWORK: "Optimism"
+      ECTO_USE_SSL: "false"
+      ETHEREUM_JSONRPC_VARIANT: "geth"
+      ETHEREUM_JSONRPC_HTTP_URL: http://proxyd-service:8080
+      ETHEREUM_JSONRPC_WS_URL: ws://proxyd-service:8080
+    extraEnv:
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: blockscout-secret
+            key: DATABASE_URL
+            
+  frontend:
+    ingress:
+      enabled: true
+      className: nginx
+      hostname: {host}
+    env:
+      NEXT_PUBLIC_API_PROTOCOL: http
+            "#,
+            l1_rpc_url = self.network_config.l1_rpc_url.as_ref().unwrap(),
+            l2_chain_id = self.network_config.l2_chain_id,
+            batcher_private_key = self.accounts_config.batcher_private_key.as_ref().unwrap(),
+            proposer_private_key = self.accounts_config.proposer_private_key.as_ref().unwrap(),
+            storage_class_name = opts.storage_class_name,
+            monitoring_enabled = opts.monitoring,
+            explorer_enabled = opts.explorer,
+            host = opts.host,
+        );
+
+        Ok(yaml)
+    }
+
+    pub fn build_replica_values_yaml(
+        &self,
+        opts: &DeploymentOptions
+    ) -> Result<String, Box<dyn std::error::Error>> {
+        Ok("".to_string())
     }
 }

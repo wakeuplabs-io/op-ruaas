@@ -2,7 +2,7 @@ use std::path::Path;
 
 use crate::{
     config::CoreConfig,
-    domain::{self, Dockerfiles, Infra, Project, Src},
+    domain::{self, Dockerfiles, Infrastructure, HelmCharts, Project, Src},
 };
 
 pub struct InMemoryProjectRepository;
@@ -30,10 +30,14 @@ impl domain::project::TProjectRepository for InMemoryProjectRepository {
         Ok(Project {
             root: root.to_path_buf(),
             config: root.join("config.toml"),
-            infra: Infra {
+            infrastructure: Infrastructure {
                 root: root.join("infra"),
                 aws: root.join("infra").join("aws"),
-                helm: root.join("infra").join("helm"),
+                helm: HelmCharts {
+                    root: root.join("infra").join("helm"),
+                    sequencer: root.join("infra").join("helm").join("sequencer"),
+                    replica: root.join("infra").join("helm").join("replica"),
+                },
                 docker: Dockerfiles {
                     root: root.join("infra").join("docker"),
                     node: root.join("infra").join("docker").join("node.dockerfile"),

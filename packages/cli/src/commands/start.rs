@@ -10,7 +10,7 @@ use indicatif::ProgressBar;
 use opraas_core::{
     application::deployment::{deploy_contracts::ContractsDeployerService, run::DeploymentRunnerService},
     config::CoreConfig,
-    domain::{Deployment, Project},
+    domain::{Deployment, DeploymentKind, DeploymentOptions, Project},
     infrastructure::{
         deployment::{
             DockerContractsDeployer, HelmDeploymentRunner, InMemoryDeploymentArtifactsRepository,
@@ -21,12 +21,36 @@ use opraas_core::{
         release::{DockerReleaseRepository, DockerReleaseRunner},
     },
 };
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
-use std::thread;
-use std::time::Duration;
+use std::{
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
+    thread,
+    time::Duration,
+};
+use clap::ValueEnum;
 
-pub struct DevCommand {
+#[derive(Debug, Clone, ValueEnum)]
+pub enum StartDeploymentKind {
+    Sequencer,
+    Replica,
+}
+
+impl Into<DeploymentKind> for StartDeploymentKind {
+    fn into(self) -> DeploymentKind {
+        match self {
+            StartDeploymentKind::Sequencer => DeploymentKind::Sequencer,
+            StartDeploymentKind::Replica => DeploymentKind::Replica,
+        }
+    }
+}
+
+
+pub struct StartCommand {
+    release_tag: Option<String>,
+    release_namespace: Option<String>,
+
     dialoguer: Dialoguer,
     l1_node: Box<dyn TTestnetNode>,
     deployment_runner: DeploymentRunnerService<HelmDeploymentRunner, InMemoryProjectInfraRepository>,
@@ -41,19 +65,20 @@ pub struct DevCommand {
 const DEFAULT_REGISTRY: &str = "wakeuplabs";
 const DEFAULT_RELEASE_TAG: &str = "v0.0.4";
 
-impl DevCommand {
+impl StartCommand {
     pub fn new() -> Self {
         let project = Project::try_from(std::env::current_dir().unwrap()).unwrap();
 
         Self {
+            release_tag: None,
+            release_namespace: None,
+
             dialoguer: Dialoguer::new(),
             l1_node: Box::new(GethTestnetNode::new()),
             deployment_runner: DeploymentRunnerService::new(
-                HelmDeploymentRunner::new(
-                    "opruaas-dev",
-                    "opruaas-dev",
-                    Box::new(InMemoryDeploymentArtifactsRepository::new(&project.root)),
-                ),
+                HelmDeploymentRunner::new(Box::new(InMemoryDeploymentArtifactsRepository::new(
+                    &project.root,
+                ))),
                 InMemoryProjectInfraRepository::new(),
             ),
             system_requirement_checker: SystemRequirementsChecker::new(),
@@ -68,7 +93,12 @@ impl DevCommand {
         }
     }
 
-    pub async fn run(&self, ctx: &AppContext, default: bool) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn run(
+        &mut self,
+        ctx: &AppContext,
+        kind: StartDeploymentKind,
+        default: bool,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         self.system_requirement_checker
             .check(vec![DOCKER_REQUIREMENT, K8S_REQUIREMENT, HELM_REQUIREMENT])?;
 
@@ -142,6 +172,7 @@ impl DevCommand {
 
         // start local network ===========================
 
+        // TODO: only if sequencer
         let l1_spinner = style_spinner(ProgressBar::new_spinner(), "⏳ Starting l1 node...");
 
         self.l1_node.start(config.network.l1_chain_id, 8545)?;
@@ -149,6 +180,8 @@ impl DevCommand {
         l1_spinner.finish_with_message("✔️ L1 node ready...");
 
         // Deploy contracts ===========================
+
+        // TODO: only for sequencer, otherwise assume it's ready
 
         let contracts_spinner = style_spinner(
             ProgressBar::new_spinner(),
@@ -178,16 +211,34 @@ impl DevCommand {
             "⏳ Installing infra in local kubernetes...",
         );
 
-        // TODO: run sequencer or replica
+        // assemble namespace and tag for release
+        match kind {
+            StartDeploymentKind::Replica => {
+                self.release_namespace = Some("replica".to_string());
+                self.release_tag = Some("replica".to_string());
+            }
+            StartDeploymentKind::Sequencer => {
+                self.release_namespace = Some("sequencer".to_string());
+                self.release_tag = Some("sequencer".to_string());
+            }
+        }
+
+        // run sequencer or replica
         self.deployment_runner
-            .run(&project, &deployment, enable_monitoring, enable_explorer)
+            .run(
+                &project,
+                &deployment,
+                &DeploymentOptions {
+                    kind: kind.into(),
+                    explorer: enable_explorer,
+                    monitoring: enable_monitoring,
+                    host: "localhost".to_string(),
+                    release_namespace: self.release_namespace.clone().unwrap(),
+                    release_tag: self.release_tag.clone().unwrap(),
+                    storage_class_name: "".to_string(),
+                },
+            )
             .await?;
-
-        // TODO: run monitoring
-
-        // TODO: run explorer
-
-        
 
         infra_spinner.finish_with_message("✔️ Infra installed...");
 
@@ -226,7 +277,7 @@ impl DevCommand {
     }
 }
 
-impl Drop for DevCommand {
+impl Drop for StartCommand {
     fn drop(&mut self) {
         match self.l1_node.stop() {
             Ok(_) => {}
@@ -235,11 +286,12 @@ impl Drop for DevCommand {
             }
         }
 
-        match self.deployment_runner.stop() {
-            Ok(_) => {}
-            Err(e) => {
+        if let (Some(tag), Some(namespace)) = (self.release_tag.as_ref(), self.release_namespace.as_ref()) {
+            if let Err(e) = self.deployment_runner.stop(tag, namespace) {
                 print_warning(&format!("Failed to stop stack runner: {}", e));
             }
+        } else {
+            print_warning("Release tag or namespace is missing, skipping stop.");
         }
     }
 }

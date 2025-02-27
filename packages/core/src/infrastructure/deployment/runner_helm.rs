@@ -1,19 +1,16 @@
 use crate::{
-    domain::{Deployment, Project, TDeploymentRunner},
-    system, yaml,
+    domain::{Deployment, DeploymentKind, DeploymentOptions, Project, TDeploymentRunner},
+    system,
 };
 use log::info;
-use serde_yaml::Value;
 use std::{
-    collections::HashMap,
     fs::{self, File},
     io::Write,
+    path::Path,
     process::Command,
 };
 
 pub struct HelmDeploymentRunner {
-    release_tag: String,
-    namespace: String,
     deployment_artifact_repository: Box<dyn crate::domain::TDeploymentArtifactsRepository>,
 }
 
@@ -23,19 +20,28 @@ impl TDeploymentRunner for HelmDeploymentRunner {
         &self,
         project: &Project,
         deployment: &Deployment,
-        values: &HashMap<&str, Value>,
+        opts: &DeploymentOptions,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        let chart_root = match opts.kind {
+            DeploymentKind::Replica => project.infrastructure.helm.replica.as_ref(),
+            DeploymentKind::Sequencer => project.infrastructure.helm.sequencer.as_ref(),
+        };
+
         // add repos, install pre-requisites and build dependencies
-        self.build_dependencies(project)?;
+        self.build_dependencies(&chart_root)?;
 
         // create .tmp folder
-        let helm_tmp_folder = project.infra.helm.join(".tmp");
+        let helm_tmp_folder = chart_root.join(".tmp");
         let _ = fs::remove_dir_all(&helm_tmp_folder);
         fs::create_dir_all(&helm_tmp_folder)?;
 
-        // create values file from stack
+        // create values file from stack.
         let values_file = helm_tmp_folder.join("values.yaml");
-        self.create_values_file(project, deployment, values, &values_file)?;
+        let values_yaml = match opts.kind {
+            DeploymentKind::Replica => deployment.build_replica_values_yaml(opts),
+            DeploymentKind::Sequencer => deployment.build_sequencer_values_yaml(opts),
+        }?;
+        fs::write(&values_file, values_yaml)?;
 
         // create artifacts.zip and addresses.json in helm so it can be loaded by it
         let deployment_artifacts = self
@@ -59,40 +65,40 @@ impl TDeploymentRunner for HelmDeploymentRunner {
         system::execute_command(
             Command::new("helm")
                 .arg("install")
-                .arg(format!("op-ruaas-runner-{}", &self.release_tag))
+                .arg(&opts.release_tag)
                 .arg("-f")
                 .arg(values_file.to_str().unwrap())
                 .arg("--namespace")
-                .arg(&self.namespace)
+                .arg(&opts.release_namespace)
                 .arg("--create-namespace")
-                .arg(project.infra.helm.to_str().unwrap()),
+                .arg(chart_root.to_str().unwrap()),
             false,
         )?;
 
-        self.wait_for_running_release(&self.namespace)?;
+        self.wait_for_running_release(&opts.release_namespace)?;
 
         Ok(())
     }
 
-    fn stop(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn stop(&self, release_tag: &str, release_namespace: &str) -> Result<(), Box<dyn std::error::Error>> {
         let running_releases = system::execute_command(
             Command::new("helm")
                 .arg("list")
                 .arg("--no-headers")
                 .arg("--namespace")
-                .arg(&self.namespace),
+                .arg(release_namespace),
             true,
         )?;
-        if !running_releases.contains(&format!("op-ruaas-runner-{}", &self.release_tag)) {
+        if !running_releases.contains(release_tag) {
             return Ok(());
         }
 
         system::execute_command(
             Command::new("helm")
                 .arg("uninstall")
-                .arg(format!("op-ruaas-runner-{}", &self.release_tag))
+                .arg(release_tag)
                 .arg("--namespace")
-                .arg(&self.namespace),
+                .arg(release_namespace),
             false,
         )?;
 
@@ -101,19 +107,13 @@ impl TDeploymentRunner for HelmDeploymentRunner {
 }
 
 impl HelmDeploymentRunner {
-    pub fn new(
-        release_tag: &str,
-        namespace: &str,
-        deployment_artifact_repository: Box<dyn crate::domain::TDeploymentArtifactsRepository>,
-    ) -> Self {
+    pub fn new(deployment_artifact_repository: Box<dyn crate::domain::TDeploymentArtifactsRepository>) -> Self {
         Self {
-            release_tag: release_tag.to_string(),
-            namespace: namespace.to_string(),
             deployment_artifact_repository,
         }
     }
 
-    fn build_dependencies(&self, project: &Project) -> Result<(), Box<dyn std::error::Error>> {
+    fn build_dependencies(&self, root: &Path) -> Result<(), Box<dyn std::error::Error>> {
         let repo_dependencies = [
             (
                 "ingress-nginx",
@@ -145,8 +145,12 @@ impl HelmDeploymentRunner {
             (
                 "ingress-nginx",
                 "ingress-nginx/ingress-nginx",
-                vec!["--version", "v4.6.0"],
-                // TODO: helm -n ingress-nginx upgrade ingress-nginx ingress-nginx/ingress-nginx --version "v4.6.0" --set tcp.30313="op-geth-sequencer-service/:30313" TODO: also udp and so on. TODO: also in terraform
+                vec![
+                    "--version",
+                    "v4.6.0",
+                    "--set",
+                    "tcp.30313=op-geth-sequencer-service:30313",
+                ], // TODO: add udp? and replicas?
             ),
             (
                 "cert-manager",
@@ -178,7 +182,7 @@ impl HelmDeploymentRunner {
             Command::new("helm")
                 .arg("dependency")
                 .arg("update")
-                .current_dir(&project.infra.helm),
+                .current_dir(&root),
             false,
         )?;
 
@@ -186,99 +190,9 @@ impl HelmDeploymentRunner {
             Command::new("helm")
                 .arg("dependency")
                 .arg("build")
-                .current_dir(&project.infra.helm),
+                .current_dir(&root),
             false,
         )?;
-
-        Ok(())
-    }
-
-    fn create_values_file<T>(
-        &self,
-        project: &Project,
-        deployment: &Deployment,
-        values: &HashMap<&str, Value>,
-        target: T,
-    ) -> Result<(), Box<dyn std::error::Error>>
-    where
-        T: AsRef<std::path::Path>,
-    {
-        let mut updates: HashMap<&str, Value> = values.clone();
-
-        // global ================================================
-
-        updates.entry("global.host").or_insert("localhost".into());
-        updates.entry("global.protocol").or_insert("http".into());
-        updates
-            .entry("global.storageClassName")
-            .or_insert("".into());
-
-        // private keys ================================================
-
-        updates.entry("wallets.batcher").or_insert(
-            deployment
-                .accounts_config
-                .batcher_private_key
-                .clone()
-                .ok_or("No batcher private key found")?
-                .into(),
-        );
-        updates.entry("wallets.proposer").or_insert(
-            deployment
-                .accounts_config
-                .proposer_private_key
-                .clone()
-                .ok_or("No proposer private key found")?
-                .into(),
-        );
-
-        // artifacts images =============================================
-
-        updates
-            .entry("node.image.tag")
-            .or_insert(deployment.release_tag.clone().into());
-        updates
-            .entry("node.image.repository")
-            .or_insert(format!("{}/{}", deployment.release_registry, "op-node").into());
-
-        updates
-            .entry("batcher.image.tag")
-            .or_insert(deployment.release_tag.clone().into());
-        updates
-            .entry("batcher.image.repository")
-            .or_insert(format!("{}/{}", deployment.release_registry, "op-batcher").into());
-
-        updates
-            .entry("proposer.image.tag")
-            .or_insert(deployment.release_tag.clone().into());
-        updates
-            .entry("proposer.image.repository")
-            .or_insert(format!("{}/{}", deployment.release_registry, "op-proposer").into());
-
-        updates
-            .entry("geth.image.tag")
-            .or_insert(deployment.release_tag.clone().into());
-        updates
-            .entry("geth.image.repository")
-            .or_insert(format!("{}/{}", deployment.release_registry, "op-geth").into());
-
-        // chain settings ================================================
-
-        updates
-            .entry("chain.id")
-            .or_insert(deployment.network_config.l2_chain_id.to_string().into());
-        updates.entry("chain.l1Rpc").or_insert(
-            deployment
-                .network_config
-                .l1_rpc_url
-                .clone()
-                .ok_or("Missing l1_rpc_url")?
-                .into(),
-        );
-
-        // ================================================
-
-        yaml::rewrite_yaml_to(project.infra.helm.join("values.yaml"), target, &updates)?;
 
         Ok(())
     }

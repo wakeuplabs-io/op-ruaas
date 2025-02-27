@@ -1,7 +1,12 @@
+# NOTE: 
+# This values.yaml is particularly crafter for use with the opruaas CLI.
+# In any other case you'll need to properly place files and values.
+
 # global configs ===============================================================
 
 global:
-  host: localhost # demo.example.com TODO: should be an array
+  hosts: 
+    - localhost 
   protocol: http
   email: email@email.com
   storageClassName: gp2 # Override with "" for default (recommended in local environment)

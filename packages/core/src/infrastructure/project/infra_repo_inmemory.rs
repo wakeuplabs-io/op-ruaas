@@ -22,21 +22,21 @@ impl InMemoryProjectInfraRepository {
 
 impl TProjectInfraRepository for InMemoryProjectInfraRepository {
     fn pull(&self, project: &Project) -> Result<(), Box<dyn std::error::Error>> {
-        if !project.infra.helm.exists() {
+        if !project.infrastructure.helm.root.exists() {
             git::download_zipped_asset(
                 INFRA_SOURCE_REPO,
                 INFRA_SOURCE_REPO_VERSION,
                 "infra-helm",
-                &project.infra.helm,
+                &project.infrastructure.helm.root,
             )?;
         }
 
-        if !project.infra.aws.exists() {
+        if !project.infrastructure.aws.exists() {
             git::download_zipped_asset(
                 INFRA_SOURCE_REPO,
                 INFRA_SOURCE_REPO_VERSION,
                 "infra-aws",
-                &project.infra.aws,
+                &project.infrastructure.aws,
             )?;
         }
 
