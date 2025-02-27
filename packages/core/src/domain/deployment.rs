@@ -59,9 +59,7 @@ pub trait TInfraDeployerProvider: Send + Sync {
         &self,
         project: &Project,
         deployment: &mut Deployment,
-        domain: &str,
-        monitoring: bool,
-        explorer: bool,
+        opts: &DeploymentOptions,
     ) -> Result<(), Box<dyn std::error::Error>>;
 }
 

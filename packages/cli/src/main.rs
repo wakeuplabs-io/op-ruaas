@@ -5,7 +5,7 @@ mod infrastructure;
 use build::BuildTargets;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
-use commands::{start::StartDeploymentKind, *};
+use commands::{deploy::DeployDeploymentKind, start::StartDeploymentKind, *};
 use deploy::DeployTarget;
 use dotenv::dotenv;
 use infrastructure::console::print_error;
@@ -44,15 +44,17 @@ enum Commands {
 
         #[arg(value_enum, default_value = "http://host.docker.internal:80/rpc")]
         sequencer_url: String,
-        
+
         #[arg(long, default_value_t = false)]
         default: bool,
-        
         // TODO: values file
     },
     /// Deploy your blockchain. Target must be one of: contracts, infra, all
     Deploy {
         target: DeployTarget,
+
+        #[arg(value_enum, default_value_t = DeployDeploymentKind::Sequencer)]
+        kind: DeployDeploymentKind,
 
         #[arg(long)]
         deployment_id: String,
@@ -62,6 +64,9 @@ enum Commands {
 
         #[arg(long, default_value_t = false)]
         deploy_deterministic_deployer: bool,
+        
+        #[arg(long, default_value = "")]
+        sequencer_url: String,
     },
     /// Get details about the current deployment. Target must be one of: contracts, infra
     Inspect {
@@ -132,6 +137,8 @@ async fn main() {
             deployment_id,
             deployment_name,
             deploy_deterministic_deployer,
+            kind,
+            sequencer_url
         } => {
             DeployCommand::new()
                 .run(
@@ -140,6 +147,8 @@ async fn main() {
                     &deployment_id,
                     &deployment_name,
                     deploy_deterministic_deployer,
+                    kind,
+                    &sequencer_url
                 )
                 .await
         }
