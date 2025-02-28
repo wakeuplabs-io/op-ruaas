@@ -14,5 +14,5 @@ export default buildModule("CreateOffer", (m) => {
     metadata,
   ]);
 
-  return { marketplace };
+  return {};
 });

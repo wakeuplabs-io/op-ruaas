@@ -4,7 +4,7 @@
   },
   "CreateOffer": {
     "MarketplaceAddress": "0x44710DcF395d4c24B87F8DF6397b0F73E3ef59dc",
-    "PricePerMonth": 10000000000000000000,
+    "PricePerMonth": "10000000000000000000n",
     "Units": 10,
     "Metadata": "ipfs://..."
   }
