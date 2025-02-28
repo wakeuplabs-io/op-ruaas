@@ -1,7 +1,7 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 const MarketplaceModule = buildModule("MarketplaceModule", (m) => {
-  const paymentToken = m.getParameter("PaymentToken");
+  const paymentToken = m.getParameter<string>("PaymentToken");
 
   const marketplace = m.contract("Marketplace", [paymentToken]);
 
