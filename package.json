@@ -4,8 +4,10 @@
   "description": "Easy optimism rollups",
   "workspaces": [
     "packages/cli",
-    "packages/console-ui",
+    "packages/console",
+    "packages/console/ui",
     "packages/marketplace/ui",
+    "packages/marketplace/contracts",
     "packages/marketplace"
   ],
   "scripts": {
