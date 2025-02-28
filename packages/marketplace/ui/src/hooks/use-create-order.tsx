@@ -6,7 +6,7 @@ export function useCreateOrder() {
   const { data: walletClient } = useWalletClient();
   const { writeContractAsync } = useWriteContract();
 
-  const approveAndCreateOrder = async (offerId: number, initialDeposit: bigint) => {
+  const approveAndCreateOrder = async (offerId: bigint, initialDeposit: bigint) => {
     if (!walletClient) {
       throw new Error("No wallet connected");
     }

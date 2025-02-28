@@ -29,8 +29,7 @@ export function SubscriptionPlans() {
 
     try {
       setLoading(true);
-      const offerId = PLANS.indexOf(selectedPlan);
-      await approveAndCreateOrder(offerId, selectedPlan.deploymentFee);
+      await approveAndCreateOrder(selectedPlan.id, selectedPlan.deploymentFee);
       alert("Order created successfully!");
     } catch (error) {
       alert("Transaction failed.");

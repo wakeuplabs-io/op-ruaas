@@ -1,20 +1,19 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 export default buildModule("CreateOffer", (m) => {
-  const MARKETPLACE_ADDRESS = "0xE49dA88395d76bB4385DfD4d5E0deA19BfDCB3Bd";
+  const marketplaceAddress = m.getParameter<string>("MarketplaceAddress", "0xE49dA88395d76bB4385DfD4d5E0deA19BfDCB3Bd");
+  const pricePerHour = m.getParameter<bigint>("PricePerHour");
+  const deploymentFee = m.getParameter<bigint>("DeploymentFee");
+  const fulfillmentTime = m.getParameter<bigint>("FulfillmentTime");
+  const units = m.getParameter<bigint>("Units");
 
-  const PRICE_PER_HOUR = 1n;
-  const DEPLOYMENT_FEE = 2n;
-  const FULFILLMENT_TIME = 3n;
-  const UNITS = 4n;
-
-  const marketplace = m.contractAt("Marketplace", MARKETPLACE_ADDRESS);
+  const marketplace = m.contractAt("Marketplace", marketplaceAddress);
 
   m.call(marketplace, "createOffer", [
-    PRICE_PER_HOUR,
-    DEPLOYMENT_FEE,
-    FULFILLMENT_TIME,
-    UNITS,
+    pricePerHour,
+    deploymentFee,
+    fulfillmentTime,
+    units,
   ]);
 
   return { marketplace };
