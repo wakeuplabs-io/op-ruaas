@@ -3,8 +3,10 @@ pragma solidity ^0.8.28;
 
 import {IMarketplace} from "./interfaces/IMarketplace.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract Marketplace is IMarketplace {
+
+contract Marketplace is IMarketplace, ReentrancyGuard {
     IERC20 public paymentToken;
 
     uint256 public offerCount;
@@ -15,10 +17,18 @@ contract Marketplace is IMarketplace {
     mapping(address => uint256[]) private clientOrders;
     mapping(address => uint256[]) private vendorOrders;
 
+    /// @notice 24 hours for the fulfillment of the order. If the vendor does not fulfill the order within this time, user can withdraw it all.
+    uint256 public constant FULFILLMENT_PERIOD = 24 * 60 * 60;
+
+    /// @notice 48 hours for the verification of the order after fulfillment. Within this time the user can terminate the order withdrawing it all.
+    uint256 public constant VERIFICATION_PERIOD = 2 * 24 * 60 * 60;
 
     /// @notice Only vendor
-    modifier onlyOfferVendor(uint256 _offerId) {
-        if (offers[_offerId].vendor != msg.sender) {
+    modifier onlyVendor(uint256 _offerId, uint256 _orderId) {
+        if (
+            offers[_offerId].vendor != msg.sender &&
+            offers[orders[_orderId].offerId].vendor != msg.sender
+        ) {
             revert Unauthorized("Only vendor");
         }
         _;
@@ -41,29 +51,20 @@ contract Marketplace is IMarketplace {
 
     /// @inheritdoc IMarketplace
     function createOffer(
-        uint256 _pricePerHour,
-        uint256 _deploymentFee,
-        uint256 _fulfillmentTime,
-        uint256 _units
+        uint256 _pricePerMonth,
+        uint256 _units,
+        string calldata _metadata
     ) public returns (uint256) {
         uint256 offerId = offerCount;
         offers[offerId] = Offer({
             vendor: msg.sender,
-            pricePerHour: _pricePerHour,
+            pricePerMonth: _pricePerMonth,
             remainingUnits: _units,
-            deploymentFee: _deploymentFee,
-            fulfillmentTime: _fulfillmentTime
+            metadata: _metadata
         });
         offerCount += 1;
 
-        emit NewOffer(
-            msg.sender,
-            offerId,
-            _pricePerHour,
-            _deploymentFee,
-            _fulfillmentTime,
-            _units
-        );
+        emit NewOffer(msg.sender, offerId, _pricePerMonth, _units);
 
         return offerId;
     }
@@ -72,14 +73,15 @@ contract Marketplace is IMarketplace {
     function setOfferRemainingUnits(
         uint256 _offerId,
         uint256 _remainingUnits
-    ) public onlyOfferVendor(_offerId) {
+    ) public onlyVendor(_offerId, 0) {
         offers[_offerId].remainingUnits = _remainingUnits;
     }
 
     /// @inheritdoc IMarketplace
     function createOrder(
         uint256 _offerId,
-        uint256 _initialDeposit
+        uint256 _initialCommitment,
+        string calldata _setupMetadata
     ) public returns (uint256) {
         Offer storage offer = offers[_offerId];
 
@@ -89,30 +91,19 @@ contract Marketplace is IMarketplace {
         }
         offer.remainingUnits -= 1;
 
-        // pull funds
-        if (_initialDeposit < offer.deploymentFee) {
-            revert InsufficientBalance(msg.sender, offer.deploymentFee);
-        }
-        paymentToken.transferFrom(msg.sender, address(this), _initialDeposit);
-
         // create order
-        uint256 orderId = orderCount;
-        orders[orderId] = Order({
-            client: msg.sender,
-            offerId: _offerId,
-            createdAt: block.timestamp,
-            fulfilledAt: 0,
-            terminatedAt: 0,
-            lastWithdrawal: 0,
-            balance: _initialDeposit,
-            metadata: ""
-        });
-        orderCount += 1;
+        uint256 orderId = _createOrder(
+            _offerId,
+            _initialCommitment,
+            _setupMetadata
+        );
 
-        clientOrders[msg.sender].push(orderId);
-        vendorOrders[offer.vendor].push(orderId);
-
-        emit NewOrder(offer.vendor, msg.sender, orderId);
+        // pull funds
+        paymentToken.transferFrom(
+            msg.sender,
+            address(this),
+            _initialCommitment * offer.pricePerMonth
+        );
 
         return orderId;
     }
@@ -120,19 +111,22 @@ contract Marketplace is IMarketplace {
     /// @inheritdoc IMarketplace
     function fulfillOrder(
         uint256 _orderId,
-        string calldata _metadata
-    ) public onlyOfferVendor(orders[_orderId].offerId) {
+        string calldata _deploymentMetadata
+    ) public onlyVendor(0, _orderId) {
         Order storage order = orders[_orderId];
         Offer memory offer = offers[order.offerId];
 
-        // set order metadata, deployment links, addresses, etc
-        order.metadata = _metadata;
+        if (order.fulfilledAt != 0) {
+            revert OrderAlreadyFulfilled();
+        } else if (order.terminatedAt != 0) {
+            revert OrderAlreadyTerminated();
+        } else if (order.createdAt + FULFILLMENT_PERIOD < block.timestamp) {
+            revert FulfillmentPeriodExpired();
+        }
 
-        // transfer deployment fee and start payments
+        // set deployment metadata, deployment links, addresses, etc
+        order.deploymentMetadata = _deploymentMetadata;
         order.fulfilledAt = block.timestamp;
-        order.lastWithdrawal = block.timestamp;
-        order.balance -= offer.deploymentFee;
-        paymentToken.transfer(offer.vendor, offer.deploymentFee);
 
         emit OrderFulfilled(offer.vendor, order.client, _orderId);
     }
@@ -140,18 +134,29 @@ contract Marketplace is IMarketplace {
     /// @inheritdoc IMarketplace
     function terminateOrder(
         uint256 _orderId
-    ) public onlyVendorOrClient(_orderId) {
+    ) public onlyVendorOrClient(_orderId) nonReentrant {
         Order storage order = orders[_orderId];
         Offer memory offer = offers[order.offerId];
 
-        // cannot terminate if not fulfilled and within fulfillment time
-        if (offer.fulfillmentTime < (block.timestamp - order.fulfilledAt)) {
+        uint256 timeSinceFulfilled = block.timestamp - order.fulfilledAt;
+
+        // cannot terminate if not fulfilled and within fulfillment time.
+        if (order.fulfilledAt == 0 && timeSinceFulfilled > FULFILLMENT_PERIOD) {
             revert OrderNotFulfilled();
         }
 
-        // empty balances
-        paymentToken.transfer(order.client, balanceOf(order.client, _orderId));
-        paymentToken.transfer(offer.vendor, balanceOf(offer.vendor, _orderId));
+        if (timeSinceFulfilled > VERIFICATION_PERIOD) {
+            paymentToken.transfer(
+                order.client,
+                balanceOf(order.client, _orderId)
+            );
+            paymentToken.transfer(
+                offer.vendor,
+                balanceOf(offer.vendor, _orderId)
+            );
+        } else {
+            paymentToken.transfer(order.client, order.balance);
+        }
 
         // we can already terminate
         order.terminatedAt = block.timestamp;
@@ -174,27 +179,31 @@ contract Marketplace is IMarketplace {
         }
 
         paymentToken.transferFrom(msg.sender, address(this), _amount);
+
         order.balance += _amount;
 
         emit Deposit(_orderId, _amount);
     }
 
     /// @inheritdoc IMarketplace
-    function withdraw(uint256 _orderId, uint256 _amount) public onlyVendorOrClient(_orderId) {
+    function withdraw(
+        uint256 _orderId,
+        uint256 _amount
+    ) public onlyVendor(0, _orderId) nonReentrant {
         Order storage order = orders[_orderId];
 
         // revert if already terminated
         if (order.terminatedAt != 0) {
             revert OrderAlreadyTerminated();
-        }
-
-        // reverts if not fulfilled and within fulfillment time
-        if (
+        } else if (
             order.fulfilledAt == 0 &&
-            (block.timestamp - order.createdAt) <
-            offers[order.offerId].fulfillmentTime
+            (block.timestamp - order.createdAt) < FULFILLMENT_PERIOD
         ) {
+            // reverts if not fulfilled and within fulfillment time
             revert OrderNotFulfilled();
+        } else if (block.timestamp - order.fulfilledAt < VERIFICATION_PERIOD) {
+            // cannot withdraw during verification period
+            revert OrderNotVerified();
         }
 
         uint256 maxWithdrawal = balanceOf(msg.sender, _orderId);
@@ -204,11 +213,7 @@ contract Marketplace is IMarketplace {
 
         // update order balance
         order.balance -= _amount;
-
-        // update lastWithdrawal only if vendor
-        if (msg.sender != order.client) {
-            order.lastWithdrawal = block.timestamp;
-        }
+        order.lastWithdrawal = block.timestamp;
 
         // transfer tokens
         paymentToken.transfer(msg.sender, _amount);
@@ -220,20 +225,20 @@ contract Marketplace is IMarketplace {
     function balanceOf(
         address _address,
         uint256 _orderId
-    ) public view returns (uint256 balance) {
+    ) public view returns (uint256) {
         Order memory order = orders[_orderId];
         Offer memory offer = offers[order.offerId];
 
         // if not fulfilled all is still available
         if (order.fulfilledAt == 0) {
             return _address == order.client ? order.balance : 0;
-        } 
+        }
 
-        uint256 hoursElapsed = (block.timestamp -
+        uint256 monthsElapsed = (block.timestamp -
             order.lastWithdrawal +
-            3600 -
-            1) / 3600;
-        uint256 acc = hoursElapsed * offer.pricePerHour;
+            2592000 -
+            1) / 2592000; // 2592000 = 30 days * 24 hours * 3600 seconds
+        uint256 acc = monthsElapsed * offer.pricePerMonth;
 
         if (_address == offer.vendor) {
             return acc > order.balance ? order.balance : acc;
@@ -241,14 +246,48 @@ contract Marketplace is IMarketplace {
             return acc > order.balance ? 0 : order.balance - acc;
         }
     }
-    
+
     /// @inheritdoc IMarketplace
-    function getClientOrders(address _user) external view returns (uint256[] memory) {
+    function getClientOrders(
+        address _user
+    ) external view returns (uint256[] memory) {
         return clientOrders[_user];
     }
 
     /// @inheritdoc IMarketplace
-    function getVendorOrders(address _user) external view returns (uint256[] memory) {
+    function getVendorOrders(
+        address _user
+    ) external view returns (uint256[] memory) {
         return vendorOrders[_user];
+    }
+
+    /// @notice Creates a new order
+    function _createOrder(
+        uint256 _offerId,
+        uint256 _initialCommitment,
+        string calldata _setupMetadata
+    ) private returns (uint256) {
+        Offer memory offer = offers[_offerId];
+
+        uint256 orderId = orderCount;
+        orders[orderId] = Order({
+            client: msg.sender,
+            offerId: _offerId,
+            createdAt: block.timestamp,
+            fulfilledAt: 0,
+            terminatedAt: 0,
+            lastWithdrawal: 0,
+            balance: _initialCommitment * offer.pricePerMonth,
+            setupMetadata: _setupMetadata,
+            deploymentMetadata: ""
+        });
+        orderCount += 1;
+
+        clientOrders[msg.sender].push(orderId);
+        vendorOrders[offer.vendor].push(orderId);
+
+        emit NewOrder(offer.vendor, msg.sender, orderId);
+
+        return orderId;
     }
 }

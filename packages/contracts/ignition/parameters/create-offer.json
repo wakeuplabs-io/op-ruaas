@@ -1,9 +1,0 @@
-{
-  "CreateOffer": {
-    "MarketplaceAddress": "0xE49dA88395d76bB4385DfD4d5E0deA19BfDCB3Bd",
-    "PricePerHour": 1,
-    "DeploymentFee": 2,
-    "FulfillmentTime": 3,
-    "Units": 4
-  }
-}

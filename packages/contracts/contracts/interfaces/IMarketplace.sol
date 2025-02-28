@@ -19,8 +19,17 @@ interface IMarketplaceErrors {
     /// @notice Thrown when an operation requires an order to be fulfilled but it is not
     error OrderNotFulfilled();
 
+    /// @notice Thrown when an operation requires an order to be fulfilled but it has already been fulfilled
+    error OrderAlreadyFulfilled();
+
     /// @notice Thrown when an offer with the given ID does not exist
     error OfferNotFound();
+
+    /// @notice Thrown when attempting to fulfill an order that has expired
+    error FulfillmentPeriodExpired();
+
+    /// @notice Thrown when an order is not verified
+    error OrderNotVerified();
 }
 
 interface IMarketplaceEvents {
@@ -42,16 +51,12 @@ interface IMarketplaceEvents {
     /// @notice Emitted when a new offer is created by a vendor
     /// @param vendor The address of the vendor creating the offer
     /// @param offerId The unique ID of the offer
-    /// @param pricePerHour The price per hour for the offer
-    /// @param deploymentFee The deployment fee required for the offer
-    /// @param fulfillmentTime The expected time to fulfill the order (in seconds)
+    /// @param pricePerMonth The price per month for the offer
     /// @param units The number of available units in the offer
     event NewOffer(
         address indexed vendor,
         uint256 indexed offerId,
-        uint256 pricePerHour,
-        uint256 deploymentFee,
-        uint256 fulfillmentTime,
+        uint256 pricePerMonth,
         uint256 units
     );
 
@@ -84,6 +89,16 @@ interface IMarketplaceEvents {
         address indexed client,
         uint256 indexed orderId
     );
+
+    /// @notice Emitted when an order is verified
+    /// @param vendor The address of the vendor associated with the order
+    /// @param client The address of the client associated with the order
+    /// @param orderId The unique ID of the verified order
+    event OrderVerifier(
+        address indexed vendor,
+        address indexed client,
+        uint256 indexed orderId
+    );
 }
 
 interface IMarketplaceStructs {
@@ -93,13 +108,11 @@ interface IMarketplaceStructs {
         /// @notice The address of the vendor who created the offer
         address vendor;
         /// @notice The cost per hour for using the service
-        uint256 pricePerHour;
-        /// @notice The one-time deployment fee required to activate the offer
-        uint256 deploymentFee;
+        uint256 pricePerMonth;
         /// @notice The number of units remaining for this offer
         uint256 remainingUnits;
-        /// @notice The time (in seconds) required for fulfillment, during which withdrawals are locked
-        uint256 fulfillmentTime;
+        /// @notice Metadata about the vendor and the offer
+        string metadata;
     }
 
     /// @title Order Struct
@@ -119,8 +132,10 @@ interface IMarketplaceStructs {
         uint256 terminatedAt;
         /// @notice The timestamp of the last withdrawal made from this order by the vendor
         uint256 lastWithdrawal;
-        /// @notice Metadata related to the order, such as contract addresses and endpoints
-        string metadata;
+        /// @notice SetupMetadata user specifications for his chain
+        string setupMetadata;
+        /// @notice deploymentMetadata related to the order, such as contract addresses and endpoints
+        string deploymentMetadata;
     }
 }
 
@@ -131,10 +146,9 @@ interface IMarketplace is
 {
     /// @notice Vendor creates an offering
     function createOffer(
-        uint256 _pricePerHour,
-        uint256 _deploymentFee,
-        uint256 _fulfillmentTime,
-        uint256 _units
+        uint256 _pricePerMonth,
+        uint256 _units,
+        string calldata _metadata
     ) external returns (uint256);
 
     /// @notice Updates the units of an offer
@@ -146,14 +160,23 @@ interface IMarketplace is
 
     /// @notice Creates an order from an offerId
     /// @dev User commits initial deposit
+    /// @param _offerId The ID of the offer to purchase
+    /// @param _initialCommitment The number of months to commit
+    /// @param _setupMetadata user specifications for the chain
     function createOrder(
         uint256 _offerId,
-        uint256 _initialDeposit
+        uint256 _initialCommitment,
+        string calldata _setupMetadata
     ) external returns (uint256);
 
     /// @notice Fulfils an order. Vendor submits endpoints and starts the service.
     /// @dev There's a deadline here. It should revert if time is over
-    function fulfillOrder(uint256 _offerId, string calldata _metadata) external;
+    /// @param _offerId The ID of the offer to purchase
+    /// @param _deploymentMetadata deployment outputs and relevant information
+    function fulfillOrder(
+        uint256 _offerId,
+        string calldata _deploymentMetadata
+    ) external;
 
     /// @notice Terminates an order
     function terminateOrder(uint256 _orderId) external;
@@ -171,8 +194,12 @@ interface IMarketplace is
     ) external view returns (uint256);
 
     /// @notice Returns the list of orders where the given address is the client.
-    function getClientOrders(address _user) external view returns (uint256[] memory);
+    function getClientOrders(
+        address _user
+    ) external view returns (uint256[] memory);
 
     /// @notice Returns the list of orders where the given address is the vendor.
-    function getVendorOrders(address _user) external view returns (uint256[] memory);
+    function getVendorOrders(
+        address _user
+    ) external view returns (uint256[] memory);
 }

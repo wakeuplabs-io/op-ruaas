@@ -1,5 +1,11 @@
 {
   "MarketplaceModule": {
-    "PaymentToken": "0xE7e4FDE25F2D8178347Ca6fb8ad57B1Ef2eBf91f"
+    "PaymentToken": "0x439295Ee1dEe70E4dFC0838995D232EDcE23D22B"
+  },
+  "CreateOffer": {
+    "MarketplaceAddress": "0x44710DcF395d4c24B87F8DF6397b0F73E3ef59dc",
+    "PricePerMonth": "10000000000000000000n",
+    "Units": 10,
+    "Metadata": "ipfs://..."
   }
 }
