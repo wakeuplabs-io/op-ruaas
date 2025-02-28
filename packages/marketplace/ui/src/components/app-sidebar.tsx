@@ -1,17 +1,32 @@
 import * as React from "react";
+import { BookMarked, FilePlus2 } from "lucide-react";
+import { NavMain } from "@/components/nav-main";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-import {  buttonVariants } from "./ui/button";
 import { cn } from "@/lib/utils";
+import CustomConnectButton from "./connect-wallet";
+import { buttonVariants } from "./ui/button";
+
+const navMain = [
+  {
+    title: "New rollup",
+    url: "/app",
+    icon: FilePlus2,
+  },
+  {
+    title: "My rollups",
+    url: "/app/deploy",
+    icon: BookMarked,
+  },
+];
 
 export function AppSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
-
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -21,13 +36,20 @@ export function AppSidebar({
       </SidebarHeader>
 
       <SidebarContent className="px-2">
+        <NavMain items={navMain} />
       </SidebarContent>
-
-      <SidebarFooter className="pb-4 px-4">
-        <a href="https://www.wakeuplabs.io/" target="_blank" className={cn(buttonVariants({ variant: "secondary" }), "w-full h-[74px]")}>
+      <CustomConnectButton />
+      <SidebarFooter className="pb-4 px-4 flex flex-col items-center space-y-6">
+        <a
+          href="https://www.wakeuplabs.io/"
+          target="_blank"
+          className={cn(buttonVariants({ variant: "secondary" }), "w-full h-[74px] flex justify-center items-center")}
+        >
           <img className="h-[45px]" src="/wakeuplabs.png" alt="logo" />
         </a>
       </SidebarFooter>
+
+
     </Sidebar>
   );
 }

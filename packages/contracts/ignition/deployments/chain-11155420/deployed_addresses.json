@@ -1,3 +1,5 @@
 {
-  "MarketplaceModule#Marketplace": "0x64D3c7D1EA673aeA8C14BA1cC430b472df2217da"
+  "Erc20Module#TestToken": "0xE7e4FDE25F2D8178347Ca6fb8ad57B1Ef2eBf91f",
+  "MarketplaceModule#Marketplace": "0xE49dA88395d76bB4385DfD4d5E0deA19BfDCB3Bd",
+  "CreateOffer#Marketplace": "0xE49dA88395d76bB4385DfD4d5E0deA19BfDCB3Bd"
 }
