@@ -152,13 +152,13 @@ Once the setup is complete, you can access the following services:
 - Off-chain Monitoring: http://localhost:80/monitoring
 - Explorer: http://localhost:80
 
-### Deploy contracts/infra/all
+### Deploy contracts/infra(sequencer/replica)
 
 Ensure that your `config.toml` configuration file is properly set up before proceeding.
 
 ```bash
 # Use -v for verbose output; recommended for detailed progress logs.
-npx opruaas -v deploy all --deployment-id holenksy --deployment-name "My First Deployment"
+npx opruaas -v deploy --deployment-id holenksy --deployment-name "My First Deployment"
 ```
 
 - Optional Flag:
@@ -170,6 +170,58 @@ The deployment process will create a deployments/my-prod-deployment directory co
   These files are crucial for running your chain. Ensure you keep them safe and do not lose them.
 - Inspecting Artifacts:
   You can manually review the artifacts or use the inspect command for easier analysis.
+
+## Chain management
+
+### Update sequencer wallet
+
+Weather you want to rotate your wallets, or they've been compromised, you may want to update your sequencer wallet. To do so you need to go to the `SystemConfigProxy` and call `setUnsafeBlockSigner`. To do it with `cast` replace with your values here:
+
+```bash
+cast send {SystemConfigProxy} "setUnsafeBlockSigner(address _unsafeBlockSigner)" {NewSequencer} --rpc-url {RpcUrl} --private-key {AdminPrivateKey}
+```
+
+And verify with:
+
+```bash
+cast call {SystemConfigProxy} "unsafeBlockSigner() public view returns (address)" --rpc-url {RpcUrl}
+```
+
+### Update batcher wallet
+
+Weather you want to rotate your wallets, or they've been compromised, you may want to update your sequencer wallet. To do so you need to go to the `SystemConfigProxy` and call `setBatcherHash`. To do it with `cast` replace with your values here:
+
+```bash
+cast send {SystemConfigProxy} "setBatcherHash(bytes32 _batcherHash)" {"bytes32(uint256(uint160(_cfg.batchSenderAddress())))"} --rpc-url {RpcUrl} --private-key {AdminPrivateKey}
+```
+
+And verify with:
+
+```bash
+cast call {SystemConfigProxy} "batcherHash() public view returns (bytes32)" --rpc-url {RpcUrl}
+```
+
+### Update proposer / challenger wallets
+
+To update proposer and challenger wallets it's a bit more work.
+
+A quick deactivation in case of emergency could be just removing the implementation:
+
+```bash
+cast send {L2OutputOracleProxy} "upgradeTo(address _implementation)"  0x0000000000000000000000000000000000000000  --rpc-url {RpcUrl} --private-key {AdminPrivateKey}
+```
+
+A proper update would imply to deploy a new `L2OutputOracle`, initialize it with the new values and then update the implementation in the proxy:
+
+```bash
+cast send 0x0000000000000000000000000000000000000000 \
+  --data "{BYTECODE}" \
+  --rpc-url {RpcUrl} --private-key {AdminPrivateKey}
+
+cast send {NewL2OutputOracle} "initialize(uint256 _submissionInterval, uint256 _l2BlockTime, uint256 _startingBlockNumber, uint256 _startingTimestamp, address _proposer, address _challenger, uint256 _finalizationPeriodSeconds)" {...params}  --rpc-url {RpcUrl} --private-key {AdminPrivateKey}
+
+cast send {L2OutputOracleProxy} "upgradeTo(address _implementation)"  {NewL2OutputOracle}  --rpc-url {RpcUrl} --private-key {AdminPrivateKey}
+```
 
 ## Dev
 
