@@ -1,17 +1,17 @@
 import { z } from "zod";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 // NOTE: DO NOT destructure process.env
-
 const env = {
-  APP_URL: process.env.APP_URL,
+  IS_TESTNET: import.meta.env.VITE_IS_TESTNET,
+  MARKETPLACE_ADDRESS: import.meta.env.VITE_MARKETPLACE_ADDRESS,
+  ERC20_TOKEN_ADDRESS: import.meta.env.VITE_ERC20_TOKEN_ADDRESS,
 };
 
 const envSchema = z
   .object({
-    APP_URL: z.string().url().optional().default("http://localhost:5000"),
+    IS_TESTNET: z.string().transform((value) => value.toLowerCase() === "true"),
+    MARKETPLACE_ADDRESS: z.string(),
+    ERC20_TOKEN_ADDRESS: z.string(),
   })
   .required();
 
