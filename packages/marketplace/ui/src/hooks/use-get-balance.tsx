@@ -1,16 +1,16 @@
 import { useAccount, useReadContract } from "wagmi";
 import { MARKETPLACE_ADDRESS, MARKETPLACE_ABI } from "@/shared/constants";
 
-export function useGetUserRollups() {
+export function useGetBalance(orderId: string) {
   const { address } = useAccount();
-
+  console.log("orderId", orderId)
   const { data, isLoading, error } = useReadContract({
     address: MARKETPLACE_ADDRESS,
     abi: MARKETPLACE_ABI,
-    functionName: "getClientOrders",
-    args: [address],
+    functionName: "balanceOf",
+    args: [address, BigInt(orderId)],
   });
-  const rollups: bigint[] = data as bigint[];
 
-  return { rollups, isLoading, error };
+  const balance: bigint = data as bigint;
+  return { balance, isLoading, error };
 }

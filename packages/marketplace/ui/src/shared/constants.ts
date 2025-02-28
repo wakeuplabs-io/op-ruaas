@@ -674,7 +674,26 @@ export const MARKETPLACE_ABI = [
         "type": "address"
       }
     ],
-    "name": "getUserOrders",
+    "name": "getClientOrders",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "getVendorOrders",
     "outputs": [
       {
         "internalType": "uint256[]",
