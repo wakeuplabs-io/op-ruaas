@@ -12,7 +12,9 @@ contract Marketplace is IMarketplace {
 
     uint256 public orderCount;
     mapping(uint256 => Order) public orders;
-    mapping(address => uint256[]) private userOrders;
+    mapping(address => uint256[]) private clientOrders;
+    mapping(address => uint256[]) private vendorOrders;
+
 
     /// @notice Only vendor
     modifier onlyOfferVendor(uint256 _offerId) {
@@ -107,8 +109,8 @@ contract Marketplace is IMarketplace {
         });
         orderCount += 1;
 
-        userOrders[msg.sender].push(orderId);
-        userOrders[offer.vendor].push(orderId);
+        clientOrders[msg.sender].push(orderId);
+        vendorOrders[offer.vendor].push(orderId);
 
         emit NewOrder(offer.vendor, msg.sender, orderId);
 
@@ -218,7 +220,7 @@ contract Marketplace is IMarketplace {
     function balanceOf(
         address _address,
         uint256 _orderId
-    ) public view returns (uint256) {
+    ) public view returns (uint256 balance) {
         Order memory order = orders[_orderId];
         Offer memory offer = offers[order.offerId];
 
@@ -238,5 +240,15 @@ contract Marketplace is IMarketplace {
         } else if (_address == order.client) {
             return acc > order.balance ? 0 : order.balance - acc;
         }
+    }
+    
+    /// @inheritdoc IMarketplace
+    function getClientOrders(address _user) external view returns (uint256[] memory) {
+        return clientOrders[_user];
+    }
+
+    /// @inheritdoc IMarketplace
+    function getVendorOrders(address _user) external view returns (uint256[] memory) {
+        return vendorOrders[_user];
     }
 }

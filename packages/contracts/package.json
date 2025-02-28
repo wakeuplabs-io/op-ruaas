@@ -3,7 +3,7 @@
   "scripts": {
     "test": "hardhat test",
     "lint": "solhint 'contracts/**/*.sol'",
-    "deploy:op-sepolia": "hardhat ignition deploy ignition/modules/Marketplace.ts --network op-sepolia --parameters ignition/parameters/op-sepolia.json"
+    "deploy:op-sepolia": "hardhat ignition deploy ignition/modules/Marketplace.ts --network op-sepolia --parameters ignition/parameters/op-sepolia.json --reset"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "5.0.0",
