@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.node.name }}-sequencer-service
+  labels:
+    app: {{ .Values.node.name }}-sequencer    
+  annotations:
+    prometheus.io/scrape: {{ .Values.monitoring.enabled | quote }}
+    prometheus.io/port: {{ .Values.node.ports.metrics | quote }}
+    prometheus.io/job: "op-node-sequencer"
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Values.node.name }}-sequencer
+  ports:
+    - name: rpc
+      port: {{ .Values.node.ports.rpc }}
+      targetPort: {{ .Values.node.ports.rpc }}
+    - name: p2p-tcp
+      port: {{ .Values.node.ports.p2p }}
+      targetPort: {{ .Values.node.ports.p2p }}
+      protocol: TCP
+    - name: p2p-udp
+      port: {{ .Values.node.ports.p2p }}
+      targetPort: {{ .Values.node.ports.p2p }}
+      protocol: UDP

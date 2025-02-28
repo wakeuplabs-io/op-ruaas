@@ -237,7 +237,7 @@ contract Marketplace is IMarketplace {
 
         if (_address == offer.vendor) {
             return acc > order.balance ? order.balance : acc;
-        } else if (_address == order.client) {
+        } else {
             return acc > order.balance ? 0 : order.balance - acc;
         }
     }

@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.geth.name }}-sequencer-deployment
+  labels:
+    app: {{ .Values.geth.name }}-sequencer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.geth.name }}-sequencer
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.geth.name }}-sequencer
+    spec:
+      initContainers:
+        - name: geth-init
+          image: {{ .Values.geth.image.repository }}:{{ .Values.geth.image.tag }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+                if [ ! -d "{{ .Values.geth.datadir }}" ]; then
+                  echo "Initializing geth using /app/data/configurations/genesis.json genesis"
+                  /usr/local/bin/geth \
+                    --verbosity=3 \
+                    --datadir={{ .Values.geth.datadir }} \
+                    --state.scheme=hash \
+                    init /app/data/configurations/genesis.json
+                else 
+                  echo "Skipping initialization, geth datadir is not empty"
+                fi
+          volumeMounts:
+            - name: datadir
+              mountPath: /app/data/datadir
+            - name: configurations
+              mountPath: /app/data/configurations
+      containers:
+        - name: {{ .Values.geth.name }}-sequencer
+          image: {{ .Values.geth.image.repository }}:{{ .Values.geth.image.tag }}
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          command: [ "/usr/local/bin/geth" ]
+          args:
+            -  "--verbosity=3"
+            -  "--networkid={{ .Values.chain.id }}"
+            -  "--datadir={{ .Values.geth.datadir }}"
+            -  "--syncmode=full"
+            -  "--gcmode=archive"
+            -  "--port={{ .Values.geth.ports.p2p }}"
+            -  "--rpc.allow-unprotected-txs"
+            -  "--rollup.disabletxpoolgossip=True"
+            -  "--state.scheme=hash"
+            -  "--http"
+            -  "--http.corsdomain=*"
+            -  "--http.vhosts=*"
+            -  "--http.addr=0.0.0.0"
+            -  "--http.port={{ .Values.geth.ports.rpcHttp }}"
+            -  "--http.api=admin,web3,debug,eth,txpool,net,engine"
+            -  "--ws"
+            -  "--ws.addr=0.0.0.0"
+            -  "--ws.port={{ .Values.geth.ports.rpcWs }}"
+            -  "--ws.origins=*"
+            -  "--ws.api=admin,debug,eth,txpool,net,engine"
+            -  "--authrpc.addr=0.0.0.0"
+            -  "--authrpc.port={{ .Values.geth.ports.rpcAuth }}"
+            -  "--authrpc.vhosts=*"
+            -  "--authrpc.jwtsecret=/app/data/configurations/jwt-secret.txt"
+
+            {{- if .Values.monitoring.enabled }}
+            -  "--metrics"
+            -  "--metrics.addr=0.0.0.0"
+            -  "--metrics.port={{ .Values.geth.ports.metrics }}"
+            {{- end }}
+          ports:
+            - containerPort: {{ .Values.geth.ports.rpcHttp }}
+            - containerPort: {{ .Values.geth.ports.rpcWs }}
+            - containerPort: {{ .Values.geth.ports.rpcAuth }}
+            - containerPort: {{ .Values.geth.ports.metrics }}
+          volumeMounts:
+            - name: datadir
+              mountPath: /app/data/datadir
+            - name: configurations
+              mountPath: /app/data/configurations
+      volumes:
+        - name: datadir
+          persistentVolumeClaim:
+            claimName: {{ .Values.geth.name }}-sequencer-pvc-datadir
+        - name: configurations
+          persistentVolumeClaim:
+            claimName: {{ .Values.geth.name }}-sequencer-pvc-configurations

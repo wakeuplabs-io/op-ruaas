@@ -1,10 +1,10 @@
 use crate::{
-    domain::{Deployment, Project, TDeploymentArtifactsRepository, TInfraDeployerProvider},
-    system, yaml,
+    domain::{
+        Deployment, DeploymentKind, DeploymentOptions, Project, TDeploymentArtifactsRepository, TInfraDeployerProvider,
+    },
+    system,
 };
-use serde_yaml::Value;
 use std::{
-    collections::HashMap,
     fs::{self, File},
     io::Write,
     path::Path,
@@ -21,23 +21,25 @@ impl TInfraDeployerProvider for TerraformDeployer {
         &self,
         project: &Project,
         deployment: &mut Deployment,
-        domain: &str,
-        monitoring: bool,
-        explorer: bool,
+        opts: &DeploymentOptions,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        // create .tmp folder
-        let helm_tmp_folder = project.infra.helm.join(".tmp");
+        let chart_root: &Path = match opts.kind {
+            DeploymentKind::Replica => project.infrastructure.helm.replica.as_ref(),
+            DeploymentKind::Sequencer => project.infrastructure.helm.sequencer.as_ref(),
+        };
+
+        // create values file
+        let helm_tmp_folder = chart_root.join(".tmp");
         let _ = fs::remove_dir_all(&helm_tmp_folder);
         fs::create_dir_all(&helm_tmp_folder)?;
 
-        // create values file
+        // create values file from stack.
         let values_file = helm_tmp_folder.join("values.yaml");
-        let mut values: HashMap<&str, serde_yaml::Value> = HashMap::new();
-        values.insert("global.host", domain.into());
-        values.insert("monitoring.enabled", monitoring.into());
-        values.insert("explorer.enabled", explorer.into());
-
-        self.create_values_file(project, deployment, &values, &values_file)?;
+        let values_yaml = match opts.kind {
+            DeploymentKind::Replica => deployment.build_replica_values_yaml(opts),
+            DeploymentKind::Sequencer => deployment.build_sequencer_values_yaml(opts),
+        }?;
+        fs::write(&values_file, values_yaml)?;
 
         // create artifacts.zip and addresses.json in helm so it can be loaded by it
         let deployment_artifacts = self
@@ -45,9 +47,7 @@ impl TInfraDeployerProvider for TerraformDeployer {
             .find_one(deployment)
             .await?
             .ok_or("No deployment artifacts found")?;
-
         File::create(helm_tmp_folder.join("artifacts.zip"))?.write_all(&deployment_artifacts)?;
-
         fs::write(
             helm_tmp_folder.join("addresses.json"),
             deployment
@@ -61,7 +61,7 @@ impl TInfraDeployerProvider for TerraformDeployer {
         system::execute_command(
             Command::new("terraform")
                 .arg("init")
-                .current_dir(&project.infra.aws),
+                .current_dir(&project.infrastructure.aws),
             false,
         )?;
 
@@ -69,11 +69,13 @@ impl TInfraDeployerProvider for TerraformDeployer {
             Command::new("terraform")
                 .arg("plan")
                 .arg(format!(
-                    "-var=values_file_path={}",
+                    "-var=values_path={}",
                     values_file.to_str().unwrap()
                 ))
+                .arg(format!("-var=chart_path={}", chart_root.to_str().unwrap()))
+                .arg(format!("-var=namespace={}", opts.release_namespace))
                 .arg(format!("-var=name={}", deployment.id))
-                .current_dir(&project.infra.aws),
+                .current_dir(&project.infrastructure.aws),
             false,
         )?;
 
@@ -82,16 +84,18 @@ impl TInfraDeployerProvider for TerraformDeployer {
                 .arg("apply")
                 .arg("-auto-approve")
                 .arg(format!(
-                    "-var=values_file_path={}",
+                    "-var=values_path={}",
                     values_file.to_str().unwrap()
                 ))
+                .arg(format!("-var=chart_path={}", chart_root.to_str().unwrap()))
+                .arg(format!("-var=namespace={}", opts.release_namespace))
                 .arg(format!("-var=name={}", deployment.id))
-                .current_dir(&project.infra.aws),
+                .current_dir(&project.infrastructure.aws),
             false,
         )?;
 
         // save it in the deployment repository
-        deployment.infra_base_url = Some(domain.to_string());
+        deployment.infra_base_url = Some(format!("http://{}", opts.host.to_string()));
 
         Ok(())
     }
@@ -102,95 +106,5 @@ impl TerraformDeployer {
         Self {
             deployment_artifact_repository,
         }
-    }
-
-    fn create_values_file<T>(
-        &self,
-        project: &Project,
-        deployment: &Deployment,
-        values: &HashMap<&str, Value>,
-        target: T,
-    ) -> Result<(), Box<dyn std::error::Error>>
-    where
-        T: AsRef<Path>,
-    {
-        let mut updates: HashMap<&str, Value> = values.clone();
-
-        // global ================================================
-
-        updates.entry("global.host").or_insert("localhost".into());
-        updates.entry("global.protocol").or_insert("https".into());
-        updates
-            .entry("global.storageClassName")
-            .or_insert("gp2".into());
-
-        // private keys ================================================
-
-        updates.entry("wallets.batcher").or_insert(
-            deployment
-                .accounts_config
-                .batcher_private_key
-                .clone()
-                .ok_or("No batcher private key found")?
-                .into(),
-        );
-        updates.entry("wallets.proposer").or_insert(
-            deployment
-                .accounts_config
-                .proposer_private_key
-                .clone()
-                .ok_or("No proposer private key found")?
-                .into(),
-        );
-
-        // artifacts images =============================================
-
-        updates
-            .entry("node.image.tag")
-            .or_insert(deployment.release_tag.clone().into());
-        updates
-            .entry("node.image.repository")
-            .or_insert(format!("{}/{}", deployment.release_registry, "op-node").into());
-
-        updates
-            .entry("batcher.image.tag")
-            .or_insert(deployment.release_tag.clone().into());
-        updates
-            .entry("batcher.image.repository")
-            .or_insert(format!("{}/{}", deployment.release_registry, "op-batcher").into());
-
-        updates
-            .entry("proposer.image.tag")
-            .or_insert(deployment.release_tag.clone().into());
-        updates
-            .entry("proposer.image.repository")
-            .or_insert(format!("{}/{}", deployment.release_registry, "op-proposer").into());
-
-        updates
-            .entry("geth.image.tag")
-            .or_insert(deployment.release_tag.clone().into());
-        updates
-            .entry("geth.image.repository")
-            .or_insert(format!("{}/{}", deployment.release_registry, "op-geth").into());
-
-        // chain settings ================================================
-
-        updates
-            .entry("chain.id")
-            .or_insert(deployment.network_config.l2_chain_id.to_string().into());
-        updates.entry("chain.l1Rpc").or_insert(
-            deployment
-                .network_config
-                .l1_rpc_url
-                .clone()
-                .ok_or("No L1 RPC URL found")?
-                .into(),
-        );
-
-        // ================================================
-
-        yaml::rewrite_yaml_to(project.infra.helm.join("values.yaml"), target, &updates)?;
-
-        Ok(())
     }
 }

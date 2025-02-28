@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.batcher.name }}-deployment
+  labels:
+    app: {{ .Values.batcher.name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.batcher.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.batcher.name }}
+    spec:
+      initContainers:
+        - name: wait-for-sequencer
+          image: busybox
+          command: ['sh', '-c', 'until nc -z {{ .Values.node.name }}-sequencer-service {{ .Values.node.ports.rpc }}; do echo waiting for sequencer; sleep 2; done;']
+      containers:
+        - name: {{ .Values.batcher.name }}
+          image: {{ .Values.batcher.image.repository }}:{{ .Values.batcher.image.tag }} 
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          command: [ "/usr/local/bin/op-batcher" ]
+          args:
+            # Batcher-Specific Options
+            # https://github.com/ethereum-optimism/optimism/blob/develop/op-batcher/flags/flags.go
+            - "--l1-eth-rpc={{ .Values.chain.l1Rpc }}"
+            - "--l2-eth-rpc=http://{{ .Values.geth.name }}-sequencer-service:{{ .Values.geth.ports.rpcHttp }}"
+            - "--rollup-rpc=http://{{ .Values.node.name }}-sequencer-service:{{ .Values.node.ports.rpc }}"
+            - "--poll-interval=1s"
+            - "--sub-safety-margin=4"
+            - "--max-channel-duration=1"
+            # Tx Manager Options
+            # https://github.com/ethereum-optimism/optimism/blob/develop/op-service/txmgr/cli.go
+            - "--num-confirmations=1"
+            - "--private-key={{ .Values.wallets.batcher }}"
+            # Metrics Options
+            # https://github.com/ethereum-optimism/optimism/blob/develop/op-service/metrics/cli.go
+            {{- if .Values.monitoring.enabled }}
+            - "--metrics.enabled"
+            - "--metrics.port={{ .Values.batcher.ports.metrics }}"
+            {{- end }}
+            # RPC Options
+            # https://github.com/ethereum-optimism/optimism/blob/develop/op-batcher/rpc/config.go
+            # https://github.com/ethereum-optimism/optimism/blob/develop/op-service/rpc/cli.go
+            - "--rpc.addr=0.0.0.0"
+            - "--rpc.port={{ .Values.batcher.ports.rpc }}" 
+          ports:
+            - containerPort: {{ .Values.batcher.ports.rpc }}
+            - containerPort: {{ .Values.batcher.ports.metrics }}

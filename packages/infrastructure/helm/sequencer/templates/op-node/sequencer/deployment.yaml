@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.node.name }}-sequencer-deployment
+  labels:
+    app: {{ .Values.node.name }}-sequencer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.node.name }}-sequencer
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.node.name }}-sequencer
+    spec:
+      containers:
+        - name: {{ .Values.node.name }}-sequencer
+          image: {{ .Values.node.image.repository }}:{{ .Values.node.image.tag }}
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          command: [ "/usr/local/bin/op-node" ]
+          args: 
+            # Node-Specific Options
+            # https://github.com/ethereum-optimism/optimism/blob/develop/op-node/flags/flags.go
+            - "--l1={{ .Values.chain.l1Rpc }}"
+            - "--l2=http://{{ .Values.geth.name }}-sequencer-service:{{ .Values.geth.ports.rpcAuth }}"
+            - "--l2.jwt-secret=/app/data/configurations/jwt-secret.txt"
+            - "--verifier.l1-confs=0"
+            - "--rollup.config=/app/data/configurations/rollup-config.json"
+            - "--l1.rpckind=basic"
+            - "--l1.trustrpc"
+            # Sequencer Options
+            - "--sequencer.enabled"
+            - "--sequencer.l1-confs=0"
+            # RPC Options
+            # https://github.com/ethereum-optimism/optimism/blob/develop/op-service/rpc/cli.go
+            - "--rpc.addr=0.0.0.0"
+            - "--rpc.port={{ .Values.node.ports.rpc }}"
+            # P2P Flags
+            # https://github.com/ethereum-optimism/optimism/blob/develop/op-node/flags/p2p_flags.go
+            - "--p2p.disable"
+            - "--p2p.listen.ip=0.0.0.0"
+            - "--p2p.listen.tcp={{ .Values.node.ports.p2p }}"
+            - "--p2p.listen.udp=0" # same as tcp port if 0
+            - "--p2p.priv.path=/app/data/configurations/opnode_p2p_priv.txt"
+            # Metrics Options
+            # https://github.com/ethereum-optimism/optimism/blob/develop/op-service/metrics/cli.go
+            {{- if .Values.monitoring.enabled }}
+            - "--metrics.enabled"
+            - "--metrics.addr=0.0.0.0"
+            - "--metrics.port={{ .Values.node.ports.metrics }}"
+            {{- end }}
+          ports:
+            - containerPort: {{ .Values.node.ports.rpc }}
+            - containerPort: {{ .Values.node.ports.p2p }}
+            - containerPort: {{ .Values.node.ports.metrics }}
+          volumeMounts:
+            - name: configurations
+              mountPath: /app/data/configurations
+      volumes:
+        - name: configurations
+          persistentVolumeClaim:
+            claimName: {{ .Values.node.name }}-sequencer-pvc-configurations

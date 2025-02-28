@@ -1,0 +1,15 @@
+{{- if .Values.explorer.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: blockscout-postgres-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.blockscout.postgres.storage }}
+  {{- if ne .Values.global.storageClassName "" }}
+  storageClassName: {{ .Values.global.storageClassName }}
+  {{- end }}
+{{- end }}

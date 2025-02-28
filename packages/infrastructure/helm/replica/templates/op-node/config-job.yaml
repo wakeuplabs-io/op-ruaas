@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.node.name }}-replica-configuration-job
+  labels:
+    app: {{ .Values.node.name }}-replica
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.node.name }}-replica
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: unzip-artifacts
+          image: busybox:1.36.1
+          command:
+            - sh
+            - "-c"
+            - unzip config/artifacts.zip -d /app/data/configurations
+          volumeMounts:
+            - name: read-config-volume
+              mountPath: /config
+            - name: write-config-volume
+              mountPath: /app/data/configurations
+      volumes:
+        - name: read-config-volume
+          configMap:
+            name: core-config-files
+        - name: write-config-volume
+          persistentVolumeClaim:
+            claimName: {{ .Values.node.name }}-replica-pvc-configurations

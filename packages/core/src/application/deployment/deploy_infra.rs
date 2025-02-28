@@ -1,4 +1,4 @@
-use crate::domain::{self, Deployment, Project};
+use crate::domain::{self, Deployment, DeploymentOptions, Project};
 
 pub struct InfraDeployerService<ID, DR, PIR>
 where
@@ -29,14 +29,12 @@ where
         &self,
         project: &Project,
         deployment: &mut Deployment,
-        domain: &str,
-        monitoring: bool,
-        explorer: bool,
+        opts: &DeploymentOptions,
     ) -> Result<(), Box<dyn std::error::Error>> {
         self.project_infra_repository.pull(project)?;
 
         self.infra_deployer
-            .deploy(project, deployment, domain, monitoring, explorer)
+            .deploy(project, deployment, opts)
             .await?;
 
         self.deployment_repository.save(deployment).await?;

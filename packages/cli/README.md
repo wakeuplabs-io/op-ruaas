@@ -32,7 +32,7 @@ Usage: `opruaas [OPTIONS] <COMMAND>`
 - `init` Initialize a new project
 - `build` Compile sources and create Docker images
 - `release` Tag and push the already built Docker images to the registry for deployment
-- `dev` Spin up a local development environment
+- `start` Locally spins up a sequencer or replica node for your rollup.
 - `deploy` Deploy your blockchain. Target must be one of: `contracts`, `infra`, `all`
 - `inspect` Get details about the current deployment. Target must be one of: `contracts`, `infra`
 - `help` Print this message or the help for the given subcommand(s)
@@ -64,9 +64,9 @@ npx opruaas build contracts
 npx opruaas release contracts
 ```
 
-### Test releases with dev
+### Test releases with `start`
 
-The dev command simplifies the setup for local testing. It performs the following actions:
+The `starts` command simplifies the setup for local testing. It performs the following actions:
 
 1. Starts an L1 Node: Launches a Geth-based Layer 1 node.
 2. Deploys Deterministic Contracts: Sets up the deterministic contract deployer on the node.
@@ -83,7 +83,7 @@ Run the following command to execute the setup:
 
 ```bash
 # Use -v for verbose output; recommended as the process may take some time
-npx opruaas -v dev
+npx opruaas -v start
 ```
 
 Once all deployments are up and running, it may take some time for the system to become fully responsive. This includes:
@@ -149,6 +149,12 @@ Once the setup is complete, you can access the following services:
 - L2 RPC: http://localhost:80/rpc
 - Off-chain Monitoring: http://localhost:80/monitoring
 - Explorer: http://localhost:80
+
+By default it'll start a sequencer node but it can also start a replica. To do so you need to:
+
+1. Run a sequencer node with above instructions.
+2. Run: `npx opruaas -v start replica` command.
+3. By default and to avoid conflicts with the sequencer we'll place the replica at `replica.localhost`. To make this possible you need to manually add `127.0.0.1 replica.localhost` to `/etc/hosts`.
 
 ### Deploy contracts/infra/all
 

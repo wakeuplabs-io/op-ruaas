@@ -11,8 +11,17 @@ variable "name" {
   default     = "opruaas"
 }
 
-variable "values_file_path" {
+variable "values_path" {
   description = "The path to the Helm values.yaml file"
   type        = string
-  default     = "../helm/values.yaml"  
+}
+
+variable "chart_path" {
+  description = "The path to the Helm chart"
+  type        = string
+}
+
+variable "namespace" {
+  description = "The namespace where the Helm chart will be deployed"
+  type        = string
 }

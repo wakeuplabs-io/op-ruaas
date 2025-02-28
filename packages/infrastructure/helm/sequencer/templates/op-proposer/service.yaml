@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.proposer.name }}-service
+  labels:
+    app: {{ .Values.proposer.name }}
+  annotations:
+    prometheus.io/scrape: {{ .Values.monitoring.enabled | quote }}
+    prometheus.io/port: {{ .Values.proposer.ports.metrics | quote }}
+    prometheus.io/job: "op-proposer"
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Values.proposer.name }}
+  ports:
+    - name: rpc
+      port: {{ .Values.proposer.ports.rpc }}
+      targetPort: {{ .Values.proposer.ports.rpc }}
+
