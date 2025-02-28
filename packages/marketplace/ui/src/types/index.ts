@@ -31,6 +31,7 @@ export type NetworkConfig = {
 };
 
 export type Plan = {
+  id: bigint;
   title: string;
   price: number;
   features: string[];

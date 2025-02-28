@@ -77,6 +77,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <img className="h-[45px]" src="/wakeuplabs.png" alt="logo" />
         </a>
       </SidebarFooter>
+
+
     </Sidebar>
   );
 }
