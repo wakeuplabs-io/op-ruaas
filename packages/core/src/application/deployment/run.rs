@@ -1,6 +1,4 @@
-use crate::domain::{Deployment, Project, TDeploymentRunner, TProjectInfraRepository};
-use serde_yaml::Value;
-use std::collections::HashMap;
+use crate::domain::{Deployment, DeploymentOptions, Project, TDeploymentRunner, TProjectInfraRepository};
 
 pub struct DeploymentRunnerService<DR, PIR>
 where
@@ -27,24 +25,20 @@ where
         &self,
         project: &Project,
         deployment: &Deployment,
-        monitoring: bool,
-        explorer: bool,
+        opts: &DeploymentOptions,
     ) -> Result<(), Box<dyn std::error::Error>> {
         self.project_infra_repository.pull(project)?;
 
-        let mut values: HashMap<&str, Value> = HashMap::new();
-        values.insert("monitoring.enabled", monitoring.into());
-        values.insert("explorer.enabled", explorer.into());
-
         self.deployment_runner
-            .run(project, deployment, &values)
+            .run(project, deployment, &opts)
             .await?;
 
         Ok(())
     }
 
-    pub fn stop(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.deployment_runner.stop()?;
+    pub fn stop(&self, release_tag: &str, release_namespace: &str) -> Result<(), Box<dyn std::error::Error>> {
+        self.deployment_runner
+            .stop(release_tag, release_namespace)?;
 
         Ok(())
     }

@@ -1,0 +1,21 @@
+{
+  "name": "hardhat-project",
+  "scripts": {
+    "test": "hardhat test",
+    "lint": "solhint 'contracts/**/*.sol'",
+    "deploy:op-sepolia": "hardhat ignition deploy ignition/modules/Marketplace.ts --network op-sepolia --parameters ignition/parameters/op-sepolia.json",
+    "deploy-token:op-sepolia": "hardhat ignition deploy ignition/modules/TestToken.ts --network op-sepolia",
+    "create-offer:op-sepolia": "hardhat ignition deploy ignition/modules/CreateOffer.ts --network op-sepolia --parameters ignition/parameters/op-sepolia.json"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "5.0.0",
+    "@nomicfoundation/hardhat-verify": "2.0.11",
+    "@openzeppelin/contracts": "5.0.2",
+    "@openzeppelin/hardhat-upgrades": "3.4.0",
+    "hardhat": "^2.22.18",
+    "solhint": "^5.0.5",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.12",
+    "dotenv": "^16.4.7"
+  },
+  "dependencies": {}
+}

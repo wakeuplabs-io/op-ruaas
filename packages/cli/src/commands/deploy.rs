@@ -15,7 +15,7 @@ use opraas_core::{
         manager::DeploymentManagerService,
     },
     config::CoreConfig,
-    domain::{Deployment, Project},
+    domain::{Deployment, DeploymentKind, DeploymentOptions, Project},
     infrastructure::{
         deployment::{
             DockerContractsDeployer, InMemoryDeploymentArtifactsRepository, InMemoryDeploymentRepository,
@@ -30,7 +30,21 @@ use opraas_core::{
 pub enum DeployTarget {
     Contracts,
     Infra,
-    All,
+}
+
+#[derive(Debug, Clone, ValueEnum, PartialEq, Eq)]
+pub enum DeployDeploymentKind {
+    Sequencer,
+    Replica,
+}
+
+impl Into<DeploymentKind> for DeployDeploymentKind {
+    fn into(self) -> DeploymentKind {
+        match self {
+            DeployDeploymentKind::Sequencer => DeploymentKind::Sequencer,
+            DeployDeploymentKind::Replica => DeploymentKind::Replica,
+        }
+    }
 }
 
 pub struct DeployCommand {
@@ -82,6 +96,8 @@ impl DeployCommand {
         deployment_id: &str,
         deployment_name: &str,
         deploy_deterministic_deployer: bool,
+        kind: DeployDeploymentKind,
+        sequencer_url: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
         self.system_requirement_checker.check(vec![
             DOCKER_REQUIREMENT,
@@ -113,24 +129,24 @@ impl DeployCommand {
             return Ok(());
         }
 
-        let domain = matches!(target, DeployTarget::Infra | DeployTarget::All)
+        let domain = matches!(target, DeployTarget::Infra)
             .then(|| {
                 self.dialoguer
                     .prompt("Input domain name (e.g. wakeuplabs.com)")
             })
             .unwrap_or_default();
 
-        let enable_monitoring = matches!(target, DeployTarget::Infra | DeployTarget::All)
+        let enable_monitoring = matches!(target, DeployTarget::Infra)
             .then(|| self.dialoguer.confirm("Enable monitoring?"))
             .unwrap_or_default();
 
-        let enable_explorer = matches!(target, DeployTarget::Infra | DeployTarget::All)
+        let enable_explorer = matches!(target, DeployTarget::Infra)
             .then(|| self.dialoguer.confirm("Enable explorer?"))
             .unwrap_or_default();
 
         // contracts deployment ===========================================================
 
-        if matches!(target, DeployTarget::Contracts | DeployTarget::All) {
+        if matches!(target, DeployTarget::Contracts) {
             let contracts_deployer_spinner = style_spinner(ProgressBar::new_spinner(), "Deploying contracts...");
 
             let mut deployment = Deployment::new(
@@ -157,12 +173,16 @@ impl DeployCommand {
 
         // infra deployment ===========================================================
 
-        if matches!(target, DeployTarget::Infra | DeployTarget::All) {
+        if matches!(target, DeployTarget::Infra) {
             let mut deployment = self
                 .deployments_manager
                 .find_by_id(deployment_id)
                 .await?
                 .expect("Contracts deployment not found");
+
+            if sequencer_url.is_empty() && kind == DeployDeploymentKind::Sequencer {
+                return Err("Sequencer url is empty".into());
+            }
 
             let infra_deployer_spinner = style_spinner(ProgressBar::new_spinner(), "Deploying stack infra...");
 
@@ -170,9 +190,16 @@ impl DeployCommand {
                 .deploy(
                     &project,
                     &mut deployment,
-                    &domain,
-                    enable_monitoring,
-                    enable_explorer,
+                    &DeploymentOptions {
+                        host: domain,
+                        monitoring: enable_monitoring,
+                        explorer: enable_explorer,
+                        storage_class_name: "gp2".to_string(),
+                        release_tag: "opruaas".to_string(),
+                        release_namespace: "opruaas".to_string(),
+                        sequencer_url: Some(sequencer_url.to_string()),
+                        kind: kind.into(),
+                    },
                 )
                 .await?;
 
@@ -191,7 +218,7 @@ impl DeployCommand {
             .await?
             .expect("Contracts deployment not found");
 
-        if matches!(target, DeployTarget::Contracts | DeployTarget::All) {
+        if matches!(target, DeployTarget::Contracts) {
             match &deployment.contracts_addresses {
                 Some(addresses) => println!(
                     r#"The contract addresses of your chain:
@@ -202,7 +229,7 @@ impl DeployCommand {
             }
         }
 
-        if matches!(target, DeployTarget::Infra | DeployTarget::All) {
+        if matches!(target, DeployTarget::Infra) {
             match &deployment.infra_base_url {
                 Some(base_url) => println!(
                     r#"Relevant endpoints from your infra:
@@ -230,7 +257,7 @@ impl DeployCommand {
             note="NOTE: At the moment there's no way to remove a deployment, you'll need to manually go to `infra/aws` and run `terraform destroy`. For upgrades you'll also need to run them directly in helm.".yellow()
         );
 
-        if matches!(target, DeployTarget::Infra | DeployTarget::All) {
+        if matches!(target, DeployTarget::Infra) {
             println!("\n{}\n", "Make sure to create an A record pointing to `elb_dnsname` as specified here: https://github.com/amcginlay/venafi-demos/tree/main/demos/01-eks-ingress-nginx-cert-manager#configure-route53".yellow());
         }
 

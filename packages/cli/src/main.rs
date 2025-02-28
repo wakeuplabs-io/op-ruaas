@@ -5,7 +5,7 @@ mod infrastructure;
 use build::BuildTargets;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
-use commands::*;
+use commands::{deploy::DeployDeploymentKind, start::StartDeploymentKind, *};
 use deploy::DeployTarget;
 use dotenv::dotenv;
 use infrastructure::console::print_error;
@@ -38,13 +38,23 @@ enum Commands {
     /// Tags and pushes already built docker images to the registry for usage in the deployment
     Release { target: ReleaseTargets },
     /// Spin up local dev environment
-    Dev {
+    Start {
+        #[arg(value_enum, default_value_t = StartDeploymentKind::Sequencer)]
+        kind: StartDeploymentKind,
+
+        #[arg(value_enum, default_value = "http://host.docker.internal:80/rpc")]
+        sequencer_url: String,
+
         #[arg(long, default_value_t = false)]
         default: bool,
+        // TODO: values file
     },
     /// Deploy your blockchain. Target must be one of: contracts, infra, all
     Deploy {
         target: DeployTarget,
+
+        #[arg(value_enum, default_value_t = DeployDeploymentKind::Sequencer)]
+        kind: DeployDeploymentKind,
 
         #[arg(long)]
         deployment_id: String,
@@ -54,6 +64,9 @@ enum Commands {
 
         #[arg(long, default_value_t = false)]
         deploy_deterministic_deployer: bool,
+
+        #[arg(long, default_value = "")]
+        sequencer_url: String,
     },
     /// Get details about the current deployment. Target must be one of: contracts, infra
     Inspect {
@@ -110,12 +123,22 @@ async fn main() {
         Commands::Init { target } => InitCommand::new().run(&ctx, &target),
         Commands::Build { target } => BuildCommand::new().run(&ctx, &target),
         Commands::Release { target } => ReleaseCommand::new().run(&ctx, target),
-        Commands::Dev { default } => DevCommand::new().run(&ctx, default).await,
+        Commands::Start {
+            default,
+            kind,
+            sequencer_url,
+        } => {
+            StartCommand::new()
+                .run(&ctx, kind, &sequencer_url, default)
+                .await
+        }
         Commands::Deploy {
             target,
             deployment_id,
             deployment_name,
             deploy_deterministic_deployer,
+            kind,
+            sequencer_url,
         } => {
             DeployCommand::new()
                 .run(
@@ -124,6 +147,8 @@ async fn main() {
                     &deployment_id,
                     &deployment_name,
                     deploy_deterministic_deployer,
+                    kind,
+                    &sequencer_url,
                 )
                 .await
         }

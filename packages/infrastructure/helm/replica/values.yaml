@@ -1,0 +1,167 @@
+# global configs ===============================================================
+
+global:
+  hosts: 
+    - localhost 
+  protocol: http
+  email: email@email.com
+  storageClassName: "" # Override with "" for default (recommended in local environment)
+  image:
+    pullPolicy: IfNotPresent
+
+chain:
+  id: '1201101712'
+  l1Rpc: http://host.docker.internal:8545
+  artifacts: ".tmp/artifacts.zip"
+  addresses: ".tmp/addresses.json"
+
+# core ===============================================================
+
+sequencer_url: http://host.docker.internal:80/rpc
+sequencer_host: host.docker.internal
+
+geth:
+  name: op-geth
+  image:
+    repository: wakeuplabs/op-geth
+    tag: v0.0.4
+  ports:
+    rpcHttp: 8545 
+    rpcWs: 8546
+    rpcAuth: 9551
+    metrics: 7300
+    p2p: 30313
+  datadir: /app/data/datadir/data
+  storage:
+    replica: 5Gi
+
+node:
+  name: op-node
+  image:
+    repository: wakeuplabs/op-node
+    tag: v0.0.4
+  ports:
+    rpc: 7545
+    p2p: 9222
+    metrics: 7300
+
+proxyd:
+  name: proxyd
+  image:
+    repository: us-docker.pkg.dev/oplabs-tools-artifacts/images/proxyd
+    tag: latest
+  port: 8080
+  urls:
+    http: http://proxyd-service:8080
+    ws: ws://proxyd-service:8080
+  ingress:
+    nodePath: /rpc-replica
+  redis:
+    name: proxyd-redis
+    port: 6379
+    image:
+      repository: redis
+      tag: latest
+
+# monitoring ===============================================================
+
+monitoring:
+  enabled: false
+
+grafana:
+  enabled: true
+
+  adminUser: admin
+  adminPassword: admin
+
+  sidecar:
+    dashboards:
+      enabled: true
+  
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          access: proxy
+          url: http://{{ .Release.Name }}-prometheus-server
+          isDefault: true
+          uid: prometheus-datasource
+  ingress:
+    enabled: true
+    path: /monitoring(/|$)(.*)
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/rewrite-target: /$2
+    hosts:
+      - self.global.host
+
+  grafana.ini:
+    server:
+      root_url: "%(protocol)s://%(domain)s/monitoring"  # Dynamically adapts to ingress host
+
+prometheus:
+  enabled: true
+  
+  alertmanager:
+    enabled: false
+  
+  pushgateway:
+    enabled: false
+  
+  server:
+    enabled: true
+    service:
+      type: ClusterIP
+
+  prometheus-node-exporter:
+    enabled: false
+
+# explorer ===============================================================
+
+explorer:
+  enabled: false
+
+blockscout:
+  postgres:
+    dbName: blockscout-db
+    user: user
+    password: password
+    image:
+      repository: postgres
+      tag: latest
+    storage: 5Gi
+
+blockscout-stack:
+  config:
+    prometheus:
+      enabled: false
+  blockscout:
+    ingress:
+      enabled: true
+      className: nginx
+      hostname: self.global.host
+
+    env:
+      CHAIN_ID: self.chain.id
+      NETWORK: "Optimism"
+      ECTO_USE_SSL: "false"
+      ETHEREUM_JSONRPC_VARIANT: "geth"
+      ETHEREUM_JSONRPC_HTTP_URL: self.proxyd.urls.http
+      ETHEREUM_JSONRPC_WS_URL: self.proxyd.urls.ws
+    extraEnv:
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: blockscout-secret
+            key: DATABASE_URL
+            
+  frontend:
+    ingress:
+      enabled: true
+      className: nginx
+      hostname: self.global.host
+    env:
+      NEXT_PUBLIC_API_PROTOCOL: self.global.protocol

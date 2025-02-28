@@ -109,6 +109,11 @@ resource "helm_release" "ingress_nginx" {
   timeout    = 600
 
   create_namespace = true
+
+  set {
+    name = "tcp.30313"
+    value = "op-geth-sequencer-service:30313"
+  }
 }
 
 resource "helm_release" "cert_manager" {
@@ -129,8 +134,8 @@ resource "helm_release" "cert_manager" {
 
 resource "helm_release" "opruaas" {
   name      = "opruaas"
-  chart     = "../helm"
-  namespace = "opruaas"
+  chart     = var.chart_path
+  namespace = var.namespace 
   timeout    = 600
 
   create_namespace = true
@@ -138,7 +143,7 @@ resource "helm_release" "opruaas" {
   dependency_update = true
 
   values = [
-     file(var.values_file_path)
+     file(var.values_path)
   ]
 
   depends_on = [
