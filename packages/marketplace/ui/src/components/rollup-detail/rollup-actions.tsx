@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { DepositModal } from "./deposit-modal";
 import { useState } from "react";
 import { useGetBalance } from "@/hooks/use-get-balance";
-import { WithdrawModal } from "./withdraw-modal";
 
 interface RollupActionsProps {
   orderId: string;
@@ -10,7 +9,6 @@ interface RollupActionsProps {
 
 export function RollupActions({ orderId }: RollupActionsProps) {
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
-  const [isWithdrawModalOpen, setWithdrawModalOpen] = useState(false);
 
   const { balance, isLoading } = useGetBalance(orderId);
   console.log("balance", balance);
@@ -22,17 +20,10 @@ export function RollupActions({ orderId }: RollupActionsProps) {
         <Button variant="outline" onClick={() => setIsDepositModalOpen(true)}>
           Deposit
         </Button>
-        <Button variant="outline" onClick={() => setWithdrawModalOpen(true)}>
-          Withdraw
-        </Button>
       </div>
       <DepositModal
         isOpen={isDepositModalOpen}
         onClose={() => setIsDepositModalOpen(false)}
-      />
-      <WithdrawModal
-        isOpen={isWithdrawModalOpen}
-        onClose={() => setWithdrawModalOpen(false)}
       />
     </div>
   );

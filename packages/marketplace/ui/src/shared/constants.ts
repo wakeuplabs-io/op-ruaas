@@ -1,4 +1,4 @@
-import { Address } from "viem"
+import { Abi, Address } from "viem"
 import envParsed from "../envParsed"
 import { Plan } from "@/types";
 
@@ -332,7 +332,7 @@ export const ERC20_TOKEN_ABI = [
 ]
 
 
-export const MARKETPLACE_ABI = [
+export const MARKETPLACE_ABI: Abi = [
   {
     "inputs": [
       {

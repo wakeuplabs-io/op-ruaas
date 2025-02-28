@@ -38,3 +38,26 @@ export type Plan = {
   buttonText: string;
   deploymentFee: bigint;
 };
+
+export type OrdersReturnTuple = [
+  client: string,
+  offerId: bigint,
+  balance: bigint,
+  createdAt: bigint,
+  fulfilledAt: bigint,
+  terminatedAt: bigint, 
+  lastWithdrawal: bigint,
+  metadata: string 
+]
+
+
+export type Order = {
+  client: string;
+  offerId: bigint;
+  balance: bigint;
+  createdAt: bigint;
+  fulfilledAt: bigint;
+  terminatedAt: bigint;
+  lastWithdrawal: bigint;
+  metadata: string;
+};

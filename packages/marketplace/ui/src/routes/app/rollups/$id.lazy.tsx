@@ -6,6 +6,7 @@ import { RollupActions } from "@/components/rollup-detail/rollup-actions";
 import { RollupHeader } from "@/components/rollup-detail/rollup-header";
 import { RollupInfo } from "@/components/rollup-detail/rollup-info";
 import { Card } from "@/components/ui/card";
+import { useOrderDetails } from "@/hooks/use-order-details";
 import { createLazyFileRoute } from '@tanstack/react-router'
 import { useParams } from "@tanstack/react-router";
 
@@ -15,7 +16,8 @@ export const Route = createLazyFileRoute('/app/rollups/$id')({
 
 export default function RollupDashboard() {
   const { id } = useParams({ from: "/app/rollups/$id" });
-
+  const { order } = useOrderDetails(id);
+  
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
       <Card className="p-6 border rounded-lg">
