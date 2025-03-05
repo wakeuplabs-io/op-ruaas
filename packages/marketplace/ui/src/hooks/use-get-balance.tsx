@@ -3,7 +3,6 @@ import { MARKETPLACE_ADDRESS, MARKETPLACE_ABI } from "@/shared/constants";
 
 export function useGetBalance(orderId: string) {
   const { address } = useAccount();
-  console.log("orderId", orderId)
   const { data, isLoading, error } = useReadContract({
     address: MARKETPLACE_ADDRESS,
     abi: MARKETPLACE_ABI,

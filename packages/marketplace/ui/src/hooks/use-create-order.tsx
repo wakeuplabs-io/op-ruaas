@@ -24,10 +24,8 @@ export function useCreateOrder() {
         functionName: "createOrder",
         args: [offerId, initialDeposit],
       });
-      console.log("Order transaction sent:", orderTx);
       return orderTx;
     } catch (error) {
-      console.error("Transaction failed:", error);
       throw error;
     }
   };

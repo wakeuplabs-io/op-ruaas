@@ -25,11 +25,8 @@ export function useDeposit() {
         functionName: "deposit",
         args: [orderId, amount],
       });
-
-      console.log("Deposit transaction sent:", tx);
       return tx;
     } catch (error) {
-      console.error("Transaction failed:", error);
       throw error;
     }
   };

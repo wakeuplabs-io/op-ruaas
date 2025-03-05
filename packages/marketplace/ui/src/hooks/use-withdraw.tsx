@@ -18,11 +18,8 @@ export function useWithdraw() {
         functionName: "withdraw",
         args: [orderId, amount],
       });
-
-      console.log("Withdraw transaction sent:", tx);
       return tx;
     } catch (error) {
-      console.error("Transaction failed:", error);
       throw error;
     }
   };
