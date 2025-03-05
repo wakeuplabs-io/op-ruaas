@@ -330,8 +330,6 @@ export const ERC20_TOKEN_ABI = [
     "type": "function"
   }
 ]
-
-
 export const MARKETPLACE_ABI: Abi = [
   {
     "inputs": [
@@ -343,6 +341,11 @@ export const MARKETPLACE_ABI: Abi = [
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "FulfillmentPeriodExpired",
+    "type": "error"
   },
   {
     "inputs": [
@@ -367,12 +370,27 @@ export const MARKETPLACE_ABI: Abi = [
   },
   {
     "inputs": [],
+    "name": "OrderAlreadyFulfilled",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "OrderAlreadyTerminated",
     "type": "error"
   },
   {
     "inputs": [],
     "name": "OrderNotFulfilled",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OrderNotVerified",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ReentrancyGuardReentrantCall",
     "type": "error"
   },
   {
@@ -423,19 +441,7 @@ export const MARKETPLACE_ABI: Abi = [
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "pricePerHour",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "deploymentFee",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "fulfillmentTime",
+        "name": "pricePerMonth",
         "type": "uint256"
       },
       {
@@ -529,6 +535,31 @@ export const MARKETPLACE_ABI: Abi = [
       {
         "indexed": true,
         "internalType": "address",
+        "name": "vendor",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "client",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "orderId",
+        "type": "uint256"
+      }
+    ],
+    "name": "OrderVerifier",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
         "name": "user",
         "type": "address"
       },
@@ -549,6 +580,32 @@ export const MARKETPLACE_ABI: Abi = [
     "type": "event"
   },
   {
+    "inputs": [],
+    "name": "FULFILLMENT_PERIOD",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "VERIFICATION_PERIOD",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -565,7 +622,7 @@ export const MARKETPLACE_ABI: Abi = [
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "balance",
+        "name": "",
         "type": "uint256"
       }
     ],
@@ -576,23 +633,18 @@ export const MARKETPLACE_ABI: Abi = [
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_pricePerHour",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_deploymentFee",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_fulfillmentTime",
+        "name": "_pricePerMonth",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
         "name": "_units",
         "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_metadata",
+        "type": "string"
       }
     ],
     "name": "createOffer",
@@ -615,8 +667,13 @@ export const MARKETPLACE_ABI: Abi = [
       },
       {
         "internalType": "uint256",
-        "name": "_initialDeposit",
+        "name": "_initialCommitment",
         "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_setupMetadata",
+        "type": "string"
       }
     ],
     "name": "createOrder",
@@ -657,7 +714,7 @@ export const MARKETPLACE_ABI: Abi = [
       },
       {
         "internalType": "string",
-        "name": "_metadata",
+        "name": "_deploymentMetadata",
         "type": "string"
       }
     ],
@@ -734,12 +791,7 @@ export const MARKETPLACE_ABI: Abi = [
       },
       {
         "internalType": "uint256",
-        "name": "pricePerHour",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "deploymentFee",
+        "name": "pricePerMonth",
         "type": "uint256"
       },
       {
@@ -748,9 +800,9 @@ export const MARKETPLACE_ABI: Abi = [
         "type": "uint256"
       },
       {
-        "internalType": "uint256",
-        "name": "fulfillmentTime",
-        "type": "uint256"
+        "internalType": "string",
+        "name": "metadata",
+        "type": "string"
       }
     ],
     "stateMutability": "view",
@@ -816,7 +868,12 @@ export const MARKETPLACE_ABI: Abi = [
       },
       {
         "internalType": "string",
-        "name": "metadata",
+        "name": "setupMetadata",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "deploymentMetadata",
         "type": "string"
       }
     ],

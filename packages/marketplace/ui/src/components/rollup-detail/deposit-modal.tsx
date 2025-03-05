@@ -18,16 +18,18 @@ const PLANS: Plan[] = [
 ]
 
 interface DepositModalProps {
+  orderId: string;
   isOpen: boolean
   onClose: () => void
 }
 
-export function DepositModal({ isOpen, onClose }: DepositModalProps) {
+export function DepositModal({ orderId, isOpen, onClose }: DepositModalProps) {
   const [selectedPlan, setSelectedPlan] = useState<Plan>(PLANS[0])
   const { depositFunds } = useDeposit()
 
-  const calculateTotal = (plan: Plan) => {
-    return plan.days * plan.pricePerDay
+  const calculateTotal = (plan: Plan): bigint => {
+    console.log(BigInt(plan.days * plan.pricePerDay).toString(10))
+    return BigInt(plan.days * plan.pricePerDay)
   }
 
   return (
@@ -53,7 +55,7 @@ export function DepositModal({ isOpen, onClose }: DepositModalProps) {
               >
                 <div className="text-lg font-semibold">{plan.days} days</div>
                 <div className="text-sm text-gray-600 mt-1">${plan.pricePerDay}/day</div>
-                <div className="text-red-500 font-medium mt-2">${calculateTotal(plan)} total</div>
+                <div className="text-red-500 font-medium mt-2">${calculateTotal(plan).toString(10)} total</div>
               </button>
             ))}
           </div>
@@ -69,13 +71,13 @@ export function DepositModal({ isOpen, onClose }: DepositModalProps) {
             </div>
             <div className="flex justify-between items-center pt-3">
               <span className="text-base font-semibold">Total Amount:</span>
-              <span className="text-xl font-semibold text-red-500">${calculateTotal(selectedPlan)}</span>
+              <span className="text-xl font-semibold text-red-500">${calculateTotal(selectedPlan).toString(10)}</span>
             </div>
           </div>
 
           <Button
             className="w-full mt-8 bg-red-500 hover:bg-red-600 text-white py-6 rounded-full"
-            onClick={()=> depositFunds(0n, 1n)}
+            onClick={()=> depositFunds(BigInt(orderId), calculateTotal(selectedPlan))}
           >
             Complete Deposit
           </Button>

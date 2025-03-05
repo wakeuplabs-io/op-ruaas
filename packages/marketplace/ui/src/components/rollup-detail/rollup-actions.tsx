@@ -22,6 +22,7 @@ export function RollupActions({ orderId }: RollupActionsProps) {
         </Button>
       </div>
       <DepositModal
+        orderId={orderId}
         isOpen={isDepositModalOpen}
         onClose={() => setIsDepositModalOpen(false)}
       />
