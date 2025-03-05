@@ -219,6 +219,20 @@ To update proposer and challenger wallets it's a bit more work.
 
 A quick deactivation in case of emergency could be just removing the implementation:
 
+AdminUser -> SystemOwnerSafe -> ProxyAdmin -> upgradeTo ....
+
+```bash
+cast send --rpc-url {L1Rpc} --private-key {AdminPrivateKey} {SystemOwnerSafe} "execTransaction(address,uint256,bytes,uint8,uint256,uint256,uint256,address,address,bytes)" {ProxyAdmin} 0x0 $(cast calldata "upgrade(address, address)" {L2OutputOracleProxy} {NewImplementation}) 0 0 0 0 0x0000000000000000000000000000000000000000  0x0000000000000000000000000000000000000000 0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266000000000000000000000000000000000000000000000000000000000000000001
+
+# And verify with
+cast call {L2OutputOracleProxy} "implementation()(address)"  --rpc-url http://localhost:8545
+
+# Example locally, update accordingly
+cast send --rpc-url http://localhost:8545 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 0x7089e97135A7d1942f88BA2a5dbDe0D88d573fc3 "execTransaction(address,uint256,bytes,uint8,uint256,uint256,uint256,address,address,bytes)" 0x5FC8d32690cc91D4c39d9d3abcBD16989F875707 0x0 $(cast calldata "upgrade(address, address)" 0x59b670e9fA9D0A427751Af201D676719a970857b 0x0000000000000000000000000000000000000000) 0 0 0 0 0x0000000000000000000000000000000000000000  0x0000000000000000000000000000000000000000 0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266000000000000000000000000000000000000000000000000000000000000000001
+
+cast call 0x59b670e9fA9D0A427751Af201D676719a970857b "implementation()(address)"  --rpc-url http://localhost:8545
+```
+
 ```bash
 cast send {L2OutputOracleProxy} "upgradeTo(address _implementation)"  0x0000000000000000000000000000000000000000  --rpc-url {L1RpcUrl} --private-key {AdminPrivateKey}
 
@@ -240,7 +254,7 @@ cast call {OldL2OutputOracle} "finalizationPeriodSeconds()(uint256)" --rpc-url {
 cast send --rpc-url {L1RpcUrl} --private-key {AdminPrivateKey} --create {L2OutputOracleByteCode}
 cast send {NewL2OutputOracle} "initialize(uint256 _submissionInterval, uint256 _l2BlockTime, uint256 _startingBlockNumber, uint256 _startingTimestamp, address _proposer, address _challenger, uint256 _finalizationPeriodSeconds)" {...params from above + new challenger and proposer}  --rpc-url {L1RpcUrl} --private-key {AdminPrivateKey}
 
-cast send {L2OutputOracleProxy} "upgradeTo(address _implementation)"  {NewL2OutputOracle}  --rpc-url {L1RpcUrl} --private-key {AdminPrivateKey}
+cast send --rpc-url {L1Rpc} --private-key {AdminPrivateKey} {SystemOwnerSafe} "execTransaction(address,uint256,bytes,uint8,uint256,uint256,uint256,address,address,bytes)" {ProxyAdmin} 0x0 $(cast calldata "upgrade(address, address)" {L2OutputOracleProxy} {NewImplementation}) 0 0 0 0 0x0000000000000000000000000000000000000000  0x0000000000000000000000000000000000000000 0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266000000000000000000000000000000000000000000000000000000000000000001
 
 # Example locally
 
@@ -256,7 +270,6 @@ cast receipt {DeploymentTx} # get contractAddress from here
 
 cast send --rpc-url http://localhost:8545 --private-key ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80  0x8B290Fe1d6f55A1934020753D594eEAB37A22732 "initialize(uint256 _submissionInterval, uint256 _l2BlockTime, uint256 _startingBlockNumber, uint256 _startingTimestamp, address _proposer, address _challenger, uint256 _finalizationPeriodSeconds)" 120 2 0 1741193968 0xb0bc9e2602d7d0f78a6e966175d48aa84a90de3b 0xb0bc9e2602d7d0f78a6e966175d48aa84a90de3b 12
 
-cast send --rpc-url http://localhost:8545 --private-key ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 0x59b670e9fA9D0A427751Af201D676719a970857b "upgradeTo(address _implementation)" 0x8B290Fe1d6f55A1934020753D594eEAB37A22732
 
 
 ```

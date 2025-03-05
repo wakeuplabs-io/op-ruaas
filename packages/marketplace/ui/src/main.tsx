@@ -1,4 +1,5 @@
 import "./index.css";
+import '@rainbow-me/rainbowkit/styles.css';
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { Toaster } from "./components/ui/toaster.tsx";
@@ -7,10 +8,6 @@ import { routeTree } from "@/routeTree.gen";
 import { createRouter } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {  RainbowKitProvider } from "@rainbow-me/rainbowkit";
-
-import '@rainbow-me/rainbowkit/styles.css';
-
-
 import WagmiSetup from "./components/hocs/wagmi-provider";
 
 export const queryClient = new QueryClient();
@@ -27,6 +24,7 @@ declare module "@tanstack/react-router" {
     router: typeof router;
   }
 }
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
       <WagmiSetup>
