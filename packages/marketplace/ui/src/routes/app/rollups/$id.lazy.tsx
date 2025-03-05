@@ -16,13 +16,12 @@ export const Route = createLazyFileRoute('/app/rollups/$id')({
 
 export default function RollupDashboard() {
   const { id } = useParams({ from: "/app/rollups/$id" });
-  const { order } = useOrderDetails(id);
-  
+  const { offer } = useOrderDetails(id);
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
       <Card className="p-6 border rounded-lg">
         <RollupHeader />
-        <RollupActions orderId={id} />
+        {offer && <RollupActions orderId={id} offer={offer}/>}
         <RollupInfo />
       </Card>
 

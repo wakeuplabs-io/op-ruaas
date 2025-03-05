@@ -1,10 +1,16 @@
+import { useOfferDetails } from "./use-offer-details";
 import { useReadContract } from "wagmi";
-import type { Config as WagmiConfig } from "@wagmi/core"; 
+import type { Config as WagmiConfig } from "@wagmi/core";
 import { MARKETPLACE_ADDRESS, MARKETPLACE_ABI } from "@/shared/constants";
 import { Order, OrdersReturnTuple } from "@/types";
 
 export function useOrderDetails(orderId?: string) {
-  const { data, isLoading, error } = useReadContract<
+  const {
+    data,
+    isLoading,
+    error,
+    refetch: refetchOrder,
+  } = useReadContract<
     typeof MARKETPLACE_ABI,
     "orders",
     [bigint],
@@ -33,5 +39,10 @@ export function useOrderDetails(orderId?: string) {
       }
     : null;
 
-  return { order, isLoading, error };
+  const { offer, isLoading: isOfferLoading} = useOfferDetails(order?.offerId);
+  const refetch = async () => {
+    await refetchOrder();
+  };
+
+  return { order, offer, isLoading: isLoading || isOfferLoading, error, refetch };
 }

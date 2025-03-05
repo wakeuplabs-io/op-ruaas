@@ -1,8 +1,8 @@
 import { Abi, Address } from "viem"
 import envParsed from "../envParsed"
-import { Plan } from "@/types";
+import { OfferPlan } from "@/types";
 
-export const PLANS: Plan[] = [
+export const PLANS: OfferPlan[] = [
   { id: 0n, title: "Basic", price: 10, features: ["Lorem Ipsum", "Lorem Ipsum", "Lorem Ipsum"], buttonText: "Buy now", deploymentFee: 100n },
   { id: 0n, title: "Premium", price: 20, features: ["Lorem Ipsum", "Lorem Ipsum", "Lorem Ipsum"], buttonText: "Select Plan", deploymentFee: 100n  },
   { id: 0n ,title: "Pro", price: 30, features: ["Lorem Ipsum", "Lorem Ipsum", "Lorem Ipsum"], buttonText: "Select Plan", deploymentFee: 100n  },

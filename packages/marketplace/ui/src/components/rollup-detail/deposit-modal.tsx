@@ -1,35 +1,60 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useDeposit } from "@/hooks/use-deposit"
-
-interface Plan {
-  days: number
-  pricePerDay: number
-}
-
-const PLANS: Plan[] = [
-  { days: 30, pricePerDay: 10 },
-  { days: 60, pricePerDay: 9 },
-  { days: 180, pricePerDay: 8 },
-  { days: 360, pricePerDay: 7 },
-]
+import { Plan } from "@/types"
+import { formatTokenAmount } from "@/lib/utils"
+import { Loader2, CheckCircle, XCircle } from "lucide-react"
 
 interface DepositModalProps {
   orderId: string;
-  isOpen: boolean
-  onClose: () => void
+  plans: Plan[] | undefined;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export function DepositModal({ orderId, isOpen, onClose }: DepositModalProps) {
-  const [selectedPlan, setSelectedPlan] = useState<Plan>(PLANS[0])
-  const { depositFunds } = useDeposit()
+const DAYS_PER_MONTH = 30n;
+
+export function DepositModal({ orderId, plans, isOpen, onClose }: DepositModalProps) {
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const { depositFunds } = useDeposit();
+  const [isPending, setIsPending] = useState(false);
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+
+  useEffect(() => {
+    if (plans && plans.length > 0) {
+      setSelectedPlan(plans[0]);
+    }
+  }, [plans]);
 
   const calculateTotal = (plan: Plan): bigint => {
-    console.log(BigInt(plan.days * plan.pricePerDay).toString(10))
-    return BigInt(plan.days * plan.pricePerDay)
+    return BigInt(plan.months * plan.pricePerMonth);
+  };
+
+  const handleDeposit = async () => {
+    if (!selectedPlan) return;
+
+    setIsPending(true);
+    setStatus("idle");
+
+    try {
+      await depositFunds(BigInt(orderId), calculateTotal(selectedPlan));
+      setStatus("success");
+    } catch (error) {
+      setStatus("error");
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  if (!plans) {
+    return <p className="text-center p-6 text-gray-600">Loading...</p>;
+  }
+
+  if (plans.length === 0) {
+    return <p className="text-center p-6 text-gray-600">No available plans</p>;
   }
 
   return (
@@ -45,45 +70,48 @@ export function DepositModal({ orderId, isOpen, onClose }: DepositModalProps) {
           </p>
 
           <div className="mt-8 grid grid-cols-2 gap-3">
-            {PLANS.map((plan) => (
+            {plans.map((plan) => (
               <button
-                key={plan.days}
+                key={plan.months}
                 onClick={() => setSelectedPlan(plan)}
                 className={`p-4 rounded-lg border transition-colors ${
                   selectedPlan === plan ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
                 }`}
               >
-                <div className="text-lg font-semibold">{plan.days} days</div>
-                <div className="text-sm text-gray-600 mt-1">${plan.pricePerDay}/day</div>
-                <div className="text-red-500 font-medium mt-2">${calculateTotal(plan).toString(10)} total</div>
+                <div className="text-lg font-semibold">{(plan.months * DAYS_PER_MONTH).toString(10)} days</div>
+                <div className="text-red-500 font-medium mt-2">${formatTokenAmount(calculateTotal(plan))} total</div>
               </button>
             ))}
           </div>
 
-          <div className="mt-8 space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Daily Price:</span>
-              <span className="text-gray-900">${selectedPlan.pricePerDay}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Number of Days:</span>
-              <span className="text-gray-900">{selectedPlan.days}</span>
-            </div>
-            <div className="flex justify-between items-center pt-3">
-              <span className="text-base font-semibold">Total Amount:</span>
-              <span className="text-xl font-semibold text-red-500">${calculateTotal(selectedPlan).toString(10)}</span>
-            </div>
-          </div>
+          {selectedPlan && (
+            <>
+              <div className="mt-8 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Number of days:</span>
+                  <span className="text-gray-900">{(selectedPlan.months * DAYS_PER_MONTH).toString(10)}</span>
+                </div>
+                <div className="flex justify-between items-center pt-3">
+                  <span className="text-base font-semibold">Total Amount:</span>
+                  <span className="text-xl font-semibold text-red-500">${formatTokenAmount(calculateTotal(selectedPlan))}</span>
+                </div>
+              </div>
 
-          <Button
-            className="w-full mt-8 bg-red-500 hover:bg-red-600 text-white py-6 rounded-full"
-            onClick={()=> depositFunds(BigInt(orderId), calculateTotal(selectedPlan))}
-          >
-            Complete Deposit
-          </Button>
+              <Button
+                className="w-full mt-8 bg-red-500 hover:bg-red-600 text-white py-6 rounded-full flex items-center justify-center gap-2"
+                onClick={handleDeposit}
+                isPending={isPending}
+                disabled={isPending}
+              >
+                {isPending && <Loader2 className="animate-spin h-5 w-5" />}
+                {status === "idle" && "Complete Deposit"}
+                {status === "success" && <><CheckCircle className="h-5 w-5 text-green-500" /> Success</>}
+                {status === "error" && <><XCircle className="h-5 w-5 text-red-500" /> Error</>}
+              </Button>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-

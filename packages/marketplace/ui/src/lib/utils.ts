@@ -13,3 +13,10 @@ export function readFile(f: File): Promise<string> {
     reader.readAsText(f);
   })
 }
+
+export const formatTokenAmount = (value: bigint, tokenDecimals: bigint = 18n, precision: number = 2): string => {
+  const factor = 10n ** tokenDecimals;
+  const integerPart = value / factor;
+  const decimalPart = value % factor;
+  return `${integerPart}.${decimalPart.toString().padStart(parseInt(tokenDecimals.toString()), "0").slice(0, precision)}`;
+};

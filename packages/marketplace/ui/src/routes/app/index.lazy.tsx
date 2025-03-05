@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { CheckCircle } from "lucide-react";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { PLANS } from "@/shared/constants";
-import { Plan } from "@/types";
+import { OfferPlan, Plan } from "@/types";
 import { useCreateOrder } from "@/hooks/use-create-order";
 
 
@@ -17,7 +17,7 @@ export function SubscriptionPlans() {
   const [loading, setLoading] = useState(false);
   const { approveAndCreateOrder, userAddress } = useCreateOrder();
 
-  const handlePlanSelect = (plan: Plan) => {
+  const handlePlanSelect = (plan: OfferPlan) => {
     setSelectedPlan(plan);
   };
 
