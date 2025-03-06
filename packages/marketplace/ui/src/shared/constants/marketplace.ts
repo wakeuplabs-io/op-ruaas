@@ -1,31 +1,28 @@
 import { Address } from "viem";
-import { Plan } from "@/types";
+import { OfferPlan } from "@/types";
 import envParsed from "@/envParsed";
 
-export const PLANS: Plan[] = [
+export const PLANS: OfferPlan[] = [
   {
-    id: 0n,
+    id: 1n,
     title: "Basic",
-    price: 10,
+    pricePerMonth: 10n,
     features: ["Lorem Ipsum", "Lorem Ipsum", "Lorem Ipsum"],
     buttonText: "Buy now",
-    deploymentFee: 100n,
   },
   {
-    id: 0n,
+    id: 1n,
     title: "Premium",
-    price: 20,
+    pricePerMonth: 20n,
     features: ["Lorem Ipsum", "Lorem Ipsum", "Lorem Ipsum"],
     buttonText: "Select Plan",
-    deploymentFee: 100n,
   },
   {
-    id: 0n,
+    id: 1n,
     title: "Pro",
-    price: 30,
+    pricePerMonth: 30n,
     features: ["Lorem Ipsum", "Lorem Ipsum", "Lorem Ipsum"],
     buttonText: "Select Plan",
-    deploymentFee: 100n,
   },
 ];
 
@@ -368,6 +365,11 @@ export const MARKETPLACE_ABI = [
     type: "constructor",
   },
   {
+    inputs: [],
+    name: "FulfillmentPeriodExpired",
+    type: "error",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -390,12 +392,27 @@ export const MARKETPLACE_ABI = [
   },
   {
     inputs: [],
+    name: "OrderAlreadyFulfilled",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "OrderAlreadyTerminated",
     type: "error",
   },
   {
     inputs: [],
     name: "OrderNotFulfilled",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "OrderNotVerified",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "ReentrancyGuardReentrantCall",
     type: "error",
   },
   {
@@ -446,19 +463,7 @@ export const MARKETPLACE_ABI = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "pricePerHour",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "deploymentFee",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "fulfillmentTime",
+        name: "pricePerMonth",
         type: "uint256",
       },
       {
@@ -552,6 +557,31 @@ export const MARKETPLACE_ABI = [
       {
         indexed: true,
         internalType: "address",
+        name: "vendor",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "client",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "orderId",
+        type: "uint256",
+      },
+    ],
+    name: "OrderVerifier",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
         name: "user",
         type: "address",
       },
@@ -570,6 +600,32 @@ export const MARKETPLACE_ABI = [
     ],
     name: "Withdrawal",
     type: "event",
+  },
+  {
+    inputs: [],
+    name: "FULFILLMENT_PERIOD",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "VERIFICATION_PERIOD",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
   },
   {
     inputs: [
@@ -599,23 +655,18 @@ export const MARKETPLACE_ABI = [
     inputs: [
       {
         internalType: "uint256",
-        name: "_pricePerHour",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "_deploymentFee",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "_fulfillmentTime",
+        name: "_pricePerMonth",
         type: "uint256",
       },
       {
         internalType: "uint256",
         name: "_units",
         type: "uint256",
+      },
+      {
+        internalType: "string",
+        name: "_metadata",
+        type: "string",
       },
     ],
     name: "createOffer",
@@ -638,8 +689,13 @@ export const MARKETPLACE_ABI = [
       },
       {
         internalType: "uint256",
-        name: "_initialDeposit",
+        name: "_initialCommitment",
         type: "uint256",
+      },
+      {
+        internalType: "string",
+        name: "_setupMetadata",
+        type: "string",
       },
     ],
     name: "createOrder",
@@ -680,13 +736,51 @@ export const MARKETPLACE_ABI = [
       },
       {
         internalType: "string",
-        name: "_metadata",
+        name: "_deploymentMetadata",
         type: "string",
       },
     ],
     name: "fulfillOrder",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_user",
+        type: "address",
+      },
+    ],
+    name: "getClientOrders",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_user",
+        type: "address",
+      },
+    ],
+    name: "getVendorOrders",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -719,12 +813,7 @@ export const MARKETPLACE_ABI = [
       },
       {
         internalType: "uint256",
-        name: "pricePerHour",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "deploymentFee",
+        name: "pricePerMonth",
         type: "uint256",
       },
       {
@@ -733,9 +822,9 @@ export const MARKETPLACE_ABI = [
         type: "uint256",
       },
       {
-        internalType: "uint256",
-        name: "fulfillmentTime",
-        type: "uint256",
+        internalType: "string",
+        name: "metadata",
+        type: "string",
       },
     ],
     stateMutability: "view",
@@ -801,7 +890,12 @@ export const MARKETPLACE_ABI = [
       },
       {
         internalType: "string",
-        name: "metadata",
+        name: "setupMetadata",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "deploymentMetadata",
         type: "string",
       },
     ],

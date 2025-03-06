@@ -1,7 +1,7 @@
 import { useOfferDetails } from "./use-offer-details";
 import { useReadContract } from "wagmi";
 import type { Config as WagmiConfig } from "@wagmi/core";
-import { MARKETPLACE_ADDRESS, MARKETPLACE_ABI } from "@/shared/constants";
+import { MARKETPLACE_ADDRESS, MARKETPLACE_ABI } from "@/shared/constants/marketplace";
 import { Order, OrdersReturnTuple } from "@/types";
 
 export function useOrderDetails(orderId?: string) {

@@ -2,9 +2,9 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { CheckCircle } from "lucide-react";
 import { createLazyFileRoute } from "@tanstack/react-router";
-import { PLANS } from "@/shared/constants";
 import { OfferPlan } from "@/types";
 import { useCreateOrder } from "@/hooks/use-create-order";
+import { PLANS } from "@/shared/constants/marketplace";
 
 const ONE_MONTH: bigint = 1n;
 
@@ -30,7 +30,6 @@ export function SubscriptionPlans() {
     try {
       setLoading(true);
       const offerId = PLANS[0].id;
-      console.log(selectedPlan)
       await approveAndCreateOrder(offerId, ONE_MONTH, selectedPlan.pricePerMonth);
       alert("Order created successfully!");
     } catch (error) {

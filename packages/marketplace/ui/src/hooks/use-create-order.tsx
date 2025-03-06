@@ -26,12 +26,9 @@ export function useCreateOrder() {
         functionName: "createOrder",
         args: [offerId, initialCommitment, '{}'],
       });
-      console.log({orderTx})
 
       return orderTx;
     } catch (error) {
-      console.log({error})
-
       throw error;
     }
   };
