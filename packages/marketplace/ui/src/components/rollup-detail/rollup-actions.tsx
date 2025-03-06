@@ -50,7 +50,7 @@ export function RollupActions({
 
   return (
     <div>
-      <div className="p-4">
+      <div className="py-4">
         <h1 className={cn("text-4xl font-bold", `text-${statusColor}`)}>
           {isLoading ? "-" : displayBalance}
         </h1>

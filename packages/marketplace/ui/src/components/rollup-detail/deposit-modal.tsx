@@ -98,8 +98,8 @@ export function DepositModal({ orderId, plans, isOpen, onClose }: DepositModalPr
                   selectedPlan === plan ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
                 }`}
               >
-                <div className="text-lg font-semibold">{(plan.months * DAYS_PER_MONTH).toString(10)} days</div>
-                <div className="text-gray-500 font-medium mt-2">${formatTokenAmount(calculateTotal(plan), 18n, 0)}</div>
+                <div className="text-lg text-2xl">{(plan.months * DAYS_PER_MONTH).toString(10)} days</div>
+                <div className="text-gray-500 font-medium mt-2 text-base">${formatTokenAmount(calculateTotal(plan), 18n, 0)}</div>
               </button>
             ))}
           </div>
@@ -107,10 +107,10 @@ export function DepositModal({ orderId, plans, isOpen, onClose }: DepositModalPr
           {selectedPlan && (
             <>
               <Button
-                className="w-full mt-8 bg-red-500 hover:bg-red-600 text-white py-6 rounded-full flex items-center justify-center gap-2"
+                className="w-full mt-8 bg-red-500 hover:bg-red-600 text-white py-6 rounded-full flex items-center justify-center gap-2 text-xl"
                 onClick={handleDeposit}
                 isPending={isPending}
-                disabled={isPending || !isConnected || status === "success"}
+                disabled={isPending || !isConnected || status ===  ModalStatus.SUCCESS}
               >
                 {isPending && <Loader2 className="animate-spin h-5 w-5" />}
                 {!isConnected && "Connect your wallet to deposit"}
