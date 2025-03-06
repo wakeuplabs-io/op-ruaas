@@ -6,27 +6,32 @@ export function useCreateOrder() {
   const { data: walletClient } = useWalletClient();
   const { writeContractAsync } = useWriteContract();
 
-  const approveAndCreateOrder = async (offerId: bigint, initialDeposit: bigint) => {
+  const approveAndCreateOrder = async (offerId: bigint, initialCommitment: bigint, pricePerMonth: bigint) => {
     if (!walletClient) {
       throw new Error("No wallet connected");
     }
 
+    const tokensToApprove = initialCommitment * pricePerMonth * 10n ** 18n;
     try {
       await writeContractAsync({
         address: MARKETPLACE_TOKEN,
         abi: ERC20_TOKEN_ABI,
         functionName: "approve",
-        args: [MARKETPLACE_ADDRESS, initialDeposit],
+        args: [MARKETPLACE_ADDRESS, tokensToApprove],
       });
+
       const orderTx = await writeContractAsync({
         address: MARKETPLACE_ADDRESS,
         abi: MARKETPLACE_ABI,
         functionName: "createOrder",
-        args: [offerId, initialDeposit],
+        args: [offerId, initialCommitment, '{}'],
       });
+      console.log({orderTx})
+
       return orderTx;
     } catch (error) {
-      console.error("Transaction failed:", error);
+      console.log({error})
+
       throw error;
     }
   };

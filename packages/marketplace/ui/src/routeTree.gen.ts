@@ -19,6 +19,7 @@ import { Route as IndexImport } from './routes/index'
 // Create Virtual Routes
 
 const AppIndexLazyImport = createFileRoute('/app/')()
+const AppRollupsIdLazyImport = createFileRoute('/app/rollups/$id')()
 
 // Create/Update Routes
 
@@ -39,6 +40,14 @@ const AppIndexLazyRoute = AppIndexLazyImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any).lazy(() => import('./routes/app/index.lazy').then((d) => d.Route))
+
+const AppRollupsIdLazyRoute = AppRollupsIdLazyImport.update({
+  id: '/rollups/$id',
+  path: '/rollups/$id',
+  getParentRoute: () => AppRoute,
+} as any).lazy(() =>
+  import('./routes/app/rollups/$id.lazy').then((d) => d.Route),
+)
 
 // Populate the FileRoutesByPath interface
 
@@ -65,6 +74,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexLazyImport
       parentRoute: typeof AppImport
     }
+    '/app/rollups/$id': {
+      id: '/app/rollups/$id'
+      path: '/rollups/$id'
+      fullPath: '/app/rollups/$id'
+      preLoaderRoute: typeof AppRollupsIdLazyImport
+      parentRoute: typeof AppImport
+    }
   }
 }
 
@@ -72,10 +88,12 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppIndexLazyRoute: typeof AppIndexLazyRoute
+  AppRollupsIdLazyRoute: typeof AppRollupsIdLazyRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppIndexLazyRoute: AppIndexLazyRoute,
+  AppRollupsIdLazyRoute: AppRollupsIdLazyRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -84,11 +102,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/': typeof AppIndexLazyRoute
+  '/app/rollups/$id': typeof AppRollupsIdLazyRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppIndexLazyRoute
+  '/app/rollups/$id': typeof AppRollupsIdLazyRoute
 }
 
 export interface FileRoutesById {
@@ -96,14 +116,15 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/': typeof AppIndexLazyRoute
+  '/app/rollups/$id': typeof AppRollupsIdLazyRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app' | '/app/'
+  fullPaths: '/' | '/app' | '/app/' | '/app/rollups/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/app'
-  id: '__root__' | '/' | '/app' | '/app/'
+  to: '/' | '/app' | '/app/rollups/$id'
+  id: '__root__' | '/' | '/app' | '/app/' | '/app/rollups/$id'
   fileRoutesById: FileRoutesById
 }
 
@@ -137,11 +158,16 @@ export const routeTree = rootRoute
     "/app": {
       "filePath": "app.tsx",
       "children": [
-        "/app/"
+        "/app/",
+        "/app/rollups/$id"
       ]
     },
     "/app/": {
       "filePath": "app/index.lazy.tsx",
+      "parent": "/app"
+    },
+    "/app/rollups/$id": {
+      "filePath": "app/rollups/$id.lazy.tsx",
       "parent": "/app"
     }
   }

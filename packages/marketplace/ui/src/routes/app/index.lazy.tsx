@@ -2,10 +2,11 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { CheckCircle } from "lucide-react";
 import { createLazyFileRoute } from "@tanstack/react-router";
-import { PLANS } from "@/shared/constants/marketplace";
-import { Plan } from "@/types";
+import { PLANS } from "@/shared/constants";
+import { OfferPlan } from "@/types";
 import { useCreateOrder } from "@/hooks/use-create-order";
-import { UnsubscribeModal } from "@/components/unsubscribe-modal";
+
+const ONE_MONTH: bigint = 1n;
 
 export const Route = createLazyFileRoute("/app/")({
   component: SubscriptionPlans,
@@ -16,7 +17,7 @@ export function SubscriptionPlans() {
   const [loading, setLoading] = useState(false);
   const { approveAndCreateOrder, userAddress } = useCreateOrder();
 
-  const handlePlanSelect = (plan: Plan) => {
+  const handlePlanSelect = (plan: OfferPlan) => {
     setSelectedPlan(plan);
   };
 
@@ -28,7 +29,9 @@ export function SubscriptionPlans() {
 
     try {
       setLoading(true);
-      await approveAndCreateOrder(selectedPlan.id, selectedPlan.deploymentFee);
+      const offerId = PLANS[0].id;
+      console.log(selectedPlan)
+      await approveAndCreateOrder(offerId, ONE_MONTH, selectedPlan.pricePerMonth);
       alert("Order created successfully!");
     } catch (error) {
       alert("Transaction failed.");
@@ -54,7 +57,7 @@ export function SubscriptionPlans() {
           >
             <h2 className="text-md font-medium">{plan.title}</h2>
             <p className="text-xl font-bold mt-2">
-              ${plan.price} <span className="text-sm font-normal">/month</span>
+              ${plan.pricePerMonth.toString(10)} <span className="text-sm font-normal">/month</span>
             </p>
             <ul className="mt-4 space-y-2 mb-6">
               {plan.features.map((feature, i) => (
