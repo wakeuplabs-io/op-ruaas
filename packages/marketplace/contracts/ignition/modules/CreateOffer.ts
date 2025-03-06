@@ -7,7 +7,7 @@ export default buildModule("CreateOffer", (m) => {
   const units = m.getParameter<bigint>("Units");
 
   const marketplace = m.contractAt("Marketplace", marketplaceAddress);
-
+  console.log({marketplaceAddress})
   m.call(marketplace, "createOffer", [
     pricePerMonth,
     units,

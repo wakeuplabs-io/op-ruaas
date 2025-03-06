@@ -30,11 +30,52 @@ export type NetworkConfig = {
   chainId: number;
 };
 
-export type Plan = {
+export type OfferPlan = {
   id: bigint;
   title: string;
-  price: number;
+  pricePerMonth: bigint;
   features: string[];
   buttonText: string;
-  deploymentFee: bigint;
 };
+
+export type OrdersReturnTuple = [
+  client: string,
+  offerId: bigint,
+  balance: bigint,
+  createdAt: bigint,
+  fulfilledAt: bigint,
+  terminatedAt: bigint, 
+  lastWithdrawal: bigint,
+  metadata: string 
+]
+
+
+export type Order = {
+  client: string;
+  offerId: bigint;
+  balance: bigint;
+  createdAt: bigint;
+  fulfilledAt: bigint;
+  terminatedAt: bigint;
+  lastWithdrawal: bigint;
+  metadata: string;
+};
+
+export type OfferReturnTuple = [
+  vendor: string,
+  pricePerMonth: bigint,
+  remainingUnits: bigint,
+  metadata: string
+];
+
+export type Offer = {
+  vendor: string;
+  pricePerMonth: bigint;
+  remainingUnits: bigint;
+  metadata: string;
+};
+
+export type Plan = {
+  months: bigint
+  pricePerMonth: bigint
+}
