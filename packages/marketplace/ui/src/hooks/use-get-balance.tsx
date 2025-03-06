@@ -13,6 +13,6 @@ export function useGetBalance(orderId: string) {
     },
   });
 
-  const balance: bigint = data ? data as bigint / 10000n : 0n 
+  const balance: bigint = data ? data as bigint : 0n 
   return { balance, isLoading, error, refetch };
 }

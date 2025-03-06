@@ -79,17 +79,17 @@ export function DepositModal({ orderId, plans, isOpen, onClose }: DepositModalPr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden rounded-2xl">
+      <DialogContent className="w-[547px] h-[517px] p-4 sm:p-4 overflow-hidden rounded-2xl">
         <div className="p-6">
           <DialogHeader className="flex flex-row items-start justify-between">
             <DialogTitle className="text-xl font-semibold">Deposit Funds</DialogTitle>
           </DialogHeader>
 
           <p className="mt-2 text-base text-gray-700">
-            Add funds for your subscription. Choose a plan, see the total, and confirm.
+            Add funds for your subscription. Select a subscription period:
           </p>
 
-          <div className="mt-8 grid grid-cols-2 gap-3">
+          <div className="mt-8 pb-8 grid grid-cols-2 gap-3">
             {plans.map((plan) => (
               <button
                 key={plan.months}
@@ -99,24 +99,13 @@ export function DepositModal({ orderId, plans, isOpen, onClose }: DepositModalPr
                 }`}
               >
                 <div className="text-lg font-semibold">{(plan.months * DAYS_PER_MONTH).toString(10)} days</div>
-                <div className="text-red-500 font-medium mt-2">${formatTokenAmount(calculateTotal(plan))} total</div>
+                <div className="text-gray-500 font-medium mt-2">${formatTokenAmount(calculateTotal(plan), 18n, 0)}</div>
               </button>
             ))}
           </div>
 
           {selectedPlan && (
             <>
-              <div className="mt-8 space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Number of days:</span>
-                  <span className="text-gray-900">{(selectedPlan.months * DAYS_PER_MONTH).toString(10)}</span>
-                </div>
-                <div className="flex justify-between items-center pt-3">
-                  <span className="text-base font-semibold">Total Amount:</span>
-                  <span className="text-xl font-semibold text-red-500">${formatTokenAmount(calculateTotal(selectedPlan))}</span>
-                </div>
-              </div>
-
               <Button
                 className="w-full mt-8 bg-red-500 hover:bg-red-600 text-white py-6 rounded-full flex items-center justify-center gap-2"
                 onClick={handleDeposit}

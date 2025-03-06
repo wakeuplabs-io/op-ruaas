@@ -9,6 +9,8 @@ import {
   calculateStatusColor,
   formatRemainingTime,
 } from "@/lib/utils";
+import { CopyableInfoBox } from "../copyable-info-box";
+import { BookDown } from "lucide-react";
 
 interface RollupActionsProps {
   orderId: string;
@@ -45,9 +47,10 @@ export function RollupActions({
       setDisplayBalance(formatRemainingTime(balance, offer.pricePerMonth));
     }
   }, [balance, isLoading, offer, setStatusColor]);
+
   return (
-    <div className="mb-6">
-      <div className={"p-4"}>
+    <div>
+      <div className="p-4">
         <h1 className={cn("text-4xl font-bold", `text-${statusColor}`)}>
           {isLoading ? "-" : displayBalance}
         </h1>
@@ -56,10 +59,29 @@ export function RollupActions({
         </p>
       </div>
 
-      <div className="flex gap-4 mt-4">
-        <Button variant="outline" onClick={() => setIsDepositModalOpen(true)}>
+      <div className="flex justify-between items-center gap-4 mt-4">
+        <Button
+          variant="outline"
+          onClick={() => setIsDepositModalOpen(true)}
+          className="w-32 h-11 flex items-center justify-center gap-2"
+        >
+          <BookDown className="h-5 w-5" />
           Deposit
         </Button>
+
+        <div className="flex gap-4">
+          {[
+            { label: "Chain ID", value: "0xDc64a14...F6C9" },
+            { label: "RPC URL", value: "0xDc64a14...F6C9" },
+          ].map((item, index) => (
+            <CopyableInfoBox
+              key={index}
+              value={item.value}
+              shortValue={item.value}
+              label={item.label}
+            />
+          ))}
+        </div>
       </div>
 
       <DepositModal

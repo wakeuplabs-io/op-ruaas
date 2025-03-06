@@ -18,6 +18,7 @@ export const formatTokenAmount = (value: bigint, tokenDecimals: bigint = 18n, pr
   const factor = 10n ** tokenDecimals;
   const integerPart = value / factor;
   const decimalPart = value % factor;
+  if(precision === 0) return integerPart.toString();
   return `${integerPart}.${decimalPart.toString().padStart(parseInt(tokenDecimals.toString()), "0").slice(0, precision)}`;
 };
 
@@ -26,7 +27,7 @@ export const calculateStatusColor = (balance: bigint, pricePerMonth: bigint | un
   const daysRemaining = balance / (pricePerMonth / 30n);
   if (daysRemaining < 1n) return "red-500";
   if (daysRemaining < 30n) return "yellow-500";
-  return "gray-200";
+  return "gray-800";
 };
 
 export function formatRemainingTime(balance: bigint, pricePerMonth: bigint): string {
