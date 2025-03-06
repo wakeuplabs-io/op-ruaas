@@ -17,6 +17,7 @@ export function useOfferDetails(offerId?: bigint) {
     args: [offerId],
 
   });
+  
   const offer: Offer | null = data
     ? {
         vendor: data[0],

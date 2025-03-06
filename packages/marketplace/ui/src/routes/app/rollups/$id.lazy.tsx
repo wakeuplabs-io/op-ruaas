@@ -1,5 +1,3 @@
-"use client";
-
 import { AddressManagerList } from "@/components/rollup-detail/address-manager-list";
 import { DownloadSection } from "@/components/rollup-detail/download-button";
 import { RollupActions } from "@/components/rollup-detail/rollup-actions";
