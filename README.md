@@ -201,7 +201,7 @@ Weather you want to rotate your wallets, or they've been compromised, you may wa
 cast send {SystemConfigProxy} "setBatcherHash(bytes32 _batcherHash)" {"bytes32(uint256(uint160(_cfg.batchSenderAddress())))"} --rpc-url {L1RpcUrl} --private-key {AdminPrivateKey}
 
 # Example locally just removing current batcher
-cast call 0x0B306BF915C4d645ff596e518fAf3F9669b97016 "setBatcherHash(bytes32 _batcherHash)" {"bytes32(uint256(uint160(_cfg.batchSenderAddress())))"} --rpc-url http://localhost:8545 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+cast send 0x0B306BF915C4d645ff596e518fAf3F9669b97016 "setBatcherHash(bytes32 _batcherHash)" 0x0000000000000000000000000000000000000000000000000000000000000000 --rpc-url http://localhost:8545 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 ```
 
 And verify with:
@@ -219,7 +219,7 @@ To update proposer and challenger wallets it's a bit more work.
 
 A quick deactivation in case of emergency could be just removing the implementation:
 
-AdminUser -> SystemOwnerSafe -> ProxyAdmin -> upgradeTo ....
+AdminUser -> SystemOwnerSafe -> ProxyAdmin -> upgrade ....
 
 ```bash
 cast send --rpc-url {L1Rpc} --private-key {AdminPrivateKey} {SystemOwnerSafe} "execTransaction(address,uint256,bytes,uint8,uint256,uint256,uint256,address,address,bytes)" {ProxyAdmin} 0x0 $(cast calldata "upgrade(address, address)" {L2OutputOracleProxy} {NewImplementation}) 0 0 0 0 0x0000000000000000000000000000000000000000  0x0000000000000000000000000000000000000000 0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266000000000000000000000000000000000000000000000000000000000000000001
@@ -228,7 +228,7 @@ cast send --rpc-url {L1Rpc} --private-key {AdminPrivateKey} {SystemOwnerSafe} "e
 cast call {L2OutputOracleProxy} "implementation()(address)"  --rpc-url http://localhost:8545
 
 # Example locally, update accordingly
-cast send --rpc-url http://localhost:8545 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 0x7089e97135A7d1942f88BA2a5dbDe0D88d573fc3 "execTransaction(address,uint256,bytes,uint8,uint256,uint256,uint256,address,address,bytes)" 0x5FC8d32690cc91D4c39d9d3abcBD16989F875707 0x0 $(cast calldata "upgrade(address, address)" 0x59b670e9fA9D0A427751Af201D676719a970857b 0x0000000000000000000000000000000000000000) 0 0 0 0 0x0000000000000000000000000000000000000000  0x0000000000000000000000000000000000000000 0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266000000000000000000000000000000000000000000000000000000000000000001
+cast send --rpc-url http://localhost:8545 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 0xfB4ED8d767750714d7c8b041EA4740D34f635461 "execTransaction(address,uint256,bytes,uint8,uint256,uint256,uint256,address,address,bytes)" 0x5FC8d32690cc91D4c39d9d3abcBD16989F875707 0x0 $(cast calldata "upgrade(address, address)" 0x59b670e9fA9D0A427751Af201D676719a970857b 0x0000000000000000000000000000000000000000) 0 0 0 0 0x0000000000000000000000000000000000000000  0x0000000000000000000000000000000000000000 0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266000000000000000000000000000000000000000000000000000000000000000001
 
 cast call 0x59b670e9fA9D0A427751Af201D676719a970857b "implementation()(address)"  --rpc-url http://localhost:8545
 ```
