@@ -3,7 +3,12 @@ import { DepositModal } from "./deposit-modal";
 import { useEffect, useState } from "react";
 import { useGetBalance } from "@/hooks/use-get-balance";
 import { Offer, Plan } from "@/types";
-import { cn, formatTokenAmount, calculateStatusColor, formatRemainingTime } from "@/lib/utils";
+import {
+  cn,
+  formatTokenAmount,
+  calculateStatusColor,
+  formatRemainingTime,
+} from "@/lib/utils";
 
 interface RollupActionsProps {
   orderId: string;
@@ -16,14 +21,16 @@ export function RollupActions({
   orderId,
   offer,
   setStatusColor,
-  statusColor
+  statusColor,
 }: RollupActionsProps) {
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [plans, setPlans] = useState<Plan[]>();
-  const { balance, isLoading } = useGetBalance(orderId);
+  const [displayBalance, setDisplayBalance] = useState<string>("-");
+  const { balance, isLoading, refetch } = useGetBalance(orderId);
 
   useEffect(() => {
-    if(!offer) return
+    if (!offer) return;
+
     setPlans([
       { months: 1n, pricePerMonth: offer.pricePerMonth },
       { months: 3n, pricePerMonth: offer.pricePerMonth },
@@ -35,14 +42,14 @@ export function RollupActions({
   useEffect(() => {
     if (!isLoading && balance !== undefined && offer) {
       setStatusColor(calculateStatusColor(balance, offer.pricePerMonth));
+      setDisplayBalance(formatRemainingTime(balance, offer.pricePerMonth));
     }
   }, [balance, isLoading, offer, setStatusColor]);
-
   return (
     <div className="mb-6">
       <div className={"p-4"}>
         <h1 className={cn("text-4xl font-bold", `text-${statusColor}`)}>
-          {isLoading ? "-" : balance && offer ? formatRemainingTime(balance, offer.pricePerMonth) : "0 seconds remaining"}
+          {isLoading ? "-" : displayBalance}
         </h1>
         <p className="text-gray-500 mt-1">
           ${isLoading ? "-" : formatTokenAmount(balance || 0n)}
@@ -54,10 +61,14 @@ export function RollupActions({
           Deposit
         </Button>
       </div>
+
       <DepositModal
         orderId={orderId}
         isOpen={isDepositModalOpen}
-        onClose={() => setIsDepositModalOpen(false)}
+        onClose={() => {
+          setIsDepositModalOpen(false);
+          refetch();
+        }}
         plans={plans}
       />
     </div>

@@ -17,6 +17,7 @@ interface DepositModalProps {
 }
 
 const DAYS_PER_MONTH = 30n;
+const ONE_SECOND = 1000;
 
 enum ModalStatus {
   IDLE = "idle",
@@ -35,6 +36,18 @@ export function DepositModal({ orderId, plans, isOpen, onClose }: DepositModalPr
       setSelectedPlan(plans[0]);
     }
   }, [plans]);
+
+  useEffect(() => {
+    if (status === ModalStatus.SUCCESS) {
+      const timer = setTimeout(() => {
+        onClose();
+        setStatus(ModalStatus.IDLE);
+      }, ONE_SECOND);
+  
+      return () => clearTimeout(timer);
+    }
+  }, [status, onClose]);
+  
 
   const calculateTotal = (plan: Plan): bigint => {
     return BigInt(plan.months * plan.pricePerMonth);
@@ -113,7 +126,7 @@ export function DepositModal({ orderId, plans, isOpen, onClose }: DepositModalPr
                 {isPending && <Loader2 className="animate-spin h-5 w-5" />}
                 {!isConnected && "Connect your wallet to deposit"}
                 {isConnected && status === ModalStatus.IDLE && "Complete Deposit"}
-                {isConnected && status === ModalStatus.SUCCESS && <><CheckCircle className="h-5 w-5 text-green-500" /> Success</>}
+                {isConnected && status === ModalStatus.SUCCESS && <>Success</>}
               </Button>
               {!isConnected && (
                 <p className="mt-2 text-center text-sm text-red-500">

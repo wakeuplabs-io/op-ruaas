@@ -3,12 +3,16 @@ import { MARKETPLACE_ADDRESS, MARKETPLACE_ABI } from "@/shared/constants";
 
 export function useGetBalance(orderId: string) {
   const { address } = useAccount();
-  const { data, isLoading, error } = useReadContract({
+  const { data, isLoading, error, refetch } = useReadContract({
     address: MARKETPLACE_ADDRESS,
     abi: MARKETPLACE_ABI,
     functionName: "balanceOf",
     args: [address, BigInt(orderId)],
+    query: {
+      enabled: !!orderId,
+    },
   });
-  const balance: bigint = data as bigint;
-  return { balance, isLoading, error };
+
+  const balance: bigint = data ? data as bigint / 10000n : 0n 
+  return { balance, isLoading, error, refetch };
 }
