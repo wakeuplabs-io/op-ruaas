@@ -6,7 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useDeposit } from "@/hooks/use-deposit"
 import { Plan } from "@/types"
 import { formatTokenAmount } from "@/lib/utils"
-import { Loader2, CheckCircle, XCircle } from "lucide-react"
+import { Loader2, CheckCircle } from "lucide-react"
+import { useAccount } from "wagmi";
 
 interface DepositModalProps {
   orderId: string;
@@ -17,11 +18,17 @@ interface DepositModalProps {
 
 const DAYS_PER_MONTH = 30n;
 
+enum ModalStatus {
+  IDLE = "idle",
+  SUCCESS = "success",
+}
+
 export function DepositModal({ orderId, plans, isOpen, onClose }: DepositModalProps) {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const { depositFunds } = useDeposit();
   const [isPending, setIsPending] = useState(false);
-  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [status, setStatus] = useState<ModalStatus>(ModalStatus.IDLE);
+  const { isConnected } = useAccount();
 
   useEffect(() => {
     if (plans && plans.length > 0) {
@@ -37,13 +44,13 @@ export function DepositModal({ orderId, plans, isOpen, onClose }: DepositModalPr
     if (!selectedPlan) return;
 
     setIsPending(true);
-    setStatus("idle");
+    setStatus(ModalStatus.IDLE);
 
     try {
       await depositFunds(BigInt(orderId), calculateTotal(selectedPlan));
-      setStatus("success");
+      setStatus(ModalStatus.SUCCESS);
     } catch (error) {
-      setStatus("error");
+      console.error(error);
     } finally {
       setIsPending(false);
     }
@@ -101,13 +108,18 @@ export function DepositModal({ orderId, plans, isOpen, onClose }: DepositModalPr
                 className="w-full mt-8 bg-red-500 hover:bg-red-600 text-white py-6 rounded-full flex items-center justify-center gap-2"
                 onClick={handleDeposit}
                 isPending={isPending}
-                disabled={isPending}
+                disabled={isPending || !isConnected || status === "success"}
               >
                 {isPending && <Loader2 className="animate-spin h-5 w-5" />}
-                {status === "idle" && "Complete Deposit"}
-                {status === "success" && <><CheckCircle className="h-5 w-5 text-green-500" /> Success</>}
-                {status === "error" && <><XCircle className="h-5 w-5 text-red-500" /> Error</>}
+                {!isConnected && "Connect your wallet to deposit"}
+                {isConnected && status === ModalStatus.IDLE && "Complete Deposit"}
+                {isConnected && status === ModalStatus.SUCCESS && <><CheckCircle className="h-5 w-5 text-green-500" /> Success</>}
               </Button>
+              {!isConnected && (
+                <p className="mt-2 text-center text-sm text-red-500">
+                  You must connect your wallet to proceed with the deposit.
+                </p>
+              )}
             </>
           )}
         </div>

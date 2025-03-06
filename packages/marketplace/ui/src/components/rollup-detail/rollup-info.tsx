@@ -11,15 +11,15 @@ export function RollupInfo() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="flex gap-4">
       {infoData.map((item, index) => (
-        <div key={index} className="flex items-center rounded-lg border border-gray-200 overflow-hidden">
-          <div className="flex-1 p-3">
-            <p className="text-sm font-medium truncate">{item.value}</p>
+        <div key={index} className="flex items-center rounded-lg border border-gray-200 overflow-hidden text-sm">
+          <div className="flex-1 p-2">
+            <p className="font-medium truncate">{item.value}</p>
             <p className="text-xs text-gray-500">{item.label}</p>
           </div>
-          <button className="p-3 hover:bg-gray-50" onClick={() => handleCopy(item.value)}>
-            <Copy className="h-5 w-5 text-gray-500" />
+          <button className="p-2 hover:bg-gray-50" onClick={() => handleCopy(item.value)}>
+            <Copy className="h-4 w-4 text-gray-500" />
           </button>
         </div>
       ))}

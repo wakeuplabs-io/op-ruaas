@@ -3,9 +3,9 @@ import envParsed from "../envParsed"
 import { OfferPlan } from "@/types";
 
 export const PLANS: OfferPlan[] = [
-  { id: 0n, title: "Basic", price: 10, features: ["Lorem Ipsum", "Lorem Ipsum", "Lorem Ipsum"], buttonText: "Buy now", deploymentFee: 100n },
-  { id: 0n, title: "Premium", price: 20, features: ["Lorem Ipsum", "Lorem Ipsum", "Lorem Ipsum"], buttonText: "Select Plan", deploymentFee: 100n  },
-  { id: 0n ,title: "Pro", price: 30, features: ["Lorem Ipsum", "Lorem Ipsum", "Lorem Ipsum"], buttonText: "Select Plan", deploymentFee: 100n  },
+  { id: 1n, title: "Basic", pricePerMonth: 10n, features: ["Lorem Ipsum", "Lorem Ipsum", "Lorem Ipsum"], buttonText: "Buy now" },
+  { id: 1n, title: "Premium", pricePerMonth: 20n, features: ["Lorem Ipsum", "Lorem Ipsum", "Lorem Ipsum"], buttonText: "Select Plan"  },
+  { id: 1n ,title: "Pro", pricePerMonth: 30n, features: ["Lorem Ipsum", "Lorem Ipsum", "Lorem Ipsum"], buttonText: "Select Plan"  },
 ];
 export const ERC20_TOKEN_ADDRESS = envParsed().ERC20_TOKEN_ADDRESS as Address
 export const MARKETPLACE_ADDRESS = envParsed().MARKETPLACE_ADDRESS as Address

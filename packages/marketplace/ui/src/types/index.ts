@@ -33,10 +33,9 @@ export type NetworkConfig = {
 export type OfferPlan = {
   id: bigint;
   title: string;
-  price: number;
+  pricePerMonth: bigint;
   features: string[];
   buttonText: string;
-  deploymentFee: bigint;
 };
 
 export type OrdersReturnTuple = [

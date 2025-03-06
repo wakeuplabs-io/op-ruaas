@@ -20,3 +20,48 @@ export const formatTokenAmount = (value: bigint, tokenDecimals: bigint = 18n, pr
   const decimalPart = value % factor;
   return `${integerPart}.${decimalPart.toString().padStart(parseInt(tokenDecimals.toString()), "0").slice(0, precision)}`;
 };
+
+export const calculateStatusColor = (balance: bigint, pricePerMonth: bigint | undefined) => {
+  if (!pricePerMonth || balance === 0n) return "red-500";
+  const daysRemaining = balance / (pricePerMonth / 30n);
+  if (daysRemaining < 1n) return "red-500";
+  if (daysRemaining < 30n) return "yellow-500";
+  return "gray-200";
+};
+
+export function formatRemainingTime(balance: bigint, pricePerMonth: bigint): string {
+  if (balance <= 0n) return "0 seconds remaining";
+
+  const SECONDS_PER_MINUTE = 60n;
+  const MINUTES_PER_HOUR = 60n;
+  const HOURS_PER_DAY = 24n;
+  const DAYS_PER_MONTH = 30n;
+  const SECONDS_PER_HOUR = SECONDS_PER_MINUTE * MINUTES_PER_HOUR;
+  const SECONDS_PER_DAY = SECONDS_PER_HOUR * HOURS_PER_DAY;
+  const SECONDS_PER_MONTH = SECONDS_PER_DAY * DAYS_PER_MONTH;
+
+  const pricePerSecond = pricePerMonth / SECONDS_PER_MONTH;
+  const remainingSeconds = balance / pricePerSecond;
+
+  if (remainingSeconds >= SECONDS_PER_MONTH) {
+    const months = remainingSeconds / SECONDS_PER_MONTH;
+    return `${months.toString()} months remaining`;
+  }
+
+  if (remainingSeconds >= SECONDS_PER_DAY) {
+    const days = remainingSeconds / SECONDS_PER_DAY;
+    return `${days.toString()} days remaining`;
+  }
+
+  if (remainingSeconds >= SECONDS_PER_HOUR) {
+    const hours = remainingSeconds / SECONDS_PER_HOUR;
+    return `${hours.toString()} hours remaining`;
+  }
+
+  if (remainingSeconds >= SECONDS_PER_MINUTE) {
+    const minutes = remainingSeconds / SECONDS_PER_MINUTE;
+    return `${minutes.toString()} minutes remaining`;
+  }
+
+  return `${remainingSeconds.toString()} seconds remaining`;
+}

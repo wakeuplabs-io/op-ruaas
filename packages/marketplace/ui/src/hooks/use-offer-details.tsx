@@ -14,7 +14,7 @@ export function useOfferDetails(offerId?: bigint) {
     address: MARKETPLACE_ADDRESS,
     abi: MARKETPLACE_ABI,
     functionName: "offers",
-    args: [0n],
+    args: [1n],
 
   });
   const offer: Offer | null = data

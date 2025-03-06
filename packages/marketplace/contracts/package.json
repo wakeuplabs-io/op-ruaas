@@ -5,7 +5,7 @@
     "lint": "solhint 'contracts/**/*.sol'",
     "deploy:op-sepolia": "hardhat ignition deploy ignition/modules/Marketplace.ts --network op-sepolia --parameters ignition/parameters/op-sepolia.json",
     "deploy-token:op-sepolia": "hardhat ignition deploy ignition/modules/TestToken.ts --network op-sepolia",
-    "create-offer:op-sepolia": "hardhat ignition deploy ignition/modules/CreateOffer.ts --network op-sepolia --parameters ignition/parameters/op-sepolia.json"
+    "create-offer:op-sepolia": "hardhat run scripts/create-offer.ts --network op-sepolia"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "5.0.0",

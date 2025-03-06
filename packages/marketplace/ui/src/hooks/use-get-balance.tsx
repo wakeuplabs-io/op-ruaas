@@ -9,7 +9,6 @@ export function useGetBalance(orderId: string) {
     functionName: "balanceOf",
     args: [address, BigInt(orderId)],
   });
-
   const balance: bigint = data as bigint;
   return { balance, isLoading, error };
 }
