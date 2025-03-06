@@ -6,7 +6,7 @@ import { PROXY_ADMIN_ABI } from "@/shared/constants/proxy-admin";
 import { SYSTEM_CONFIG_ABI } from "@/shared/constants/system-config";
 import { SYSTEM_OWNER_SAFE_ABI } from "@/shared/constants/system-owner-safe";
 import { useMemo } from "react";
-import { encodeFunctionData, pad, toBytes } from "viem";
+import { encodeFunctionData, pad, toBytes, zeroAddress } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
 import { useReadContracts, useWalletClient, useWriteContract } from "wagmi";
 
@@ -32,46 +32,55 @@ export const useChainPermissions = ({
         address: l2OutputOracleProxy,
         abi: L2_OUTPUT_ORACLE_ABI,
         functionName: "submissionInterval",
+        chainId: l1ChainId,
       },
       {
         address: l2OutputOracleProxy,
         abi: L2_OUTPUT_ORACLE_ABI,
         functionName: "l2BlockTime",
+        chainId: l1ChainId,
       },
       {
         address: l2OutputOracleProxy,
         abi: L2_OUTPUT_ORACLE_ABI,
         functionName: "startingBlockNumber",
+        chainId: l1ChainId,
       },
       {
         address: l2OutputOracleProxy,
         abi: L2_OUTPUT_ORACLE_ABI,
         functionName: "startingTimestamp",
+        chainId: l1ChainId,
       },
       {
         address: l2OutputOracleProxy,
         abi: L2_OUTPUT_ORACLE_ABI,
         functionName: "finalizationPeriodSeconds",
+        chainId: l1ChainId,
       },
       {
         address: systemConfigProxy,
         abi: SYSTEM_CONFIG_ABI,
         functionName: "batcherHash",
-      }, 
+        chainId: l1ChainId,
+      },
       {
         address: systemConfigProxy,
         abi: SYSTEM_CONFIG_ABI,
         functionName: "unsafeBlockSigner",
+        chainId: l1ChainId,
       },
       {
         address: l2OutputOracleProxy,
         abi: L2_OUTPUT_ORACLE_ABI,
         functionName: "CHALLENGER",
+        chainId: l1ChainId,
       },
       {
         address: l2OutputOracleProxy,
         abi: L2_OUTPUT_ORACLE_ABI,
         functionName: "PROPOSER",
+        chainId: l1ChainId,
       },
     ],
   });
@@ -105,10 +114,10 @@ export const useChainPermissions = ({
       startingBlockNumber: startingBlockNumber?.result,
       startingTimestamp: startingTimestamp?.result,
       finalizationPeriodSeconds: finalizationPeriodSeconds?.result,
-      batcher: batcher?.result ?? "0x0000000000000000000000000000000000000000",
-      sequencer: sequencer?.result ?? "0x0000000000000000000000000000000000000000",
-      challenger: challenger?.result ?? "0x0000000000000000000000000000000000000000",
-      proposer: proposer?.result ?? "0x0000000000000000000000000000000000000000",
+      batcher: batcher?.result ?? zeroAddress,
+      sequencer: sequencer?.result ?? zeroAddress,
+      challenger: challenger?.result ?? zeroAddress,
+      proposer: proposer?.result ?? zeroAddress,
     };
   }, [data, isLoading, isError]);
 
@@ -141,12 +150,8 @@ export const useChainPermissions = ({
       throw new Error("No wallet connected");
     }
 
-    let implementation: `0x${string}` =
-      "0x0000000000000000000000000000000000000000";
-    if (
-      proposer !== "0x0000000000000000000000000000000000000000" ||
-      challenger !== "0x0000000000000000000000000000000000000000"
-    ) {
+    let implementation: `0x${string}` = zeroAddress;
+    if (proposer !== zeroAddress || challenger !== zeroAddress) {
       const deployTx = await walletClient?.deployContract({
         abi: L2_OUTPUT_ORACLE_ABI,
         bytecode: L2_OUTPUT_ORACLE_BYTECODE,
@@ -164,7 +169,15 @@ export const useChainPermissions = ({
         address: deploymentReceipt.contractAddress,
         chainId: l1ChainId,
         functionName: "initialize",
-        args: [submissionInterval, l2BlockTime, startingBlockNumber, startingTimestamp, proposer, challenger, finalizationPeriodSeconds],
+        args: [
+          submissionInterval,
+          l2BlockTime,
+          startingBlockNumber,
+          startingTimestamp,
+          proposer,
+          challenger,
+          finalizationPeriodSeconds,
+        ],
       });
 
       implementation = deploymentReceipt.contractAddress;
@@ -201,9 +214,9 @@ export const useChainPermissions = ({
     setSequencerAddress,
     setBatcherAddress,
     setOracleAddress,
-    batcher, 
+    batcher,
     sequencer,
     challenger,
-    proposer
+    proposer,
   };
 };

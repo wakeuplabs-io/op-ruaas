@@ -7,8 +7,6 @@ import { Plan } from "@/types";
 import { useCreateOrder } from "@/hooks/use-create-order";
 import { UnsubscribeModal } from "@/components/unsubscribe-modal";
 
-
-
 export const Route = createLazyFileRoute("/app/")({
   component: SubscriptionPlans,
 });
@@ -43,9 +41,6 @@ export function SubscriptionPlans() {
     <div className="p-10">
       <h2 className="text-md font-medium mb-8">Choose your plan</h2>
 
-      <UnsubscribeModal>
-        Unsubscribe
-      </UnsubscribeModal>
       <div className="flex justify-start gap-6">
         {PLANS.map((plan, index) => (
           <div
