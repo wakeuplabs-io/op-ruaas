@@ -1,5 +1,5 @@
 import { useAccount, useWalletClient, useWriteContract } from "wagmi";
-import { MARKETPLACE_ADDRESS, MARKETPLACE_ABI, ERC20_TOKEN_ADDRESS, ERC20_TOKEN_ABI } from "../shared/constants";
+import { MARKETPLACE_ADDRESS, MARKETPLACE_ABI, MARKETPLACE_TOKEN, ERC20_TOKEN_ABI } from "../shared/constants/marketplace";
 
 export function useCreateOrder() {
   const { address } = useAccount();
@@ -13,7 +13,7 @@ export function useCreateOrder() {
 
     try {
       await writeContractAsync({
-        address: ERC20_TOKEN_ADDRESS,
+        address: MARKETPLACE_TOKEN,
         abi: ERC20_TOKEN_ABI,
         functionName: "approve",
         args: [MARKETPLACE_ADDRESS, initialDeposit],

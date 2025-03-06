@@ -2,9 +2,10 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { CheckCircle } from "lucide-react";
 import { createLazyFileRoute } from "@tanstack/react-router";
-import { PLANS } from "@/shared/constants";
+import { PLANS } from "@/shared/constants/marketplace";
 import { Plan } from "@/types";
 import { useCreateOrder } from "@/hooks/use-create-order";
+import { UnsubscribeModal } from "@/components/unsubscribe-modal";
 
 
 
@@ -41,6 +42,10 @@ export function SubscriptionPlans() {
   return (
     <div className="p-10">
       <h2 className="text-md font-medium mb-8">Choose your plan</h2>
+
+      <UnsubscribeModal>
+        Unsubscribe
+      </UnsubscribeModal>
       <div className="flex justify-start gap-6">
         {PLANS.map((plan, index) => (
           <div
