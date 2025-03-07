@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 
-export const Route = createLazyFileRoute("/app/rollups/$id")({
+export const Route = createLazyFileRoute("/rollups/$id")({
   component: RollupDashboard,
 });
 
