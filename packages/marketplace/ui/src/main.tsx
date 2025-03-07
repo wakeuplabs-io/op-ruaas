@@ -8,7 +8,7 @@ import { routeTree } from "@/routeTree.gen";
 import { createRouter } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {  RainbowKitProvider } from "@rainbow-me/rainbowkit";
-import WagmiSetup from "./components/hocs/wagmi-provider";
+import WagmiSetup from "@/lib/hocs/wagmi-provider";
 
 export const queryClient = new QueryClient();
 

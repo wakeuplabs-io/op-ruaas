@@ -1,5 +1,5 @@
 import { useAccount, useWalletClient, useWriteContract } from "wagmi";
-import { MARKETPLACE_ADDRESS, MARKETPLACE_ABI, MARKETPLACE_TOKEN, ERC20_TOKEN_ABI } from "../shared/constants/marketplace";
+import { MARKETPLACE_ADDRESS, MARKETPLACE_ABI, MARKETPLACE_TOKEN, ERC20_TOKEN_ABI } from "../../shared/constants/marketplace";
 
 export function useCreateOrder() {
   const { address } = useAccount();

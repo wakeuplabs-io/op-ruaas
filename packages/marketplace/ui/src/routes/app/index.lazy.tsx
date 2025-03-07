@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { CheckCircle } from "lucide-react";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { OfferPlan } from "@/types";
-import { useCreateOrder } from "@/hooks/use-create-order";
+import { useCreateOrder } from "@/lib/hooks/use-create-order";
 import { PLANS } from "@/shared/constants/marketplace";
 
 const ONE_MONTH: bigint = 1n;

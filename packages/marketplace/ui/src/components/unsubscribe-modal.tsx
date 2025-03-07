@@ -10,10 +10,10 @@ import {
 import { ScrollArea } from "./ui/scroll-area";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useUnsubscribe } from "@/hooks/use-unsubscribe";
-import { useChainPermissions } from "@/hooks/use-chain-permissions";
+import { useUnsubscribe } from "@/lib/hooks/use-unsubscribe";
+import { useChainPermissions } from "@/lib/hooks/use-chain-permissions";
 import { zeroAddress } from "viem";
-import { useOrder } from "@/hooks/use-order";
+import { useOrder } from "@/lib/hooks/use-order";
 import { useMemo } from "react";
 
 enum UnsubscribeStep {

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { useDeposit } from "@/hooks/use-deposit"
+import { useDeposit } from "@/lib/hooks/use-deposit"
 import { Plan } from "@/types"
 import { formatTokenAmount } from "@/lib/utils"
 import { Loader2, CheckCircle } from "lucide-react"
