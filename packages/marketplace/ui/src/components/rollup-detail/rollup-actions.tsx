@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { DepositModal } from "./deposit-modal";
 import { useEffect, useState } from "react";
-import { useGetBalance } from "@/hooks/use-get-balance";
+import { useGetBalance } from "@/lib/hooks/use-get-balance";
 import { Offer, Plan } from "@/types";
 import {
   cn,
@@ -9,8 +9,8 @@ import {
   calculateStatusColor,
   formatRemainingTime,
 } from "@/lib/utils";
-import { CopyableInfoBox } from "../copyable-info-box";
 import { BookDown } from "lucide-react";
+import { DeploymentValue } from "../deployment-value";
 
 interface RollupActionsProps {
   orderId: string;
@@ -74,11 +74,11 @@ export function RollupActions({
             { label: "Chain ID", value: "0xDc64a14...F6C9" },
             { label: "RPC URL", value: "0xDc64a14...F6C9" },
           ].map((item, index) => (
-            <CopyableInfoBox
+            <DeploymentValue
               key={index}
               value={item.value}
-              shortValue={item.value}
-              label={item.label}
+              description={item.label}
+              className="min-w-[250px]"
             />
           ))}
         </div>

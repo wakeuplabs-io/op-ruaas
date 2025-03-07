@@ -1,5 +1,5 @@
 import { useAccount, useReadContract } from "wagmi";
-import { MARKETPLACE_ADDRESS, MARKETPLACE_ABI } from "@/shared/constants";
+import { MARKETPLACE_ADDRESS, MARKETPLACE_ABI } from "@/shared/constants/marketplace";
 
 export function useGetBalance(orderId: string) {
   const { address } = useAccount();
