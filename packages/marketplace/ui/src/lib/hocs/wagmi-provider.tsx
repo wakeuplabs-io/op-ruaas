@@ -4,7 +4,7 @@ import { defineChain, http, Chain } from "viem";
 import { connectorsForWallets } from "@rainbow-me/rainbowkit";
 import { metaMaskWallet } from "@rainbow-me/rainbowkit/wallets";
 import { braveWallet } from "@rainbow-me/rainbowkit/wallets";
-import { optimismTestnet } from "@/lib/wagmi-config";
+import { optimismTestnet } from "@/lib/wagmi";
 
 function WagmiSetup({ children }: { children: React.ReactNode }) {
 

@@ -26,6 +26,9 @@ import {
   FormLabel,
   FormMessage,
 } from "./ui/form";
+import { pinata } from "@/lib/pinata";
+import { useCreateOrder } from "@/lib/hooks/use-create-order";
+import { useRouter } from "@tanstack/react-router";
 
 enum SubscribeStep {
   SetSequencer,
@@ -43,15 +46,18 @@ const formSchema = z.object({
   name: z.string().min(1, "Rollup name is required"),
 });
 
-export const BuySequencerModal: React.FC<{ offer: Offer } & ButtonProps> = ({
-  offer,
-  ...props
-}) => {
+export const BuySequencerModal: React.FC<
+  { offerId: string; offer: Offer } & ButtonProps
+> = ({ offer, offerId, ...props }) => {
+  const router = useRouter();
   const [selectedMonths, setSelectedMonths] = useState("1");
   const [sequencerType, setSequencerType] = useState<SequencerType>(
     SequencerType.New
   );
   const [showSetup, setShowSetup] = useState(false);
+  const [artifacts, setArtifacts] = useState<File | null>(null);
+
+  const { createOrder, isPending } = useCreateOrder();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -75,20 +81,46 @@ export const BuySequencerModal: React.FC<{ offer: Offer } & ButtonProps> = ({
   });
 
   const step = useMemo(() => {
-    if (sequencer === offer.metadata.wallets.sequencer)
+    if (sequencer === offer.metadata.wallets?.sequencer)
       return SubscribeStep.SetSequencer;
-    if (batcher === offer.metadata.wallets.batcher)
+    if (batcher === offer.metadata.wallets?.batcher)
       return SubscribeStep.SetBatcher;
-    if (proposer === offer.metadata.wallets.proposer)
+    if (proposer === offer.metadata.wallets?.proposer)
       return SubscribeStep.SetOracle;
-    if (challenger === offer.metadata.wallets.challenger)
+    if (challenger === offer.metadata.wallets?.challenger)
       return SubscribeStep.SetOracle;
     return SubscribeStep.Done;
   }, [offer, sequencer, batcher, proposer, challenger]);
 
-  const onSubmit = useCallback((data: z.infer<typeof formSchema>) => {
-    // TODO: upload artifact to IPFS
-    // TODO: approve marketplace and call createOrder
+  const onSubmit = useCallback(async (data: z.infer<typeof formSchema>) => {
+    try {
+      let artifactsCid: string | null = null;
+      if (sequencerType === SequencerType.Existing) {
+        if (!artifacts) {
+          throw new Error("No artifacts selected");
+        }
+
+        const upload = await pinata.upload.public.file(artifacts);
+        artifactsCid = upload.cid;
+      }
+
+      const orderId = await createOrder(
+        BigInt(offerId),
+        BigInt(selectedMonths),
+        offer.pricePerMonth,
+        {
+          name: data.name,
+          artifacts: artifactsCid
+        }
+      );
+
+      console.log("orderId", orderId)
+
+      router.navigate({ to: `/rollups/$id`, params: { id: orderId.toString() } });
+    } catch (e: any) {
+      console.log(e)
+      alert("Error creating order" + e?.message);
+    }
   }, []);
 
   return (
@@ -100,14 +132,11 @@ export const BuySequencerModal: React.FC<{ offer: Offer } & ButtonProps> = ({
         {showSetup ? (
           <>
             <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-              >
+              <form onSubmit={form.handleSubmit(onSubmit)}>
                 <DialogHeader>
                   <DialogTitle>{offer.metadata.title} Plan Setup</DialogTitle>
                   <DialogDescription>
-                    Purchase successful! Now follow the steps to set up your
-                    rollup.
+                    Nice choice! Now follow the steps to set up your rollup.
                   </DialogDescription>
                 </DialogHeader>
 
@@ -129,17 +158,25 @@ export const BuySequencerModal: React.FC<{ offer: Offer } & ButtonProps> = ({
                   <>
                     <div className="mt-6">
                       <label htmlFor="" className="text-sm">
-                        Upload your Rollup configuration:
+                        Upload your Rollup config:
                       </label>
                       <div className="mt-4">
                         <label
                           htmlFor="artifacts"
-                          className="flex items-center justify-between cursor-pointer border h-12 px-4 rounded-md text-muted-foreground"
+                          className="flex items-center justify-between cursor-pointer border h-12 px-4 rounded-md text-muted-foreground text-sm"
                         >
-                          Click to upload
+                          {artifacts ? artifacts?.name : "No file selected"}
                           <UploadIcon className="w-5 h-5" />
                         </label>
-                        <input type="file" id="artifacts" className="hidden" />
+                        <input
+                          type="file"
+                          id="artifacts"
+                          className="hidden"
+                          accept=".zip"
+                          onChange={(e) =>
+                            setArtifacts(e.target.files?.[0] ?? null)
+                          }
+                        />
                       </div>
                     </div>
 
@@ -192,8 +229,17 @@ export const BuySequencerModal: React.FC<{ offer: Offer } & ButtonProps> = ({
                   </>
                 )}
 
-                <Button className="w-full mt-12" type="submit" size="lg" disabled={!form.formState.isValid || ( sequencerType === SequencerType.Existing && step < SubscribeStep.Done)}>
-                  Complete Order
+                <Button
+                  className="w-full mt-12"
+                  type="submit"
+                  size="lg"
+                  disabled={
+                    !form.formState.isValid ||
+                    (sequencerType === SequencerType.Existing &&
+                      step < SubscribeStep.Done) || isPending
+                  }
+                >
+                  {isPending ? "Creating order..." : "Create Order"}
                 </Button>
               </form>
             </Form>
@@ -257,7 +303,11 @@ export const BuySequencerModal: React.FC<{ offer: Offer } & ButtonProps> = ({
               onChange={setSequencerType}
             />
 
-            <Button className="mt-12" size="lg" onClick={() => setShowSetup(true)}>
+            <Button
+              className="mt-12"
+              size="lg"
+              onClick={() => setShowSetup(true)}
+            >
               Setup Plan
             </Button>
           </>

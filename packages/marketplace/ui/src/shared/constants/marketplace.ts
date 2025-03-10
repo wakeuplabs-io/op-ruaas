@@ -472,7 +472,7 @@ export const MARKETPLACE_ABI = [
       {
         indexed: true,
         internalType: "uint256",
-        name: "offerId",
+        name: "orderId",
         type: "uint256",
       },
     ],

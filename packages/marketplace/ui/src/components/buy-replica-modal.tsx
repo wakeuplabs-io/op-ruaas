@@ -24,28 +24,53 @@ import {
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { pinata } from "@/lib/pinata";
+import { useCreateOrder } from "@/lib/hooks/use-create-order";
+import { useRouter } from "@tanstack/react-router";
 
 const formSchema = z.object({
   name: z.string().min(1, "Rollup name is required"),
 });
 
-export const BuyReplicaModal: React.FC<{ offer: Offer } & ButtonProps> = ({
-  offer,
-  ...props
-}) => {
+export const BuyReplicaModal: React.FC<
+  { offerId: string; offer: Offer } & ButtonProps
+> = ({ offer, offerId, ...props }) => {
+  const router = useRouter();
   const [selectedMonths, setSelectedMonths] = useState("1");
   const [showSetup, setShowSetup] = useState(false);
   const [artifacts, setArtifacts] = useState<File | null>(null);
+  const { createOrder, isPending } = useCreateOrder();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: { name: "" },
   });
 
-  const onSubmit = useCallback((data: z.infer<typeof formSchema>) => {
-    // TODO: upload artifact to IPFS
-    // TODO: approve marketplace and call createOrder
-  }, []);
+  const onSubmit = useCallback(
+    async (data: z.infer<typeof formSchema>) => {
+      try {
+        if (!artifacts) {
+          throw new Error("No artifacts selected");
+        }
+
+        const upload = await pinata.upload.public.file(artifacts);
+        const orderId = await createOrder(
+          BigInt(offerId),
+          BigInt(selectedMonths),
+          offer.pricePerMonth,
+          {
+            name: data.name,
+            artifacts: upload.cid,
+          }
+        );
+
+        router.navigate({ to: `/rollups/$id`, params: { id: orderId.toString()} });
+      } catch (e: any) {
+        alert("Error creating order" + e?.message);
+      }
+    },
+    [artifacts, createOrder]
+  );
 
   return (
     <Dialog onOpenChange={() => setShowSetup(false)}>
@@ -56,10 +81,7 @@ export const BuyReplicaModal: React.FC<{ offer: Offer } & ButtonProps> = ({
         {showSetup ? (
           <>
             <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-6"
-              >
+              <form onSubmit={form.handleSubmit(onSubmit)}>
                 <DialogHeader>
                   <DialogTitle>{offer.metadata.title} Plan Setup</DialogTitle>
                   <DialogDescription>
@@ -71,7 +93,7 @@ export const BuyReplicaModal: React.FC<{ offer: Offer } & ButtonProps> = ({
                   control={form.control}
                   name="name"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="mt-6">
                       <FormLabel>Name your Rollup:</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="Rollup 1" />
@@ -81,14 +103,14 @@ export const BuyReplicaModal: React.FC<{ offer: Offer } & ButtonProps> = ({
                   )}
                 />
 
-                <div>
+                <div className="mt-6">
                   <label htmlFor="" className="text-sm">
                     Upload your Rollup config:
                   </label>
                   <div className="mt-4">
                     <label
                       htmlFor="artifacts"
-                      className="flex items-center justify-between cursor-pointer border h-12 px-4 rounded-md text-muted-foreground"
+                      className="flex items-center justify-between cursor-pointer border h-12 px-4 rounded-md text-muted-foreground text-sm"
                     >
                       {artifacts ? artifacts?.name : "No file selected"}
                       <UploadIcon className="w-5 h-5" />
@@ -106,10 +128,10 @@ export const BuyReplicaModal: React.FC<{ offer: Offer } & ButtonProps> = ({
                 </div>
 
                 <Button
-                  className="w-full mt-20"
+                  className="w-full mt-12"
                   type="submit"
                   size="lg"
-                  disabled={!form.formState.isValid || !artifacts}
+                  disabled={!form.formState.isValid || !artifacts || isPending}
                 >
                   Complete Order
                 </Button>

@@ -63,11 +63,11 @@ interface IMarketplaceEvents {
     /// @notice Emitted when a new order is placed by a client
     /// @param vendor The address of the vendor fulfilling the order
     /// @param client The address of the client placing the order
-    /// @param offerId The offer ID associated with the order
+    /// @param orderId The order ID created
     event NewOrder(
         address indexed vendor,
         address indexed client,
-        uint256 indexed offerId
+        uint256 indexed orderId
     );
 
     /// @notice Emitted when an order is fulfilled by the vendor

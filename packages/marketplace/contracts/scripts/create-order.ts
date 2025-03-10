@@ -1,14 +1,8 @@
 import { ethers } from "hardhat";
 
-export type OfferMetadata = {
-  title: string;
-  features: string[];
-  wallets: {
-    sequencer: string;
-    batcher: string;
-    challenger: string;
-    proposer: string;
-  };
+export type OrderMetadata = {
+  name: string;
+  artifacts?: string;
 }
 
 async function main() {
@@ -19,7 +13,7 @@ async function main() {
 
   const offerId = 4n;
   const initialCommitment = 1n;
-  const metadata = {
+  const metadata: OrderMetadata = {
     name: "MyChain",
     // if not artifacts then it's a brand new deployment
     artifacts: "QmVbzUdWgLwoDAtjz48uNT2rQh1AnjmyRXVqfK9ihmnjic"

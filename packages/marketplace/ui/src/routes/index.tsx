@@ -81,6 +81,7 @@ const PlanCard: React.FC<{
 
       {sequencer ? (
         <BuySequencerModal
+          offerId={offerId}
           offer={offer!}
           variant="outline"
           className={cn(
@@ -92,6 +93,7 @@ const PlanCard: React.FC<{
         </BuySequencerModal>
       ) : (
         <BuyReplicaModal
+          offerId={offerId}
           offer={offer!}
           variant="outline"
           className={cn(
