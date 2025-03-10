@@ -8,7 +8,7 @@ import { routeTree } from "@/routeTree.gen";
 import { createRouter } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
-import WagmiSetup from "@/lib/hocs/wagmi-provider";
+import { WagmiSetup } from "@/lib/hocs/wagmi-provider";
 
 export const queryClient = new QueryClient();
 
@@ -29,7 +29,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <WagmiSetup>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider >
+        <RainbowKitProvider>
           <RouterProvider router={router} />
           <Toaster />
         </RainbowKitProvider>

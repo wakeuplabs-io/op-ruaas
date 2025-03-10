@@ -5,10 +5,15 @@ import {
 import { PROXY_ADMIN_ABI } from "@/shared/constants/proxy-admin";
 import { SYSTEM_CONFIG_ABI } from "@/shared/constants/system-config";
 import { SYSTEM_OWNER_SAFE_ABI } from "@/shared/constants/system-owner-safe";
-import { useMemo } from "react";
-import { encodeFunctionData, pad, toBytes, zeroAddress } from "viem";
+import { useEffect, useMemo } from "react";
+import { encodeFunctionData, pad, toBytes, toHex, zeroAddress } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
-import { useReadContracts, useWalletClient, useWriteContract } from "wagmi";
+import {
+  useReadContracts,
+  useWalletClient,
+  useWriteContract,
+} from "wagmi";
+import { useEnsureChain } from "./use-ensure-chain";
 
 export const useChainPermissions = ({
   l1ChainId,
@@ -23,10 +28,11 @@ export const useChainPermissions = ({
   systemOwnerSafe: `0x${string}`;
   proxyAdmin: `0x${string}`;
 }) => {
+  const { ensureChainId } = useEnsureChain();
   const { data: walletClient } = useWalletClient();
   const { writeContractAsync } = useWriteContract();
 
-  const { data, isLoading, isError } = useReadContracts({
+  const { data, isLoading, isError, refetch } = useReadContracts({
     contracts: [
       {
         address: l2OutputOracleProxy,
@@ -85,6 +91,18 @@ export const useChainPermissions = ({
     ],
   });
 
+  useEffect(() => {
+    if (isLoading) {
+      console.log("Loading...");
+    }
+    if (isError) {
+      console.log("Error loading data");
+    }
+    if (data) {
+      console.log(data);
+    }
+  }, [isLoading, isError, data]);
+
   const {
     submissionInterval,
     l2BlockTime,
@@ -119,9 +137,11 @@ export const useChainPermissions = ({
       challenger: challenger?.result ?? zeroAddress,
       proposer: proposer?.result ?? zeroAddress,
     };
-  }, [data, isLoading, isError]);
+  }, [data]);
 
   const setSequencerAddress = async (sequencerAddress: string) => {
+    await ensureChainId(l1ChainId);
+
     const sequencerTx = await writeContractAsync({
       abi: SYSTEM_CONFIG_ABI,
       address: systemConfigProxy,
@@ -129,18 +149,22 @@ export const useChainPermissions = ({
       functionName: "setUnsafeBlockSigner",
       args: [sequencerAddress],
     });
+    await refetch();
 
     return sequencerTx;
   };
 
   const setBatcherAddress = async (batcherAddress: string) => {
+    await ensureChainId(l1ChainId);
+
     const batcherTx = await writeContractAsync({
       abi: SYSTEM_CONFIG_ABI,
       address: systemConfigProxy,
       chainId: l1ChainId,
       functionName: "setBatcherHash",
-      args: [pad(toBytes(batcherAddress), { size: 32 })],
+      args: [toHex(pad(toBytes(batcherAddress), { size: 32 }))],
     });
+    await refetch();
 
     return batcherTx;
   };
@@ -149,6 +173,8 @@ export const useChainPermissions = ({
     if (!walletClient) {
       throw new Error("No wallet connected");
     }
+
+    await ensureChainId(l1ChainId);
 
     let implementation: `0x${string}` = zeroAddress;
     if (proposer !== zeroAddress || challenger !== zeroAddress) {
@@ -207,6 +233,8 @@ export const useChainPermissions = ({
       ],
     });
 
+    await refetch();
+
     return upgradeTx;
   };
 
@@ -214,9 +242,9 @@ export const useChainPermissions = ({
     setSequencerAddress,
     setBatcherAddress,
     setOracleAddress,
-    batcher: zeroAddress,
-    sequencer: zeroAddress,
-    challenger: zeroAddress,
-    proposer: zeroAddress,
+    batcher,
+    sequencer,
+    challenger,
+    proposer,
   };
 };

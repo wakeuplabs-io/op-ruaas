@@ -4,9 +4,12 @@ import {
   MARKETPLACE_ABI,
   MARKETPLACE_TOKEN,
   ERC20_TOKEN_ABI,
+  MARKETPLACE_CHAIN_ID,
 } from "@/shared/constants/marketplace";
+import { useEnsureChain } from "./use-ensure-chain";
 
 export function useDeposit() {
+  const { ensureChainId } = useEnsureChain();
   const { data: walletClient } = useWalletClient();
   const { writeContractAsync } = useWriteContract();
 
@@ -15,11 +18,14 @@ export function useDeposit() {
       throw new Error("No wallet connected");
     }
 
+    await ensureChainId(parseInt(MARKETPLACE_CHAIN_ID));
+
     await writeContractAsync({
       address: MARKETPLACE_TOKEN,
       abi: ERC20_TOKEN_ABI,
       functionName: "approve",
       args: [MARKETPLACE_ADDRESS, amount],
+      chainId: parseInt(MARKETPLACE_CHAIN_ID),
     });
 
     const tx = await writeContractAsync({
@@ -27,6 +33,7 @@ export function useDeposit() {
       abi: MARKETPLACE_ABI,
       functionName: "deposit",
       args: [orderId, amount],
+      chainId: parseInt(MARKETPLACE_CHAIN_ID),
     });
 
     return tx;

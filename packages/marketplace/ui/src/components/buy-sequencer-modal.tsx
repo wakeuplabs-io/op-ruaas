@@ -8,8 +8,8 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import { Button, ButtonProps } from "./ui/button";
-import { formatUnits, zeroAddress } from "viem";
-import React, { useCallback, useMemo, useState } from "react";
+import { formatUnits, pad, toBytes, toHex, zeroAddress } from "viem";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useChainPermissions } from "@/lib/hooks/use-chain-permissions";
 import { ArrowRight, UploadIcon } from "lucide-react";
@@ -29,8 +29,10 @@ import {
 import { pinata } from "@/lib/pinata";
 import { useCreateOrder } from "@/lib/hooks/use-create-order";
 import { useRouter } from "@tanstack/react-router";
+import { readArtifact } from "@/lib/artifacts";
 
 enum SubscribeStep {
+  UploadArtifacts,
   SetSequencer,
   SetBatcher,
   SetOracle,
@@ -56,6 +58,11 @@ export const BuySequencerModal: React.FC<
   );
   const [showSetup, setShowSetup] = useState(false);
   const [artifacts, setArtifacts] = useState<File | null>(null);
+  const [systemConfigProxy, setSystemConfigProxy] = useState(zeroAddress);
+  const [l2OutputOracleProxy, setL2OutputOracleProxy] = useState(zeroAddress);
+  const [systemOwnerSafe, setSystemOwnerSafe] = useState(zeroAddress);
+  const [proxyAdmin, setProxyAdmin] = useState(zeroAddress);
+  const [l1ChainId, setL1ChainId] = useState(1);
 
   const { createOrder, isPending } = useCreateOrder();
 
@@ -73,24 +80,26 @@ export const BuySequencerModal: React.FC<
     setSequencerAddress,
     setOracleAddress,
   } = useChainPermissions({
-    l1ChainId: Number(1), // offer.metadata.l1ChainId
-    systemConfigProxy: "systemConfigProxy" as `0x${string}`,
-    l2OutputOracleProxy: "l2OutputOracleProxy" as `0x${string}`,
-    systemOwnerSafe: "systemOwnerSafe" as `0x${string}`,
-    proxyAdmin: "proxyAdmin" as `0x${string}`,
+    l1ChainId,
+    systemConfigProxy,
+    l2OutputOracleProxy,
+    systemOwnerSafe,
+    proxyAdmin,
   });
 
   const step = useMemo(() => {
-    if (sequencer === offer.metadata.wallets?.sequencer)
+    if (sequencerType === SequencerType.Existing && systemConfigProxy === zeroAddress) 
+      return SubscribeStep.UploadArtifacts;
+    if (sequencer !== offer.metadata.wallets?.sequencer)
       return SubscribeStep.SetSequencer;
-    if (batcher === offer.metadata.wallets?.batcher)
+    if (batcher !== toHex(pad(toBytes(offer.metadata.wallets?.batcher), { size: 32 })))
       return SubscribeStep.SetBatcher;
-    if (proposer === offer.metadata.wallets?.proposer)
+    if (proposer !== offer.metadata.wallets?.proposer)
       return SubscribeStep.SetOracle;
-    if (challenger === offer.metadata.wallets?.challenger)
+    if (challenger !== offer.metadata.wallets?.challenger)
       return SubscribeStep.SetOracle;
     return SubscribeStep.Done;
-  }, [offer, sequencer, batcher, proposer, challenger]);
+  }, [offer, sequencer, batcher, proposer, challenger, systemConfigProxy, sequencerType]);
 
   const onSubmit = useCallback(async (data: z.infer<typeof formSchema>) => {
     try {
@@ -110,21 +119,46 @@ export const BuySequencerModal: React.FC<
         offer.pricePerMonth,
         {
           name: data.name,
-          artifacts: artifactsCid
+          artifacts: artifactsCid,
         }
       );
 
-      console.log("orderId", orderId)
-
-      router.navigate({ to: `/rollups/$id`, params: { id: orderId.toString() } });
+      router.navigate({
+        to: `/rollups/$id`,
+        params: { id: orderId.toString() },
+      });
     } catch (e: any) {
-      console.log(e)
+      console.log(e);
       alert("Error creating order" + e?.message);
     }
   }, []);
 
+  useEffect(() => {
+    if (!artifacts) return;
+    readArtifact(artifacts).then(({ addresses, deployConfig }) => {
+      setL1ChainId(deployConfig["l1ChainID"]);
+      setSystemConfigProxy(addresses["SystemConfigProxy"]);
+      setL2OutputOracleProxy(addresses["L2OutputOracleProxy"]);
+      setSystemOwnerSafe(addresses["SystemOwnerSafe"]);
+      setProxyAdmin(addresses["ProxyAdmin"]);
+    }).catch((error) => {
+      alert("Error reading artifacts: " + error.toString());
+    })
+  }, [artifacts]);
+
   return (
-    <Dialog onOpenChange={() => setShowSetup(false)}>
+    <Dialog
+      onOpenChange={() => {
+        setShowSetup(false);
+        setArtifacts(null);
+        setSequencerType(SequencerType.New);
+        setSystemConfigProxy(zeroAddress);
+        setL2OutputOracleProxy(zeroAddress);
+        setSystemOwnerSafe(zeroAddress);
+        setProxyAdmin(zeroAddress);
+        form.reset();
+      }}
+    >
       <DialogTrigger>
         <Button {...props} />
       </DialogTrigger>
@@ -157,13 +191,13 @@ export const BuySequencerModal: React.FC<
                 {sequencerType === SequencerType.Existing && (
                   <>
                     <div className="mt-6">
-                      <label htmlFor="" className="text-sm">
+                      <label htmlFor="" className="text-sm font-medium">
                         Upload your Rollup config:
                       </label>
-                      <div className="mt-4">
+                      <div className="mt-2">
                         <label
                           htmlFor="artifacts"
-                          className="flex items-center justify-between cursor-pointer border h-12 px-4 rounded-md text-muted-foreground text-sm"
+                          className="flex items-center justify-between cursor-pointer border h-12 px-3 rounded-md text-muted-foreground text-sm"
                         >
                           {artifacts ? artifacts?.name : "No file selected"}
                           <UploadIcon className="w-5 h-5" />
@@ -189,14 +223,15 @@ export const BuySequencerModal: React.FC<
                     >
                       <Button
                         className="mt-6"
-                        onClick={() => setSequencerAddress(zeroAddress)}
+                        type="button"
+                        onClick={() => setSequencerAddress(offer.metadata.wallets!.sequencer)}
                       >
                         Give permission <ArrowRight />
                       </Button>
                     </StepCard>
 
                     <StepCard
-                      className="mt-6"
+                      className="mt-4"
                       title="2. Assign batcher permissions."
                       description="Give the batcher permissions to the provider."
                       isComplete={step > SubscribeStep.SetBatcher}
@@ -204,14 +239,15 @@ export const BuySequencerModal: React.FC<
                     >
                       <Button
                         className="mt-6"
-                        onClick={() => setBatcherAddress(zeroAddress)}
+                        type="button"
+                        onClick={() => setBatcherAddress(offer.metadata.wallets!.batcher)}
                       >
                         Give permission <ArrowRight />
                       </Button>
                     </StepCard>
 
                     <StepCard
-                      className="mt-6"
+                      className="mt-4"
                       title="3. Assign Challenger and Proposer."
                       description="Assign the proposer and challenger to the provider."
                       isComplete={step > SubscribeStep.SetOracle}
@@ -219,11 +255,12 @@ export const BuySequencerModal: React.FC<
                     >
                       <Button
                         className="mt-6"
+                        type="button"
                         onClick={() =>
-                          setOracleAddress(zeroAddress, zeroAddress)
+                          setOracleAddress(offer.metadata.wallets!.proposer, offer.metadata.wallets!.challenger)
                         }
                       >
-                        Remove permission <ArrowRight />
+                        Give permission <ArrowRight />
                       </Button>
                     </StepCard>
                   </>
@@ -236,7 +273,8 @@ export const BuySequencerModal: React.FC<
                   disabled={
                     !form.formState.isValid ||
                     (sequencerType === SequencerType.Existing &&
-                      step < SubscribeStep.Done) || isPending
+                      step < SubscribeStep.Done) ||
+                    isPending
                   }
                 >
                   {isPending ? "Creating order..." : "Create Order"}

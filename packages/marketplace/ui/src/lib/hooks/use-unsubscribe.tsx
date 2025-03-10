@@ -6,11 +6,13 @@ import {
 } from "@/shared/constants/marketplace";
 import { useWalletClient, useWriteContract } from "wagmi";
 import { useOrder } from "./use-order";
+import { useEnsureChain } from "./use-ensure-chain";
 
 export const useUnsubscribe = ({ orderId }: { orderId: bigint }) => {
   const { data: walletClient } = useWalletClient();
   const { writeContractAsync } = useWriteContract();
   const { terminatedAt } = useOrder({ id: orderId });
+  const { ensureChainId } = useEnsureChain();
 
   const isSubscribed = useMemo(() => {
     return terminatedAt == 0n;
@@ -24,6 +26,8 @@ export const useUnsubscribe = ({ orderId }: { orderId: bigint }) => {
     if (isSubscribed) {
       throw new Error("Order already terminated");
     }
+
+    await ensureChainId(parseInt(MARKETPLACE_CHAIN_ID));
 
     const terminateTx = await writeContractAsync({
       abi: MARKETPLACE_ABI,

@@ -3,9 +3,9 @@ import type { Config as WagmiConfig } from "@wagmi/core";
 import {
   MARKETPLACE_ADDRESS,
   MARKETPLACE_ABI,
+  MARKETPLACE_CHAIN_ID,
 } from "@/shared/constants/marketplace";
 import { Offer, OfferMetadata, OfferReturnTuple } from "@/types";
-import { useEffect } from "react";
 
 export function useOffer(offerId?: bigint) {
   const { data, isLoading, error } = useReadContract<
@@ -19,6 +19,7 @@ export function useOffer(offerId?: bigint) {
     abi: MARKETPLACE_ABI,
     functionName: "offers",
     args: [offerId],
+    chainId: parseInt(MARKETPLACE_CHAIN_ID),
   });
 
   const offer: Offer | null = data

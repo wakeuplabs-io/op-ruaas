@@ -1,17 +1,21 @@
-import { usePublicClient, useWalletClient, useWriteContract } from "wagmi";
+import { usePublicClient, useWriteContract } from "wagmi";
 import {
   MARKETPLACE_ADDRESS,
   MARKETPLACE_ABI,
   MARKETPLACE_TOKEN,
   ERC20_TOKEN_ABI,
+  MARKETPLACE_CHAIN_ID,
 } from "../../shared/constants/marketplace";
 import { OrderMetadata } from "@/types";
 import { decodeEventLog } from "viem";
+import { useEnsureChain } from "./use-ensure-chain";
+import { useState } from "react";
 
 export function useCreateOrder() {
-  const { data: walletClient } = useWalletClient();
-  const { writeContractAsync, isPending } = useWriteContract();
   const client = usePublicClient();
+  const { writeContractAsync } = useWriteContract();
+  const { ensureChainId } = useEnsureChain();
+  const [isPending, setIsPending] = useState(false);
 
   const createOrder = async (
     offerId: bigint,
@@ -19,9 +23,9 @@ export function useCreateOrder() {
     pricePerMonth: bigint,
     metadata: OrderMetadata
   ) => {
-    if (!walletClient) {
-      throw new Error("No wallet connected");
-    }
+    setIsPending(true);
+
+    await ensureChainId(parseInt(MARKETPLACE_CHAIN_ID));
 
     const tokensToApprove = initialCommitment * pricePerMonth;
     try {
@@ -30,6 +34,7 @@ export function useCreateOrder() {
         abi: ERC20_TOKEN_ABI,
         functionName: "approve",
         args: [MARKETPLACE_ADDRESS, tokensToApprove],
+        chainId: parseInt(MARKETPLACE_CHAIN_ID),
       });
 
       const orderTx = await writeContractAsync({
@@ -37,11 +42,13 @@ export function useCreateOrder() {
         abi: MARKETPLACE_ABI,
         functionName: "createOrder",
         args: [offerId, initialCommitment, JSON.stringify(metadata)],
+        chainId: parseInt(MARKETPLACE_CHAIN_ID),
       });
 
       const receipt = await client?.waitForTransactionReceipt({
         hash: orderTx,
       });
+      console.log("receipt", receipt);
 
       const newOrderEvent = receipt?.logs.find(
         (log) => log.address === MARKETPLACE_ADDRESS.toLowerCase()
@@ -60,6 +67,8 @@ export function useCreateOrder() {
       return (decoded.args as any).orderId;
     } catch (error) {
       throw error;
+    } finally{
+      setIsPending(false);
     }
   };
 

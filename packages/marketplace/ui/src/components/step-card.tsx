@@ -13,7 +13,7 @@ export const StepCard: React.FC<{
         className={cn(
           "border rounded-xl p-4",
           isComplete
-            ? "bg-green-100 border-green-300 text-green-700"
+            ? "bg-[#F5FFE6] border-[#5E7440] text-[#5E7440]"
             : "bg-gray-50",
           className
         )}

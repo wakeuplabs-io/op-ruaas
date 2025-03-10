@@ -1,5 +1,5 @@
 import { useAccount, useReadContract } from "wagmi";
-import { MARKETPLACE_ADDRESS, MARKETPLACE_ABI } from "@/shared/constants/marketplace";
+import { MARKETPLACE_ADDRESS, MARKETPLACE_ABI, MARKETPLACE_CHAIN_ID } from "@/shared/constants/marketplace";
 
 export function useGetUserRollups() {
   const { address } = useAccount();
@@ -9,6 +9,7 @@ export function useGetUserRollups() {
     abi: MARKETPLACE_ABI,
     functionName: "getClientOrders",
     args: [address],
+    chainId: parseInt(MARKETPLACE_CHAIN_ID),
   });
   const rollups: bigint[] = data as bigint[];
 
