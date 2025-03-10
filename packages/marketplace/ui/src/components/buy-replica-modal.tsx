@@ -24,7 +24,6 @@ import {
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { pinata } from "@/lib/pinata";
 import { useCreateOrder } from "@/lib/hooks/use-create-order";
 import { useRouter } from "@tanstack/react-router";
 
@@ -39,6 +38,7 @@ export const BuyReplicaModal: React.FC<
   const [selectedMonths, setSelectedMonths] = useState("1");
   const [showSetup, setShowSetup] = useState(false);
   const [artifacts, setArtifacts] = useState<File | null>(null);
+
   const { createOrder, isPending } = useCreateOrder();
 
   const form = useForm({
@@ -53,15 +53,12 @@ export const BuyReplicaModal: React.FC<
           throw new Error("No artifacts selected");
         }
 
-        const upload = await pinata.upload.public.file(artifacts);
         const orderId = await createOrder(
           BigInt(offerId),
           BigInt(selectedMonths),
           offer.pricePerMonth,
-          {
-            name: data.name,
-            artifacts: upload.cid,
-          }
+          data.name,
+          artifacts
         );
 
         router.navigate({ to: `/rollups/$id`, params: { id: orderId.toString()} });

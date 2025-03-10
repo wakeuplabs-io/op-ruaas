@@ -10,6 +10,7 @@ import { OrderMetadata } from "@/types";
 import { decodeEventLog } from "viem";
 import { useEnsureChain } from "./use-ensure-chain";
 import { useState } from "react";
+import { pinata } from "../pinata";
 
 export function useCreateOrder() {
   const client = usePublicClient();
@@ -21,34 +22,44 @@ export function useCreateOrder() {
     offerId: bigint,
     initialCommitment: bigint,
     pricePerMonth: bigint,
-    metadata: OrderMetadata
+    name: string,
+    artifacts: File | null
   ) => {
     setIsPending(true);
 
-    await ensureChainId(parseInt(MARKETPLACE_CHAIN_ID));
-
-    const tokensToApprove = initialCommitment * pricePerMonth;
     try {
-      await writeContractAsync({
+      await ensureChainId(MARKETPLACE_CHAIN_ID);
+
+      let artifactsCid: string | null = null;
+      if (artifacts) {
+        const upload = await pinata.upload.public.file(artifacts);
+        artifactsCid = upload.cid;
+      }
+
+      const approveTx = await writeContractAsync({
         address: MARKETPLACE_TOKEN,
         abi: ERC20_TOKEN_ABI,
         functionName: "approve",
-        args: [MARKETPLACE_ADDRESS, tokensToApprove],
-        chainId: parseInt(MARKETPLACE_CHAIN_ID),
+        args: [MARKETPLACE_ADDRESS, initialCommitment * pricePerMonth],
+        chainId: MARKETPLACE_CHAIN_ID,
       });
+      await client?.waitForTransactionReceipt({ hash: approveTx });
 
       const orderTx = await writeContractAsync({
         address: MARKETPLACE_ADDRESS,
         abi: MARKETPLACE_ABI,
         functionName: "createOrder",
-        args: [offerId, initialCommitment, JSON.stringify(metadata)],
-        chainId: parseInt(MARKETPLACE_CHAIN_ID),
+        args: [
+          offerId,
+          initialCommitment,
+          JSON.stringify({ name, artifacts: artifactsCid } as OrderMetadata),
+        ],
+        chainId: MARKETPLACE_CHAIN_ID,
       });
 
       const receipt = await client?.waitForTransactionReceipt({
         hash: orderTx,
       });
-      console.log("receipt", receipt);
 
       const newOrderEvent = receipt?.logs.find(
         (log) => log.address === MARKETPLACE_ADDRESS.toLowerCase()
@@ -67,7 +78,7 @@ export function useCreateOrder() {
       return (decoded.args as any).orderId;
     } catch (error) {
       throw error;
-    } finally{
+    } finally {
       setIsPending(false);
     }
   };

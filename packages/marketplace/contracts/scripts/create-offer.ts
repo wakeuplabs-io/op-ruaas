@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 export type OfferMetadata = {
   title: string;
   features: string[];
-  wallets: {
+  wallets?: {
     sequencer: string;
     batcher: string;
     challenger: string;
@@ -22,10 +22,10 @@ async function main() {
     title: "Ethereum",
     features: ["Deploy contracts on Ethereum as L1", "Run your L2 chain", "Runs Blockscout explorer"],
     wallets: {
-      sequencer: "0x0000000000000000000000000000000000000000",
-      batcher: "0x0000000000000000000000000000000000000000",
-      challenger: "0x0000000000000000000000000000000000000000",
-      proposer: "0x0000000000000000000000000000000000000000",
+      sequencer: "0xf3A77F4dA4a4Fc14E40747C4e193b0F35FfbFe4F",
+      batcher: "0xf3A77F4dA4a4Fc14E40747C4e193b0F35FfbFe4F",
+      challenger: "0xf3A77F4dA4a4Fc14E40747C4e193b0F35FfbFe4F",
+      proposer: "0xf3A77F4dA4a4Fc14E40747C4e193b0F35FfbFe4F",
     }
   };
 
@@ -33,9 +33,9 @@ async function main() {
     title: "Ethereum",
     features: ["Run a replica node for your L2 chain", "Blockscout explorer"],
   };
-  const units = 10n;
+  const units = 100n;
 
-  const tx = await marketplace.createOffer(pricePerMonth, units, JSON.stringify(replicaMetadata));
+  const tx = await marketplace.createOffer(pricePerMonth, units, JSON.stringify(sequencerMetadata));
   const receipt = await tx.wait();
 
   const offerId = (receipt?.logs[0] as any).args[1];

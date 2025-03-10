@@ -1,10 +1,11 @@
 import { Address } from "viem";
 import envParsed from "@/envParsed";
+import { optimismSepolia } from "viem/chains";
 
-export const SEQUENCER_IDS = ["4"];
+export const SEQUENCER_IDS = ["9"];
 export const REPLICA_IDS = ["6"];
 
-export const MARKETPLACE_CHAIN_ID = envParsed().MARKETPLACE_CHAIN_ID;
+export const MARKETPLACE_CHAIN_ID = optimismSepolia.id;
 export const MARKETPLACE_ADDRESS = envParsed().MARKETPLACE_ADDRESS as Address;
 export const MARKETPLACE_TOKEN = envParsed().ERC20_TOKEN_ADDRESS as Address;
 

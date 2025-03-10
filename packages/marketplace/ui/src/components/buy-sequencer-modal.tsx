@@ -26,7 +26,6 @@ import {
   FormLabel,
   FormMessage,
 } from "./ui/form";
-import { pinata } from "@/lib/pinata";
 import { useCreateOrder } from "@/lib/hooks/use-create-order";
 import { useRouter } from "@tanstack/react-router";
 import { readArtifact } from "@/lib/artifacts";
@@ -64,13 +63,6 @@ export const BuySequencerModal: React.FC<
   const [proxyAdmin, setProxyAdmin] = useState(zeroAddress);
   const [l1ChainId, setL1ChainId] = useState(1);
 
-  const { createOrder, isPending } = useCreateOrder();
-
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: { name: "" },
-  });
-
   const {
     batcher,
     sequencer,
@@ -79,6 +71,7 @@ export const BuySequencerModal: React.FC<
     setBatcherAddress,
     setSequencerAddress,
     setOracleAddress,
+    isPending: isChainPermissionsPending,
   } = useChainPermissions({
     l1ChainId,
     systemConfigProxy,
@@ -86,65 +79,81 @@ export const BuySequencerModal: React.FC<
     systemOwnerSafe,
     proxyAdmin,
   });
+  const { createOrder, isPending: isCreateOrderPending } = useCreateOrder();
+
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: { name: "" },
+  });
+
+  const onSubmit = useCallback(
+    async (data: z.infer<typeof formSchema>) => {
+      try {
+        if (sequencerType === SequencerType.Existing && !artifacts) {
+          throw new Error("No artifacts selected");
+        }
+
+        const orderId = await createOrder(
+          BigInt(offerId),
+          BigInt(selectedMonths),
+          offer.pricePerMonth,
+          data.name,
+          artifacts
+        );
+
+        router.navigate({
+          to: `/rollups/$id`,
+          params: { id: orderId.toString() },
+        });
+      } catch (e: any) {
+        alert("Error creating order" + e?.message);
+      }
+    },
+    [router, sequencerType, createOrder]
+  );
+
+  useEffect(() => {
+    if (!artifacts) return;
+    readArtifact(artifacts)
+      .then(({ addresses, deployConfig }) => {
+        setL1ChainId(deployConfig["l1ChainID"]);
+        setSystemConfigProxy(addresses["SystemConfigProxy"]);
+        setL2OutputOracleProxy(addresses["L2OutputOracleProxy"]);
+        setSystemOwnerSafe(addresses["SystemOwnerSafe"]);
+        setProxyAdmin(addresses["ProxyAdmin"]);
+      })
+      .catch((error) => {
+        alert("Error reading artifacts: " + error.toString());
+      });
+  }, [artifacts]);
 
   const step = useMemo(() => {
-    if (sequencerType === SequencerType.Existing && systemConfigProxy === zeroAddress) 
+    if (
+      sequencerType === SequencerType.Existing &&
+      systemConfigProxy === zeroAddress
+    )
       return SubscribeStep.UploadArtifacts;
     if (sequencer !== offer.metadata.wallets?.sequencer)
       return SubscribeStep.SetSequencer;
-    if (batcher !== toHex(pad(toBytes(offer.metadata.wallets?.batcher), { size: 32 })))
+    if (
+      batcher !==
+      toHex(pad(toBytes(offer.metadata.wallets!.batcher), { size: 32 }))
+    )
       return SubscribeStep.SetBatcher;
     if (proposer !== offer.metadata.wallets?.proposer)
       return SubscribeStep.SetOracle;
     if (challenger !== offer.metadata.wallets?.challenger)
       return SubscribeStep.SetOracle;
     return SubscribeStep.Done;
-  }, [offer, sequencer, batcher, proposer, challenger, systemConfigProxy, sequencerType]);
-
-  const onSubmit = useCallback(async (data: z.infer<typeof formSchema>) => {
-    try {
-      let artifactsCid: string | null = null;
-      if (sequencerType === SequencerType.Existing) {
-        if (!artifacts) {
-          throw new Error("No artifacts selected");
-        }
-
-        const upload = await pinata.upload.public.file(artifacts);
-        artifactsCid = upload.cid;
-      }
-
-      const orderId = await createOrder(
-        BigInt(offerId),
-        BigInt(selectedMonths),
-        offer.pricePerMonth,
-        {
-          name: data.name,
-          artifacts: artifactsCid,
-        }
-      );
-
-      router.navigate({
-        to: `/rollups/$id`,
-        params: { id: orderId.toString() },
-      });
-    } catch (e: any) {
-      console.log(e);
-      alert("Error creating order" + e?.message);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!artifacts) return;
-    readArtifact(artifacts).then(({ addresses, deployConfig }) => {
-      setL1ChainId(deployConfig["l1ChainID"]);
-      setSystemConfigProxy(addresses["SystemConfigProxy"]);
-      setL2OutputOracleProxy(addresses["L2OutputOracleProxy"]);
-      setSystemOwnerSafe(addresses["SystemOwnerSafe"]);
-      setProxyAdmin(addresses["ProxyAdmin"]);
-    }).catch((error) => {
-      alert("Error reading artifacts: " + error.toString());
-    })
-  }, [artifacts]);
+  }, [
+    offer,
+    sequencer,
+    batcher,
+    proposer,
+    challenger,
+    systemConfigProxy,
+    sequencerType,
+  ]);
 
   return (
     <Dialog
@@ -224,7 +233,12 @@ export const BuySequencerModal: React.FC<
                       <Button
                         className="mt-6"
                         type="button"
-                        onClick={() => setSequencerAddress(offer.metadata.wallets!.sequencer)}
+                        isPending={isChainPermissionsPending}
+                        onClick={() =>
+                          setSequencerAddress(
+                            offer.metadata.wallets!.sequencer
+                          ).catch((error) => alert(error.toString()))
+                        }
                       >
                         Give permission <ArrowRight />
                       </Button>
@@ -240,7 +254,12 @@ export const BuySequencerModal: React.FC<
                       <Button
                         className="mt-6"
                         type="button"
-                        onClick={() => setBatcherAddress(offer.metadata.wallets!.batcher)}
+                        isPending={isChainPermissionsPending}
+                        onClick={() =>
+                          setBatcherAddress(
+                            offer.metadata.wallets!.batcher
+                          ).catch((error) => alert(error.toString()))
+                        }
                       >
                         Give permission <ArrowRight />
                       </Button>
@@ -256,8 +275,12 @@ export const BuySequencerModal: React.FC<
                       <Button
                         className="mt-6"
                         type="button"
+                        isPending={isChainPermissionsPending}
                         onClick={() =>
-                          setOracleAddress(offer.metadata.wallets!.proposer, offer.metadata.wallets!.challenger)
+                          setOracleAddress(
+                            offer.metadata.wallets!.proposer,
+                            offer.metadata.wallets!.challenger
+                          ).catch((error) => alert(error.toString()))
                         }
                       >
                         Give permission <ArrowRight />
@@ -270,14 +293,14 @@ export const BuySequencerModal: React.FC<
                   className="w-full mt-12"
                   type="submit"
                   size="lg"
+                  isPending={isCreateOrderPending}
                   disabled={
                     !form.formState.isValid ||
                     (sequencerType === SequencerType.Existing &&
-                      step < SubscribeStep.Done) ||
-                    isPending
+                      step < SubscribeStep.Done)
                   }
                 >
-                  {isPending ? "Creating order..." : "Create Order"}
+                  Create Order
                 </Button>
               </form>
             </Form>

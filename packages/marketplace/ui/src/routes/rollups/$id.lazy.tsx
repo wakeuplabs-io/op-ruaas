@@ -4,7 +4,6 @@ import { RollupHeader } from "@/components/rollup-detail/rollup-header";
 import { Card } from "@/components/ui/card";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Clock, Download, OctagonAlert } from "lucide-react";
 import { useOrder } from "@/lib/hooks/use-order";
@@ -20,21 +19,20 @@ export default function RollupDashboard() {
 
   return (
     <div className="md:p-6 space-y-6">
-      <Card
-        className={cn(
-          "border rounded-lg w-full mx-auto space-y-6",
-          `border-${statusColor}`
-        )}
-      >
-        <RollupHeader />
+      <div className="rounded-lg bg-gradient-to-l from-gray-300 to-transparent p-px">
+        <div className="border px-8 py-6 shadow-sm bg-white rounded-[calc(0.75rem-1px)]">
+          <RollupHeader />
 
-        {/* <RollupActions
-          orderId={id}
-          offer={offer}
-          setStatusColor={setStatusColor}
-          statusColor={statusColor}
-        /> */}
-      </Card>
+          {fulfilledAt > 0 && (
+            <RollupActions
+              orderId={id}
+              offer={null!}
+              setStatusColor={setStatusColor}
+              statusColor={statusColor}
+            />
+          )}
+        </div>
+      </div>
 
       {fulfilledAt > 0 ? (
         <div>
@@ -52,26 +50,35 @@ export default function RollupDashboard() {
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-6">
-          <div className="rounded-xl text-center bg-white h-[360px] flex flex-col items-center justify-center border border-[#FFD813]">
-            <div className="h-20 w-20 rounded-full bg-[#FFF1C7] flex items-center justify-center mb-12 mx-auto">
-              <Clock className="text-[#FFD813] h-12 w-12" />
-            </div>
+          <div className="rounded-lg bg-gradient-to-l from-[#FFD813] to-transparent p-px">
+            <div className="border p-12 shadow-sm bg-white rounded-[calc(0.75rem-1px)] border-gray-200 flex flex-col items-center justify-center h-[360px]">
+              <div className="h-20 w-20 rounded-full bg-[#FFF1C7] flex items-center justify-center mb-12 mx-auto">
+                <Clock className="text-[#FFD813] h-12 w-12" />
+              </div>
 
-            <div className="text-xl font-medium mb-6">Waiting for provider</div>
-            <div className="text-sm text-muted-foreground max-w-sm mx-auto">
-              Your Rollup is being processed and should be active within the
-              next 24 hours.
+              <div className="text-xl font-medium mb-6">
+                Waiting for provider
+              </div>
+              <div className="text-sm text-muted-foreground max-w-sm mx-auto text-center">
+                Your Rollup is being processed and should be active within the
+                next 24 hours.
+              </div>
             </div>
           </div>
 
-          <div className="rounded-xl text-center bg-white h-[360px] flex flex-col items-center justify-center border border-[#6696AF]">
-            <div className="h-20 w-20 rounded-full bg-[#DEF4FF] flex items-center justify-center mb-12 mx-auto">
-              <OctagonAlert className="text-[#6696AF] h-12 w-12" />
-            </div>
+          <div className="rounded-lg bg-gradient-to-l from-[#6696AF] to-transparent p-px">
+            <div className="border p-12 shadow-sm bg-white rounded-[calc(0.75rem-1px)] border-gray-200 flex flex-col items-center justify-center h-[360px]">
+              <div className="h-20 w-20 rounded-full bg-[#DEF4FF] flex items-center justify-center mb-12 mx-auto">
+                <OctagonAlert className="text-[#6696AF] h-12 w-12" />
+              </div>
 
-            <div className="text-xl font-medium mb-6">Cancellation Policy</div>
-            <div className="text-sm text-muted-foreground max-w-sm mx-auto">
-            Once the service is active, you will have 48 hours to review it and unsubscribe before being charged.
+              <div className="text-xl font-medium mb-6">
+                Cancellation Policy
+              </div>
+              <div className="text-sm text-muted-foreground max-w-sm mx-auto text-center">
+                Once the service is active, you will have 48 hours to review it
+                and unsubscribe before being charged.
+              </div>
             </div>
           </div>
         </div>
