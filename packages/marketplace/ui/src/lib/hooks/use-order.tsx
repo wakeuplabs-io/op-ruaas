@@ -2,6 +2,7 @@ export const useOrder = ({ id }: { id: bigint }) => {
   // TODO: unmock
 
   return {
+    fulfilledAt: 0n,
     terminatedAt: 0n,
     provider: {
       sequencer: "0x123",

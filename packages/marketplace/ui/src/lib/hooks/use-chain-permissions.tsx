@@ -214,9 +214,9 @@ export const useChainPermissions = ({
     setSequencerAddress,
     setBatcherAddress,
     setOracleAddress,
-    batcher,
-    sequencer,
-    challenger,
-    proposer,
+    batcher: zeroAddress,
+    sequencer: zeroAddress,
+    challenger: zeroAddress,
+    proposer: zeroAddress,
   };
 };

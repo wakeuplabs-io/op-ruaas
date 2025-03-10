@@ -1,11 +1,10 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { LogOut, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useAccount, useDisconnect } from "wagmi";
 import cn from "classnames";
 
 export default function CustomConnectButton() {
   const { isConnected, address } = useAccount();
-  const { disconnect } = useDisconnect();
 
   return (
     <ConnectButton.Custom>

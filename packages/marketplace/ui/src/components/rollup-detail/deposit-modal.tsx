@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useDeposit } from "@/lib/hooks/use-deposit"
 import { Plan } from "@/types"
 import { formatTokenAmount } from "@/lib/utils"
-import { Loader2, CheckCircle } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { useAccount } from "wagmi";
 
 interface DepositModalProps {

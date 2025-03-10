@@ -30,6 +30,7 @@ export type NetworkConfig = {
   chainId: number;
 };
 
+// TODO: delete
 export type OfferPlan = {
   id: bigint;
   title: string;
@@ -37,6 +38,17 @@ export type OfferPlan = {
   features: string[];
   buttonText: string;
 };
+
+export type OfferMetadata = {
+  title: string;
+  features: string[];
+  wallets: {
+    sequencer: string;
+    batcher: string;
+    challenger: string;
+    proposer: string;
+  };
+}
 
 export type OrdersReturnTuple = [
   client: string,
@@ -72,7 +84,7 @@ export type Offer = {
   vendor: string;
   pricePerMonth: bigint;
   remainingUnits: bigint;
-  metadata: string;
+  metadata: OfferMetadata;
 };
 
 export type Plan = {

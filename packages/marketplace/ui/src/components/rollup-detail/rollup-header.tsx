@@ -4,7 +4,7 @@ import { UnsubscribeModal } from "@/components/unsubscribe-modal";
 
 export function RollupHeader() {
   return (
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
       <div className="flex items-center gap-2">
         <h2 className="text-lg font-medium">
           Rollup 1 <span className="text-gray-500">/ Basic</span>
