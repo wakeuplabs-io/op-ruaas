@@ -87,7 +87,6 @@ export function useCreateOrder() {
 
       return (decoded.args as any).orderId;
     } catch (error) {
-      console.log(error);
       throw error;
     } finally {
       setIsPending(false);

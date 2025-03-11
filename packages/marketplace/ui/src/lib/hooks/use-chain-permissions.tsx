@@ -241,7 +241,6 @@ export const useChainPermissions = ({
             permissions.finalizationPeriodSeconds,
           ],
         });
-        console.log("deployTx");
 
         const deploymentReceipt = await waitForTransactionReceipt(config, {
           hash: deployTx ?? "",
