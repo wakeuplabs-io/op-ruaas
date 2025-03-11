@@ -14,15 +14,13 @@ import { Link } from "@tanstack/react-router";
 import { ItemList } from "./sidebar/item-list";
 import { useEffect, useState } from "react";
 import { RollupItem } from "@/types";
-import { useOrdersWithOffers } from "@/hooks/use-orders";
 import { useAccount } from "wagmi";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [rollupList, setRollupList] = useState<RollupItem[]>([]);
   const { rollups } = useGetUserRollups();
   const { isConnected } = useAccount();
-  const { orders, isLoading, error, refetch } = useOrdersWithOffers();
-  console.log({ isLoading });
+
   useEffect(() => {
     if (rollups) {
       setRollupList(
@@ -44,7 +42,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {isConnected && (
         <SidebarContent className="px-4 space-y-4">
           <Link
-            to="/app"
+            to="/"
             className="w-full flex items-center gap-2 py-2 px-4 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
           >
             <Plus size={16} className="text-red-500" />

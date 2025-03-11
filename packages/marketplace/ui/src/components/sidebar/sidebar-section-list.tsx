@@ -40,18 +40,23 @@ export function SidebarSectionList({
       (item) => (item.item.props as SidebarListButtonProps).isSelected
     );
 
-    if (selectedItemIdx >= maxItems) {
+    if (selectedItemIdx >= maxItems - 2) {
+      sectionItems = sectionItems.slice(-maxItems);
+    } else if (selectedItemIdx >= maxItems) {
       sectionItems = [
-        ...sectionItems.splice(selectedItemIdx, 1),
-        ...sectionItems,
+        sectionItems[selectedItemIdx],
+        ...sectionItems.slice(0, selectedItemIdx),
+        ...sectionItems.slice(selectedItemIdx + 1),
       ];
     }
 
     const viewAllItems = items;
     const itemsToShow = sectionItems.slice(0, maxItems);
+    console.log({ itemsToShow, sectionItems });
 
     return [itemsToShow, viewAllItems];
   }, [items, maxItems]);
+
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
@@ -85,7 +90,7 @@ export function SidebarSectionList({
         isOpen={isOpenViewAll}
         onOpenChange={(open) => setIsOpenViewAll(open)}
       >
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-2" key={id}>
           {viewAllItems.map(({ id, item }) => (
             <li key={id}>{item}</li>
           ))}
@@ -114,9 +119,21 @@ function ViewAllSidebar({
         <div className="flex flex-col h-full w-full justify-between">
           <div className="flex h-full w-full flex-col gap-2">
             <p className="text-xs font-normal text-gray-700">All {title}</p>
-            <SheetClose>{children}</SheetClose>
+            <ul>
+              {React.Children.map(children, (child) => (
+                <li>
+                  <SheetClose asChild>
+                    <button
+                      onClick={() => onOpenChange(false)}
+                      className="w-full text-left p-2 rounded-lg transition"
+                    >
+                      {child}
+                    </button>
+                  </SheetClose>
+                </li>
+              ))}
+            </ul>
           </div>
-          {/* <WakeUpLogo /> */}
         </div>
       </SheetContent>
     </Sheet>
