@@ -106,7 +106,7 @@ export const BuySequencerModal: React.FC<
           params: { id: orderId.toString() },
         });
       } catch (e: any) {
-        alert("Error creating order" + e?.message);
+        alert("Error creating order: " + e?.message);
       }
     },
     [router, sequencerType, createOrder]

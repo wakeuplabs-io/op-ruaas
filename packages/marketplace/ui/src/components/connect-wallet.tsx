@@ -1,14 +1,14 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { ChevronDown } from "lucide-react";
-import { useAccount, useDisconnect } from "wagmi";
+import { useAccount } from "wagmi";
 import cn from "classnames";
 
 export default function CustomConnectButton() {
-  const { isConnected, address } = useAccount();
+  const { isConnected, address,  } = useAccount();
 
   return (
     <ConnectButton.Custom>
-      {({ account, chain, openChainModal, openConnectModal, mounted }) => {
+      {({ account, chain, openChainModal, openConnectModal, mounted, openAccountModal }) => {
         const ready = mounted;
         const connected = ready && account && chain && isConnected;
 
@@ -37,11 +37,14 @@ export default function CustomConnectButton() {
               </button>
             ) : (
               <button
-                className="w-full flex items-center gap-3 bg-gray-100 text-black py-2 px-4 rounded-full border border-gray-300 hover:bg-gray-200"
+                onClick={openAccountModal}
+                className="w-full flex items-center gap-3 bg-secondary text-black py-2 px-4 rounded-full border border-gray-300 hover:bg-gray-200"
                 type="button"
               >
                 <div className="w-5 h-5 bg-red-500 rounded-full" />
-                <span className="font-medium">{address?.slice(0, 6)}...{address?.slice(-4)}</span>
+                <span className="font-medium">
+                  {address?.slice(0, 6)}...{address?.slice(-4)}
+                </span>
                 <ChevronDown size={18} className="text-gray-500" />
               </button>
             )}

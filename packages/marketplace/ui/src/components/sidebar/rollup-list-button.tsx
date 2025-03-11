@@ -13,8 +13,8 @@ export function RollupListButton({ rollup, onClick, isSelected = false }: Rollup
   return (
     <SidebarListButton isSelected={isSelected} onClick={onClick}>
       <Link
-        to={`/app/rollups/${rollup.id}`}
-        className="flex items-center gap-2 text-sm w-full p-2 block"
+        to={`/rollups/${rollup.id}`}
+        className="flex items-center gap-2 text-sm w-full p-2 block text-gray-700"
       >
         <CircleDot size={12} />
         <span className="hover:text-black transition">{rollup.name}</span>

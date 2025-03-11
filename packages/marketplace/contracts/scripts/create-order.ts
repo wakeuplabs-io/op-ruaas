@@ -11,7 +11,7 @@ async function main() {
   const marketplaceAddress = deployed_addresses["MarketplaceModule#Marketplace"];
   const marketplace = await ethers.getContractAt("Marketplace", marketplaceAddress);
 
-  const offerId = 4n;
+  const offerId = 1n;
   const initialCommitment = 1n;
   const metadata: OrderMetadata = {
     name: "MyChain",

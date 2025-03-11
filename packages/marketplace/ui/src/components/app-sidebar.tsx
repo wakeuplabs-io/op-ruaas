@@ -1,36 +1,22 @@
-import * as React from "react";
-import { Plus } from "lucide-react";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-} from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
-import CustomConnectButton from "./connect-wallet";
-import { buttonVariants } from "./ui/button";
-import { useGetUserRollups } from "@/lib/hooks/use-user-orders";
-import { Link } from "@tanstack/react-router";
-import { ItemList } from "./sidebar/item-list";
-import { useEffect, useState } from "react";
-import { RollupItem } from "@/types";
-import { useAccount } from "wagmi";
+import * as React from "react"
+import { Plus } from "lucide-react"
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from "@/components/ui/sidebar"
+import { cn } from "@/lib/utils"
+import CustomConnectButton from "./connect-wallet"
+import { buttonVariants } from "./ui/button"
+import { Link } from "@tanstack/react-router"
+import { RollupList } from "./sidebar/rollup-list"
+import { useAccount } from "wagmi"
+import { useOrders } from "@/lib/hooks/use-orders"
+import { useProviderInfo } from "@/lib/hooks/use-provider-info"
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [rollupList, setRollupList] = useState<RollupItem[]>([]);
-  const { rollups } = useGetUserRollups();
-  const { isConnected } = useAccount();
+export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
+  const { isConnected } = useAccount()
+  const { sequencerRollups, replicaRollups } = useOrders()
+  const { name, formattedAddress } = useProviderInfo()
 
-  useEffect(() => {
-    if (rollups) {
-      setRollupList(
-        rollups.map((rollup) => ({
-          id: rollup,
-          name: `Rollup ${rollup.toString(10)}`,
-        }))
-      );
-    }
-  }, [rollups]);
+  // ÚNICO ESTADO para un solo elemento seleccionado entre todas las listas:
+  const [selectedRollupId, setSelectedRollupId] = React.useState<bigint>()
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -39,6 +25,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <img className="h-8" src="/opruaas.png" alt="logo" />
         </div>
       </SidebarHeader>
+
       {isConnected && (
         <SidebarContent className="px-4 space-y-4">
           <Link
@@ -49,15 +36,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <span className="font-medium">New Rollup</span>
           </Link>
           <hr />
-          <ItemList name="Sequencer" rollups={rollupList} />
+
+          <RollupList
+            name="Sequencer"
+            rollups={sequencerRollups}
+            selectedId={selectedRollupId}
+            onSelect={setSelectedRollupId}
+          />
           <hr />
-          <ItemList name="Replica" rollups={rollupList} />
+          <RollupList
+            name="Replica"
+            rollups={replicaRollups}
+            selectedId={selectedRollupId}
+            onSelect={setSelectedRollupId}
+          />
         </SidebarContent>
       )}
+
       <div className="px-4 mt-auto text-sm text-gray-700">
         <h4 className="text-gray-500 text-xs mb-1">Provider</h4>
-        <p className="font-medium">John Doe</p>
-        <p className="text-xs text-gray-500">0x11247237...ashy760</p>
+        <p className="font-medium">{name}</p>
+        <p className="text-xs text-gray-500">{formattedAddress}</p>
       </div>
 
       <div className="px-4 mt-4">
@@ -70,12 +69,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           target="_blank"
           className={cn(
             buttonVariants({ variant: "secondary" }),
-            "w-full h-[74px] flex justify-center items-center "
+            "w-full h-[74px] flex justify-center items-center"
           )}
         >
           <img className="h-[45px]" src="/wakeuplabs.png" alt="logo" />
         </a>
       </SidebarFooter>
     </Sidebar>
-  );
+  )
 }

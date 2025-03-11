@@ -48,27 +48,26 @@ export type OfferMetadata = {
   };
 }
 
-export type OrderMetadata = {
+export type OrderSetupMetadata = {
   name: string;
   artifacts: string | null;
 }
 
+export type OrderDeploymentMetadata = {
+  
+}
 
-export type OrdersReturnTuple = [
-  client: string,
-  offerId: bigint,
-  balance: bigint,
-  createdAt: bigint,
-  fulfilledAt: bigint,
-  terminatedAt: bigint, 
-  lastWithdrawal: bigint,
-  metadata: string 
-]
+export type OfferData = {
+  vendor: string;
+  pricePerMonth: bigint;
+  remainingUnits: bigint;
+  metadata: string;
+}
 
-
-export type Order = {
-  id: bigint;
+export type OrderData = {
+  orderId: bigint;
   client: string;
+  name: string
   offerId: bigint;
   balance: bigint;
   createdAt: bigint;
@@ -77,6 +76,23 @@ export type Order = {
   lastWithdrawal: bigint;
   setupMetadata: string;
   deploymentMetadata: string;
+  offer: OfferData;
+};
+
+
+export type Order = {
+  id: bigint;
+  client: string;
+  name: string
+  offerId: bigint;
+  balance: bigint;
+  createdAt: bigint;
+  fulfilledAt: bigint;
+  terminatedAt: bigint;
+  lastWithdrawal: bigint;
+  setupMetadata: OrderSetupMetadata;
+  deploymentMetadata: OrderDeploymentMetadata;
+  offer: Offer;
 };
 
 export type OfferReturnTuple = [

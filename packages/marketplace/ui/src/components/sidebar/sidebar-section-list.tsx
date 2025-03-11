@@ -1,24 +1,24 @@
-import { cn } from "@/lib/utils";
-import React, { useMemo, useState } from "react";
+import { cn } from "@/lib/utils"
+import React, { useMemo, useState } from "react"
 import {
   SidebarListButton,
   SidebarListButtonProps,
-} from "./sidebar-list-button";
-import { Ellipsis } from "lucide-react";
-import { Sheet, SheetClose, SheetContent } from "@/components/ui/sheet";
+} from "./sidebar-list-button"
+import { Ellipsis } from "lucide-react"
+import { Sheet, SheetClose, SheetContent } from "@/components/ui/sheet"
 
 interface Item {
-  id: bigint;
-  item: React.ReactElement<typeof SidebarListButton>;
+  id: bigint
+  item: React.ReactElement<typeof SidebarListButton>
 }
 
 interface SidebarSectionListProps {
-  id: string;
-  items: Item[];
-  title?: React.ReactNode;
-  shortTitle?: string;
-  maxItems?: number;
-  className?: string;
+  id: string
+  items: Item[]
+  title?: React.ReactNode
+  shortTitle?: string
+  maxItems?: number
+  className?: string
 }
 
 export function SidebarSectionList({
@@ -29,34 +29,34 @@ export function SidebarSectionList({
   maxItems,
   className,
 }: SidebarSectionListProps) {
-  const [isOpenViewAll, setIsOpenViewAll] = useState(false);
+  const [isOpenViewAll, setIsOpenViewAll] = useState(false)
+
   const [itemsToShow, viewAllItems] = useMemo(() => {
     if (!maxItems || items.length <= maxItems) {
-      return [items, []];
+      return [items, []]
     }
 
-    let sectionItems = [...items];
+    let sectionItems = [...items]
     const selectedItemIdx = sectionItems.findIndex(
       (item) => (item.item.props as SidebarListButtonProps).isSelected
-    );
+    )
 
-    if (selectedItemIdx >= maxItems - 2) {
-      sectionItems = sectionItems.slice(-maxItems);
-    } else if (selectedItemIdx >= maxItems) {
-      sectionItems = [
-        sectionItems[selectedItemIdx],
-        ...sectionItems.slice(0, selectedItemIdx),
-        ...sectionItems.slice(selectedItemIdx + 1),
-      ];
+    if (selectedItemIdx >= maxItems) {
+      if (selectedItemIdx >= items.length - (maxItems - 1)) {
+        sectionItems = sectionItems.slice(-maxItems)
+      } else {
+        sectionItems = [
+          sectionItems[selectedItemIdx],
+          ...sectionItems.slice(0, selectedItemIdx),
+          ...sectionItems.slice(selectedItemIdx + 1),
+        ]
+      }
     }
 
-    const viewAllItems = items;
-    const itemsToShow = sectionItems.slice(0, maxItems);
-    console.log({ itemsToShow, sectionItems });
-
-    return [itemsToShow, viewAllItems];
-  }, [items, maxItems]);
-
+    const itemsToShow = sectionItems.slice(0, maxItems)
+    const viewAllItems = items
+    return [itemsToShow, viewAllItems]
+  }, [items, maxItems])
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
@@ -97,14 +97,14 @@ export function SidebarSectionList({
         </ul>
       </ViewAllSidebar>
     </div>
-  );
+  )
 }
 
 interface ViewAllSidebarProps {
-  isOpen: boolean;
-  title: React.ReactNode;
-  onOpenChange: (open: boolean) => void;
-  children?: React.ReactNode;
+  isOpen: boolean
+  title: React.ReactNode
+  onOpenChange: (open: boolean) => void
+  children?: React.ReactNode
 }
 
 function ViewAllSidebar({
@@ -116,10 +116,10 @@ function ViewAllSidebar({
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="w-[320px] py-20 px-8">
-        <div className="flex flex-col h-full w-full justify-between">
-          <div className="flex h-full w-full flex-col gap-2">
-            <p className="text-xs font-normal text-gray-700">All {title}</p>
-            <ul>
+        <div className="flex flex-col h-full w-full">
+          <p className="text-xs font-normal text-gray-700">All {title}</p>
+          <div className="flex-1 overflow-y-auto max-h-[calc(100vh-120px)]">
+            <ul className="space-y-2">
               {React.Children.map(children, (child) => (
                 <li>
                   <SheetClose asChild>
@@ -137,5 +137,5 @@ function ViewAllSidebar({
         </div>
       </SheetContent>
     </Sheet>
-  );
+  )
 }
