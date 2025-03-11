@@ -9,7 +9,6 @@ import { Order, OrderSetupMetadata, OrderDeploymentMetadata, OfferMetadata, Orde
 export function useOrders() {
   const { address } = useAccount();
 
-  // Obtener todas las órdenes con sus ofertas asociadas directamente
   const {
     data: orders,
     isLoading,
@@ -33,7 +32,6 @@ export function useOrders() {
 
   if (!orders) return { sequencerRollups: [], replicaRollups: [], isLoading, error, refetch: refetchOrders };
 
-  // Clasificar las órdenes en `sequencerRollups` y `replicaRollups`
   const { sequencerRollups, replicaRollups } = orders.reduce(
     (acc, order) => {
       let offerMetadata: OfferMetadata = { title: "Unknown", features: [] };

@@ -15,7 +15,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { sequencerRollups, replicaRollups } = useOrders()
   const { name, formattedAddress } = useProviderInfo()
 
-  // ÚNICO ESTADO para un solo elemento seleccionado entre todas las listas:
   const [selectedRollupId, setSelectedRollupId] = React.useState<bigint>()
 
   return (
