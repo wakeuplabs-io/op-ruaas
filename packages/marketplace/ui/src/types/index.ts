@@ -51,6 +51,7 @@ export type OrdersReturnTuple = [
 
 
 export type Order = {
+  id: bigint;
   client: string;
   offerId: bigint;
   balance: bigint;
@@ -58,7 +59,8 @@ export type Order = {
   fulfilledAt: bigint;
   terminatedAt: bigint;
   lastWithdrawal: bigint;
-  metadata: string;
+  setupMetadata: string;
+  deploymentMetadata: string;
 };
 
 export type OfferReturnTuple = [
@@ -78,4 +80,9 @@ export type Offer = {
 export type Plan = {
   months: bigint
   pricePerMonth: bigint
+}
+
+export type RollupItem = {
+  id: bigint;
+  name: string
 }
