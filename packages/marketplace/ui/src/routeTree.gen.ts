@@ -13,21 +13,13 @@ import { createFileRoute } from '@tanstack/react-router'
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as AppImport } from './routes/app'
 import { Route as IndexImport } from './routes/index'
 
 // Create Virtual Routes
 
-const AppIndexLazyImport = createFileRoute('/app/')()
-const AppRollupsIdLazyImport = createFileRoute('/app/rollups/$id')()
+const RollupsIdLazyImport = createFileRoute('/rollups/$id')()
 
 // Create/Update Routes
-
-const AppRoute = AppImport.update({
-  id: '/app',
-  path: '/app',
-  getParentRoute: () => rootRoute,
-} as any)
 
 const IndexRoute = IndexImport.update({
   id: '/',
@@ -35,19 +27,11 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const AppIndexLazyRoute = AppIndexLazyImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/app/index.lazy').then((d) => d.Route))
-
-const AppRollupsIdLazyRoute = AppRollupsIdLazyImport.update({
+const RollupsIdLazyRoute = RollupsIdLazyImport.update({
   id: '/rollups/$id',
   path: '/rollups/$id',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() =>
-  import('./routes/app/rollups/$id.lazy').then((d) => d.Route),
-)
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/rollups/$id.lazy').then((d) => d.Route))
 
 // Populate the FileRoutesByPath interface
 
@@ -60,82 +44,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/app': {
-      id: '/app'
-      path: '/app'
-      fullPath: '/app'
-      preLoaderRoute: typeof AppImport
-      parentRoute: typeof rootRoute
-    }
-    '/app/': {
-      id: '/app/'
-      path: '/'
-      fullPath: '/app/'
-      preLoaderRoute: typeof AppIndexLazyImport
-      parentRoute: typeof AppImport
-    }
-    '/app/rollups/$id': {
-      id: '/app/rollups/$id'
+    '/rollups/$id': {
+      id: '/rollups/$id'
       path: '/rollups/$id'
-      fullPath: '/app/rollups/$id'
-      preLoaderRoute: typeof AppRollupsIdLazyImport
-      parentRoute: typeof AppImport
+      fullPath: '/rollups/$id'
+      preLoaderRoute: typeof RollupsIdLazyImport
+      parentRoute: typeof rootRoute
     }
   }
 }
 
 // Create and export the route tree
 
-interface AppRouteChildren {
-  AppIndexLazyRoute: typeof AppIndexLazyRoute
-  AppRollupsIdLazyRoute: typeof AppRollupsIdLazyRoute
-}
-
-const AppRouteChildren: AppRouteChildren = {
-  AppIndexLazyRoute: AppIndexLazyRoute,
-  AppRollupsIdLazyRoute: AppRollupsIdLazyRoute,
-}
-
-const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
-
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/app': typeof AppRouteWithChildren
-  '/app/': typeof AppIndexLazyRoute
-  '/app/rollups/$id': typeof AppRollupsIdLazyRoute
+  '/rollups/$id': typeof RollupsIdLazyRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/app': typeof AppIndexLazyRoute
-  '/app/rollups/$id': typeof AppRollupsIdLazyRoute
+  '/rollups/$id': typeof RollupsIdLazyRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/app': typeof AppRouteWithChildren
-  '/app/': typeof AppIndexLazyRoute
-  '/app/rollups/$id': typeof AppRollupsIdLazyRoute
+  '/rollups/$id': typeof RollupsIdLazyRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app' | '/app/' | '/app/rollups/$id'
+  fullPaths: '/' | '/rollups/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/app' | '/app/rollups/$id'
-  id: '__root__' | '/' | '/app' | '/app/' | '/app/rollups/$id'
+  to: '/' | '/rollups/$id'
+  id: '__root__' | '/' | '/rollups/$id'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AppRoute: typeof AppRouteWithChildren
+  RollupsIdLazyRoute: typeof RollupsIdLazyRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AppRoute: AppRouteWithChildren,
+  RollupsIdLazyRoute: RollupsIdLazyRoute,
 }
 
 export const routeTree = rootRoute
@@ -149,26 +102,14 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/app"
+        "/rollups/$id"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
-    "/app": {
-      "filePath": "app.tsx",
-      "children": [
-        "/app/",
-        "/app/rollups/$id"
-      ]
-    },
-    "/app/": {
-      "filePath": "app/index.lazy.tsx",
-      "parent": "/app"
-    },
-    "/app/rollups/$id": {
-      "filePath": "app/rollups/$id.lazy.tsx",
-      "parent": "/app"
+    "/rollups/$id": {
+      "filePath": "rollups/$id.lazy.tsx"
     }
   }
 }

@@ -9,7 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import CustomConnectButton from "./connect-wallet";
 import { buttonVariants } from "./ui/button";
-import { useGetUserRollups } from "@/hooks/use-get-user-orders";
+import { useGetUserRollups } from "@/lib/hooks/use-user-orders";
 import { Link } from "@tanstack/react-router";
 import { ItemList } from "./sidebar/item-list";
 import { useEffect, useState } from "react";

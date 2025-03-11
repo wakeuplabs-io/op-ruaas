@@ -1,9 +1,13 @@
 import { useReadContract } from "wagmi";
 import type { Config as WagmiConfig } from "@wagmi/core";
-import { MARKETPLACE_ADDRESS, MARKETPLACE_ABI } from "@/shared/constants";
-import { Offer, OfferReturnTuple } from "@/types";
+import {
+  MARKETPLACE_ADDRESS,
+  MARKETPLACE_ABI,
+  MARKETPLACE_CHAIN_ID,
+} from "@/shared/constants/marketplace";
+import { Offer, OfferMetadata, OfferReturnTuple } from "@/types";
 
-export function useOfferDetails(offerId?: bigint) {
+export function useOffer(offerId?: bigint) {
   const { data, isLoading, error } = useReadContract<
     typeof MARKETPLACE_ABI,
     "offers",
@@ -14,15 +18,16 @@ export function useOfferDetails(offerId?: bigint) {
     address: MARKETPLACE_ADDRESS,
     abi: MARKETPLACE_ABI,
     functionName: "offers",
-    args: [1n],
-
+    args: [offerId],
+    chainId: parseInt(MARKETPLACE_CHAIN_ID),
   });
+
   const offer: Offer | null = data
     ? {
         vendor: data[0],
         pricePerMonth: data[1],
         remainingUnits: data[2],
-        metadata: data[3],
+        metadata: JSON.parse(data[3]) as OfferMetadata,
       }
     : null;
 

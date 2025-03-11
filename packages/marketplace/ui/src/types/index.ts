@@ -30,13 +30,29 @@ export type NetworkConfig = {
   chainId: number;
 };
 
-export type OfferPlan = {
-  id: bigint;
-  title: string;
+export type Offer = {
+  vendor: string;
   pricePerMonth: bigint;
-  features: string[];
-  buttonText: string;
+  remainingUnits: bigint;
+  metadata: OfferMetadata;
 };
+
+export type OfferMetadata = {
+  title: string;
+  features: string[];
+  wallets?: {
+    sequencer: string;
+    batcher: string;
+    challenger: string;
+    proposer: string;
+  };
+}
+
+export type OrderMetadata = {
+  name: string;
+  artifacts: string | null;
+}
+
 
 export type OrdersReturnTuple = [
   client: string,
@@ -69,13 +85,6 @@ export type OfferReturnTuple = [
   remainingUnits: bigint,
   metadata: string
 ];
-
-export type Offer = {
-  vendor: string;
-  pricePerMonth: bigint;
-  remainingUnits: bigint;
-  metadata: string;
-};
 
 export type Plan = {
   months: bigint

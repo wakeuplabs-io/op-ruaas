@@ -1,19 +1,45 @@
 import { ethers } from "hardhat";
 
-async function main() {
-  const marketplaceAddress = "0x74cC0e67a5720A0b4a4082d70B8646900A24e5AC";
-  const pricePerMonth = 10n * 10n ** 18n;
-  const metadata = '{}';
-  const units = 10n;
+export type OfferMetadata = {
+  title: string;
+  features: string[];
+  wallets?: {
+    sequencer: string;
+    batcher: string;
+    challenger: string;
+    proposer: string;
+  };
+}
 
+async function main() {
+  const chain = await ethers.provider.getNetwork();
+  const deployed_addresses = require(`../ignition/deployments/chain-${chain.chainId}/deployed_addresses.json`);
+  const marketplaceAddress = deployed_addresses["MarketplaceModule#Marketplace"];
   const marketplace = await ethers.getContractAt("Marketplace", marketplaceAddress);
 
-  console.log("Creating offer in marketplace:", marketplaceAddress);
+  const pricePerMonth = 10n * 10n ** 18n;
+  const sequencerMetadata = {
+    title: "Ethereum",
+    features: ["Deploy contracts on Ethereum as L1", "Run your L2 chain", "Runs Blockscout explorer"],
+    wallets: {
+      sequencer: "0xf3A77F4dA4a4Fc14E40747C4e193b0F35FfbFe4F",
+      batcher: "0xf3A77F4dA4a4Fc14E40747C4e193b0F35FfbFe4F",
+      challenger: "0xf3A77F4dA4a4Fc14E40747C4e193b0F35FfbFe4F",
+      proposer: "0xf3A77F4dA4a4Fc14E40747C4e193b0F35FfbFe4F",
+    }
+  };
 
-  const tx = await marketplace.createOffer(pricePerMonth, units, metadata);
-  await tx.wait();
+  const replicaMetadata = {
+    title: "Ethereum",
+    features: ["Run a replica node for your L2 chain", "Blockscout explorer"],
+  };
+  const units = 100n;
 
-  console.log("Offer succesfully created:", tx.hash);
+  const tx = await marketplace.createOffer(pricePerMonth, units, JSON.stringify(sequencerMetadata));
+  const receipt = await tx.wait();
+
+  const offerId = (receipt?.logs[0] as any).args[1];
+  console.log(`Offer created with OfferId: ${offerId}`);
 }
 
 main()

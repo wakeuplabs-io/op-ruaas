@@ -4,15 +4,57 @@ import { defineChain, http, Chain } from "viem";
 import { connectorsForWallets } from "@rainbow-me/rainbowkit";
 import { metaMaskWallet } from "@rainbow-me/rainbowkit/wallets";
 import { braveWallet } from "@rainbow-me/rainbowkit/wallets";
-import { optimismTestnet } from "@/lib/wagmi-config";
+import { NetworkConfig } from "@/types";
+import { optimismSepolia } from "wagmi/chains";
 
-function WagmiSetup({ children }: { children: React.ReactNode }) {
+export const optimismTestnet: NetworkConfig = {
+  ...optimismSepolia,
+  logoURI: new URL("@/assets/ethereum-icon.svg", import.meta.url).href, // TODO:
+  isTestnet: true,
+  chainId: optimismSepolia.id,
+  rpcUrls: {
+    default: {
+      http: ["https://opt-sepolia.g.alchemy.com/v2/wn2lk8Lg7UtzEFY3G43NnOSfVXWgOAjl"],
+    },
+  },
+  explorer: {
+    default: {
+      url: optimismSepolia.blockExplorers.default.url,
+    },
+  },
+};
 
+export const gethTestnetL1: NetworkConfig = {
+  name: "Geth Network",
+  chainId: 1337,
+  nativeCurrency: {
+    decimals: 18,
+    name: "Ether",
+    symbol: "ETH",
+  },
+  rpcUrls: {
+    default: {
+      http: ["http://127.0.0.1:8545"],
+    },
+  },
+  explorer: {
+    default: {
+      url: "http://localhost:8545", 
+    },
+  },
+  isTestnet: true, 
+};
+
+export function WagmiSetup({ children }: { children: React.ReactNode }) {
   const definedChains: [Chain, ...Chain[]] = useMemo(() => {
     let myChains: [Chain, ...Chain[]] = [
       defineChain({
-        ... optimismTestnet,
-        id:  optimismTestnet.chainId,
+        ...optimismTestnet,
+        id: optimismTestnet.chainId,
+      }),
+      defineChain({
+        ...gethTestnetL1,
+        id: gethTestnetL1.chainId,
       }),
     ];
     return myChains;
@@ -36,7 +78,7 @@ function WagmiSetup({ children }: { children: React.ReactNode }) {
     {
       appName: "RUASS",
       projectId: "RUASS_POC",
-    },
+    }
   );
 
   const config = createConfig({
@@ -48,5 +90,3 @@ function WagmiSetup({ children }: { children: React.ReactNode }) {
 
   return <WagmiProvider config={config}>{children}</WagmiProvider>;
 }
-
-export default WagmiSetup;
