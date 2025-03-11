@@ -1,3 +1,4 @@
+import { toEventSelector } from "viem";
 import { Offer } from "@/types";
 import {
   Dialog,
@@ -62,12 +63,11 @@ export const BuySequencerModal: React.FC<
   const [systemOwnerSafe, setSystemOwnerSafe] = useState(zeroAddress);
   const [proxyAdmin, setProxyAdmin] = useState(zeroAddress);
   const [l1ChainId, setL1ChainId] = useState(1);
+  const [step, setStep] = useState<SubscribeStep>(
+    SubscribeStep.UploadArtifacts
+  );
 
   const {
-    batcher,
-    sequencer,
-    proposer,
-    challenger,
     setBatcherAddress,
     setSequencerAddress,
     setOracleAddress,
@@ -121,39 +121,12 @@ export const BuySequencerModal: React.FC<
         setL2OutputOracleProxy(addresses["L2OutputOracleProxy"]);
         setSystemOwnerSafe(addresses["SystemOwnerSafe"]);
         setProxyAdmin(addresses["ProxyAdmin"]);
+        setStep(SubscribeStep.SetSequencer);
       })
       .catch((error) => {
         alert("Error reading artifacts: " + error.toString());
       });
   }, [artifacts]);
-
-  const step = useMemo(() => {
-    if (
-      sequencerType === SequencerType.Existing &&
-      systemConfigProxy === zeroAddress
-    )
-      return SubscribeStep.UploadArtifacts;
-    if (sequencer !== offer.metadata.wallets?.sequencer)
-      return SubscribeStep.SetSequencer;
-    if (
-      batcher !==
-      toHex(pad(toBytes(offer.metadata.wallets!.batcher), { size: 32 }))
-    )
-      return SubscribeStep.SetBatcher;
-    if (proposer !== offer.metadata.wallets?.proposer)
-      return SubscribeStep.SetOracle;
-    if (challenger !== offer.metadata.wallets?.challenger)
-      return SubscribeStep.SetOracle;
-    return SubscribeStep.Done;
-  }, [
-    offer,
-    sequencer,
-    batcher,
-    proposer,
-    challenger,
-    systemConfigProxy,
-    sequencerType,
-  ]);
 
   return (
     <Dialog
@@ -165,6 +138,7 @@ export const BuySequencerModal: React.FC<
         setL2OutputOracleProxy(zeroAddress);
         setSystemOwnerSafe(zeroAddress);
         setProxyAdmin(zeroAddress);
+
         form.reset();
       }}
     >
@@ -186,6 +160,7 @@ export const BuySequencerModal: React.FC<
                 <FormField
                   control={form.control}
                   name="name"
+                  disabled={isCreateOrderPending}
                   render={({ field }) => (
                     <FormItem className="mt-6">
                       <FormLabel>Name your Rollup:</FormLabel>
@@ -215,6 +190,7 @@ export const BuySequencerModal: React.FC<
                           type="file"
                           id="artifacts"
                           className="hidden"
+                          disabled={isCreateOrderPending}
                           accept=".zip"
                           onChange={(e) =>
                             setArtifacts(e.target.files?.[0] ?? null)
@@ -235,9 +211,9 @@ export const BuySequencerModal: React.FC<
                         type="button"
                         isPending={isChainPermissionsPending}
                         onClick={() =>
-                          setSequencerAddress(
-                            offer.metadata.wallets!.sequencer
-                          ).catch((error) => alert(error.toString()))
+                          setSequencerAddress(offer.metadata.wallets!.sequencer)
+                            .then(() => setStep(SubscribeStep.SetBatcher))
+                            .catch((error) => alert(error.toString()))
                         }
                       >
                         Give permission <ArrowRight />
@@ -256,9 +232,9 @@ export const BuySequencerModal: React.FC<
                         type="button"
                         isPending={isChainPermissionsPending}
                         onClick={() =>
-                          setBatcherAddress(
-                            offer.metadata.wallets!.batcher
-                          ).catch((error) => alert(error.toString()))
+                          setBatcherAddress(offer.metadata.wallets!.batcher)
+                            .then(() => setStep(SubscribeStep.SetOracle))
+                            .catch((error) => alert(error.toString()))
                         }
                       >
                         Give permission <ArrowRight />
@@ -280,7 +256,9 @@ export const BuySequencerModal: React.FC<
                           setOracleAddress(
                             offer.metadata.wallets!.proposer,
                             offer.metadata.wallets!.challenger
-                          ).catch((error) => alert(error.toString()))
+                          )
+                            .then(() => setStep(SubscribeStep.Done))
+                            .catch((error) => alert(error.toString()))
                         }
                       >
                         Give permission <ArrowRight />
@@ -295,9 +273,9 @@ export const BuySequencerModal: React.FC<
                   size="lg"
                   isPending={isCreateOrderPending}
                   disabled={
-                    !form.formState.isValid ||
-                    (sequencerType === SequencerType.Existing &&
-                      step < SubscribeStep.Done)
+                    !form.formState.isValid
+                    || (sequencerType === SequencerType.Existing &&
+                    step < SubscribeStep.Done)
                   }
                 >
                   Create Order

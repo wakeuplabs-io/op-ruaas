@@ -1,4 +1,11 @@
-import { usePublicClient, useWriteContract } from "wagmi";
+import {
+  useConfig,
+  usePublicClient,
+  useWaitForTransactionReceipt,
+  useWriteContract,
+} from "wagmi";
+import { waitForTransactionReceipt } from "@wagmi/core";
+
 import {
   MARKETPLACE_ADDRESS,
   MARKETPLACE_ABI,
@@ -13,7 +20,7 @@ import { useState } from "react";
 import { pinata } from "../pinata";
 
 export function useCreateOrder() {
-  const client = usePublicClient();
+  const config = useConfig();
   const { writeContractAsync } = useWriteContract();
   const { ensureChainId } = useEnsureChain();
   const [isPending, setIsPending] = useState(false);
@@ -43,7 +50,10 @@ export function useCreateOrder() {
         args: [MARKETPLACE_ADDRESS, initialCommitment * pricePerMonth],
         chainId: MARKETPLACE_CHAIN_ID,
       });
-      await client?.waitForTransactionReceipt({ hash: approveTx });
+      await waitForTransactionReceipt(config, {
+        hash: approveTx,
+        chainId: MARKETPLACE_CHAIN_ID,
+      });
 
       const orderTx = await writeContractAsync({
         address: MARKETPLACE_ADDRESS,
@@ -56,9 +66,9 @@ export function useCreateOrder() {
         ],
         chainId: MARKETPLACE_CHAIN_ID,
       });
-
-      const receipt = await client?.waitForTransactionReceipt({
+      const receipt = await waitForTransactionReceipt(config, {
         hash: orderTx,
+        chainId: MARKETPLACE_CHAIN_ID,
       });
 
       const newOrderEvent = receipt?.logs.find(
@@ -77,6 +87,7 @@ export function useCreateOrder() {
 
       return (decoded.args as any).orderId;
     } catch (error) {
+      console.log(error);
       throw error;
     } finally {
       setIsPending(false);

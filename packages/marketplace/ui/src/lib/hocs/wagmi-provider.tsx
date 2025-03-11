@@ -14,7 +14,7 @@ export const optimismTestnet: NetworkConfig = {
   chainId: optimismSepolia.id,
   rpcUrls: {
     default: {
-      http: [optimismSepolia.rpcUrls.default.http[0]],
+      http: ["https://opt-sepolia.g.alchemy.com/v2/wn2lk8Lg7UtzEFY3G43NnOSfVXWgOAjl"],
     },
   },
   explorer: {

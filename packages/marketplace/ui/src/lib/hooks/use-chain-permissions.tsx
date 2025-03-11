@@ -7,8 +7,10 @@ import { SYSTEM_CONFIG_ABI } from "@/shared/constants/system-config";
 import { SYSTEM_OWNER_SAFE_ABI } from "@/shared/constants/system-owner-safe";
 import { useEffect, useState } from "react";
 import { encodeFunctionData, pad, toBytes, toHex, zeroAddress } from "viem";
-import { waitForTransactionReceipt } from "viem/actions";
+import { waitForTransactionReceipt } from "@wagmi/core";
 import {
+  useConfig,
+  useReadContract,
   useReadContracts,
   useWalletClient,
   useWriteContract,
@@ -43,39 +45,27 @@ export const useChainPermissions = ({
     proposer: zeroAddress,
   });
   const [pending, setPending] = useState(false);
+  const config = useConfig();
+
+  // Fetching from proxy directly doesn't quite work locally so we circunvent it
+  const { data: l2OutputOracle } = useReadContract({
+    address: l2OutputOracleProxy,
+    abi: [
+      {
+        type: "function",
+        name: "implementation",
+        inputs: [],
+        outputs: [{ name: "", type: "address", internalType: "address" }],
+        stateMutability: "nonpayable",
+      },
+    ],
+    functionName: "implementation",
+    chainId: l1ChainId,
+  });
 
   const { data } = useReadContracts({
+    query: { enabled: l2OutputOracle !== undefined, refetchInterval: 1000 },
     contracts: [
-      {
-        address: l2OutputOracleProxy,
-        abi: L2_OUTPUT_ORACLE_ABI,
-        functionName: "submissionInterval",
-        chainId: l1ChainId,
-      },
-      {
-        address: l2OutputOracleProxy,
-        abi: L2_OUTPUT_ORACLE_ABI,
-        functionName: "l2BlockTime",
-        chainId: l1ChainId,
-      },
-      {
-        address: l2OutputOracleProxy,
-        abi: L2_OUTPUT_ORACLE_ABI,
-        functionName: "startingBlockNumber",
-        chainId: l1ChainId,
-      },
-      {
-        address: l2OutputOracleProxy,
-        abi: L2_OUTPUT_ORACLE_ABI,
-        functionName: "startingTimestamp",
-        chainId: l1ChainId,
-      },
-      {
-        address: l2OutputOracleProxy,
-        abi: L2_OUTPUT_ORACLE_ABI,
-        functionName: "finalizationPeriodSeconds",
-        chainId: l1ChainId,
-      },
       {
         address: systemConfigProxy,
         abi: SYSTEM_CONFIG_ABI,
@@ -89,13 +79,43 @@ export const useChainPermissions = ({
         chainId: l1ChainId,
       },
       {
-        address: l2OutputOracleProxy,
+        address: l2OutputOracle,
+        abi: L2_OUTPUT_ORACLE_ABI,
+        functionName: "submissionInterval",
+        chainId: l1ChainId,
+      },
+      {
+        address: l2OutputOracle,
+        abi: L2_OUTPUT_ORACLE_ABI,
+        functionName: "l2BlockTime",
+        chainId: l1ChainId,
+      },
+      {
+        address: l2OutputOracle,
+        abi: L2_OUTPUT_ORACLE_ABI,
+        functionName: "startingBlockNumber",
+        chainId: l1ChainId,
+      },
+      {
+        address: l2OutputOracle,
+        abi: L2_OUTPUT_ORACLE_ABI,
+        functionName: "startingTimestamp",
+        chainId: l1ChainId,
+      },
+      {
+        address: l2OutputOracle,
+        abi: L2_OUTPUT_ORACLE_ABI,
+        functionName: "finalizationPeriodSeconds",
+        chainId: l1ChainId,
+      },
+      {
+        address: l2OutputOracle,
         abi: L2_OUTPUT_ORACLE_ABI,
         functionName: "CHALLENGER",
         chainId: l1ChainId,
       },
       {
-        address: l2OutputOracleProxy,
+        address: l2OutputOracle,
         abi: L2_OUTPUT_ORACLE_ABI,
         functionName: "PROPOSER",
         chainId: l1ChainId,
@@ -105,13 +125,13 @@ export const useChainPermissions = ({
 
   useEffect(() => {
     const [
+      batcher,
+      sequencer,
       submissionInterval,
       l2BlockTime,
       startingBlockNumber,
       startingTimestamp,
       finalizationPeriodSeconds,
-      batcher,
-      sequencer,
       challenger,
       proposer,
     ] = data || [];
@@ -147,8 +167,9 @@ export const useChainPermissions = ({
         args: [sequencerAddress],
       });
 
-      await waitForTransactionReceipt(walletClient, {
-        hash: sequencerTx ?? "",
+      await waitForTransactionReceipt(config, {
+        hash: sequencerTx,
+        chainId: l1ChainId,
       });
 
       setPermissions({
@@ -179,8 +200,9 @@ export const useChainPermissions = ({
         args: [toHex(pad(toBytes(batcherAddress), { size: 32 }))],
       });
 
-      await waitForTransactionReceipt(walletClient, {
+      await waitForTransactionReceipt(config, {
         hash: batcherTx ?? "",
+        chainId: l1ChainId,
       });
 
       setPermissions({
@@ -209,21 +231,6 @@ export const useChainPermissions = ({
         const deployTx = await walletClient?.deployContract({
           abi: L2_OUTPUT_ORACLE_ABI,
           bytecode: L2_OUTPUT_ORACLE_BYTECODE,
-        });
-        const deploymentReceipt = await waitForTransactionReceipt(
-          walletClient,
-          { hash: deployTx ?? "" }
-        );
-        if (!deploymentReceipt.contractAddress) {
-          throw new Error("Transaction failed");
-        }
-
-        // Initialize the L2OutputOracle
-        const initializeTx = await writeContractAsync({
-          abi: L2_OUTPUT_ORACLE_ABI,
-          address: deploymentReceipt.contractAddress,
-          chainId: l1ChainId,
-          functionName: "initialize",
           args: [
             permissions.submissionInterval,
             permissions.l2BlockTime,
@@ -234,12 +241,15 @@ export const useChainPermissions = ({
             permissions.finalizationPeriodSeconds,
           ],
         });
+        console.log("deployTx");
 
-        await waitForTransactionReceipt(walletClient, {
-          hash: initializeTx ?? "",
+        const deploymentReceipt = await waitForTransactionReceipt(config, {
+          hash: deployTx ?? "",
+          chainId: l1ChainId,
         });
-
-        console.log("initialized", deploymentReceipt.contractAddress);
+        if (!deploymentReceipt.contractAddress) {
+          throw new Error("Transaction failed");
+        }
 
         implementation = deploymentReceipt.contractAddress;
       }
@@ -268,8 +278,9 @@ export const useChainPermissions = ({
         ],
       });
 
-      await waitForTransactionReceipt(walletClient, {
+      await waitForTransactionReceipt(config, {
         hash: upgradeTx ?? "",
+        chainId: l1ChainId
       });
 
       setPermissions({
