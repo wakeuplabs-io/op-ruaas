@@ -7,21 +7,48 @@ export type OrderMetadata = {
 
 async function main() {
   const chain = await ethers.provider.getNetwork();
+  
   const deployed_addresses = require(`../ignition/deployments/chain-${chain.chainId}/deployed_addresses.json`);
   const marketplaceAddress = deployed_addresses["MarketplaceModule#Marketplace"];
+  const tokenAddress = deployed_addresses["TestToken#TestToken"];
+  
   const marketplace = await ethers.getContractAt("Marketplace", marketplaceAddress);
+  const token = await ethers.getContractAt("TestToken", tokenAddress);
 
-  const offerId = 4n;
+  const offerId = 10n;
   const initialCommitment = 1n;
   const metadata: OrderMetadata = {
     name: "MyChain",
     // if not artifacts then it's a brand new deployment
     artifacts: "QmVbzUdWgLwoDAtjz48uNT2rQh1AnjmyRXVqfK9ihmnjic"
   };
+  
 
-  const tx = await marketplace.createOrder(offerId, initialCommitment, JSON.stringify(metadata));
+  // approve
+  const approveTx = await token.approve(marketplaceAddress, ethers.MaxUint256);
+  await approveTx.wait();
 
-  console.log(`Order created with tx: ${tx.hash}`);
+  // create order
+  const createOrderTx = await marketplace.createOrder(offerId, initialCommitment, JSON.stringify(metadata));
+  const receipt = await createOrderTx.wait();
+  
+  const event = receipt?.logs
+    .map(log => {
+      try {
+        return marketplace.interface.parseLog(log);
+      } catch {
+        return null;
+      }
+    })
+    .find(event => event?.name === "NewOrder");
+
+  if (!event) {
+    throw new Error("OrderCreated event not found in transaction receipt");
+  }
+
+  const orderId = event.args.orderId;
+  console.log(`Order created with tx: ${createOrderTx.hash}`);
+  console.log(`Order ID: ${orderId}`);
 }
 
 main()

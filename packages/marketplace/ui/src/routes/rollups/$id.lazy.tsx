@@ -1,12 +1,12 @@
-import { AddressManagerList } from "@/components/rollup-detail/address-manager-list";
 import { RollupActions } from "@/components/rollup-detail/rollup-actions";
 import { RollupHeader } from "@/components/rollup-detail/rollup-header";
 import { Card } from "@/components/ui/card";
 import { createLazyFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Clock, Download, OctagonAlert } from "lucide-react";
 import { useOrder } from "@/lib/hooks/use-order";
+import { DeploymentValue } from "@/components/deployment-value";
 
 export const Route = createLazyFileRoute("/rollups/$id")({
   component: RollupDashboard,
@@ -14,35 +14,48 @@ export const Route = createLazyFileRoute("/rollups/$id")({
 
 export default function RollupDashboard() {
   const { id } = Route.useParams();
-  const { fulfilledAt } = useOrder({ id: BigInt(id) });
-  const [statusColor, setStatusColor] = useState("gray-200");
+  const { data } = useOrder({ id: BigInt(id) });
 
+  useEffect(() => {
+    console.log("order", data);
+  }, [data]);
+
+  if (!data) {
+    return null;
+  }
   return (
     <div className="md:p-6 space-y-6">
       <div className="rounded-lg bg-gradient-to-l from-gray-300 to-transparent p-px">
         <div className="border px-8 py-6 shadow-sm bg-white rounded-[calc(0.75rem-1px)]">
           <RollupHeader />
 
-          {fulfilledAt > 0 && (
+          {data.fulfilledAt > 0 && (
             <RollupActions
               orderId={id}
               offer={null!}
-              setStatusColor={setStatusColor}
-              statusColor={statusColor}
+              balance={0n}
             />
           )}
         </div>
       </div>
 
-      {fulfilledAt > 0 ? (
+      {data.fulfilledAt > 0 ? (
         <div>
           <Card className="p-6 border rounded-lg">
-            <AddressManagerList />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-9">
+              {Object.entries(data.deploymentMetadata.addresses).map(([key, value], index) => (
+                <DeploymentValue
+                  key={index}
+                  value={value as string}
+                  description={key as string}
+                />
+              ))}
+            </div>
           </Card>
 
           <Button
-            variant="outline"
-            className="w-full mt-6 py-6 flex gap-2 items-center justify-center bg-gray-200"
+            variant="secondary"
+            className="w-full mt-6 py-6 flex gap-2 items-center justify-center"
           >
             <Download className="h-5 w-5" />
             Download zip

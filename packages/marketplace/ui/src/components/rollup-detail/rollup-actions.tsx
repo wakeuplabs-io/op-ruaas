@@ -1,61 +1,40 @@
 import { Button } from "@/components/ui/button";
-import { DepositModal } from "./deposit-modal";
-import { useEffect, useState } from "react";
-import { useGetBalance } from "@/lib/hooks/use-get-balance";
-import { Offer, Plan } from "@/types";
-import {
-  cn,
-  formatTokenAmount,
-  calculateStatusColor,
-  formatRemainingTime,
-} from "@/lib/utils";
+import { useMemo, useState } from "react";
+import { Offer } from "@/types";
+import { cn, formatTokenAmount, formatRemainingTime } from "@/lib/utils";
 import { BookDown } from "lucide-react";
 import { DeploymentValue } from "../deployment-value";
 
 interface RollupActionsProps {
   orderId: string;
   offer: Offer | null;
-  setStatusColor: (color: string) => void;
-  statusColor: string;
+  balance: bigint;
 }
 
-export function RollupActions({
-  orderId,
-  offer,
-  setStatusColor,
-  statusColor,
-}: RollupActionsProps) {
+export function RollupActions({ offer, balance }: RollupActionsProps) {
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
-  const [plans, setPlans] = useState<Plan[]>();
-  const [displayBalance, setDisplayBalance] = useState<string>("-");
-  const { balance, isLoading, refetch } = useGetBalance(orderId);
 
-  useEffect(() => {
-    if (!offer) return;
+  const remainingTimeString = useMemo(() => {
+    if (!offer?.pricePerMonth || balance === 0n) return "-";
+    return formatRemainingTime(balance, offer.pricePerMonth);
+  }, [offer, balance]);
 
-    setPlans([
-      { months: 1n, pricePerMonth: offer.pricePerMonth },
-      { months: 3n, pricePerMonth: offer.pricePerMonth },
-      { months: 6n, pricePerMonth: offer.pricePerMonth },
-      { months: 12n, pricePerMonth: offer.pricePerMonth },
-    ]);
-  }, [offer]);
-
-  useEffect(() => {
-    if (!isLoading && balance !== undefined && offer) {
-      setStatusColor(calculateStatusColor(balance, offer.pricePerMonth));
-      setDisplayBalance(formatRemainingTime(balance, offer.pricePerMonth));
-    }
-  }, [balance, isLoading, offer, setStatusColor]);
+  const statusColor = useMemo(() => {
+    if (!offer?.pricePerMonth || balance === 0n) return "red-500";
+    const daysRemaining = balance / (offer.pricePerMonth / 30n);
+    if (daysRemaining < 1n) return "red-500";
+    if (daysRemaining < 30n) return "yellow-500";
+    return "gray-800";
+  }, [offer, balance]);
 
   return (
     <div>
       <div className="py-4">
         <h1 className={cn("text-4xl font-bold", `text-${statusColor}`)}>
-          {isLoading ? "-" : displayBalance}
+          {remainingTimeString}
         </h1>
         <p className="text-gray-500 mt-1">
-          ${isLoading ? "-" : formatTokenAmount(balance || 0n)}
+          ${formatTokenAmount(balance || 0n)}
         </p>
       </div>
 
@@ -84,15 +63,12 @@ export function RollupActions({
         </div>
       </div>
 
-      <DepositModal
+      {/* <DepositModal
         orderId={orderId}
         isOpen={isDepositModalOpen}
-        onClose={() => {
-          setIsDepositModalOpen(false);
-          refetch();
-        }}
+        onClose={() => setIsDepositModalOpen(false)}
         plans={plans}
-      />
+      /> */}
     </div>
   );
 }
