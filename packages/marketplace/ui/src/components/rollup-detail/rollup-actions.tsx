@@ -63,7 +63,7 @@ export function RollupActions({
         </div>
       )}
 
-      <div className="flex justify-between items-center gap-4 mt-4">
+      <div className="flex justify-between items-center gap-4 mt-2">
         {order.terminatedAt > 0n ? (
           <div className="mt-4">
             <div className=" p-4 bg-alert-background rounded-lg flex items-start gap-3">
