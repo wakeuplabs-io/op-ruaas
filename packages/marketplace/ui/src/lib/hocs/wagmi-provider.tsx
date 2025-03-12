@@ -9,12 +9,12 @@ import { optimismSepolia } from "wagmi/chains";
 
 export const optimismTestnet: NetworkConfig = {
   ...optimismSepolia,
-  logoURI: new URL("@/assets/ethereum-icon.svg", import.meta.url).href, // TODO:
+  logoURI: new URL("@/assets/ethereum-icon.svg", import.meta.url).href, 
   isTestnet: true,
   chainId: optimismSepolia.id,
   rpcUrls: {
     default: {
-      http: ["https://opt-sepolia.g.alchemy.com/v2/wn2lk8Lg7UtzEFY3G43NnOSfVXWgOAjl"],
+      http: [optimismSepolia.rpcUrls.default.http[0]],
     },
   },
   explorer: {
