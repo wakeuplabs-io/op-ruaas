@@ -9,13 +9,12 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "./ui/scroll-area";
 import { ArrowRight } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useUnsubscribe } from "@/lib/hooks/use-unsubscribe";
 import { useChainPermissions } from "@/lib/hooks/use-chain-permissions";
 import { zeroAddress } from "viem";
-import { useOrder } from "@/lib/hooks/use-order";
 import { useMemo } from "react";
 import { StepCard } from "./step-card";
+import { useOrder } from "@/lib/hooks/use-mock-order";
 
 enum UnsubscribeStep {
   Unsubscribe,
