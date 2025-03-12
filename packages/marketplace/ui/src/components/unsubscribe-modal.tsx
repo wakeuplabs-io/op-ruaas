@@ -14,7 +14,7 @@ import { useChainPermissions } from "@/lib/hooks/use-chain-permissions";
 import { zeroAddress } from "viem";
 import { useMemo } from "react";
 import { StepCard } from "./step-card";
-import { useOrder } from "@/lib/hooks/use-mock-order";
+import { useOrder } from "@/lib/hooks/use-order";
 
 enum UnsubscribeStep {
   Unsubscribe,
