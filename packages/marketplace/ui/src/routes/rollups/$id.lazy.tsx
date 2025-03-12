@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Clock, Download, OctagonAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOrder } from "@/lib/hooks/use-order";
-import { Order } from "@/types";
 
 export const Route = createLazyFileRoute("/rollups/$id")({
   component: RollupDashboard,
@@ -17,9 +16,11 @@ export const Route = createLazyFileRoute("/rollups/$id")({
 export default function RollupDashboard() {
   const { id } = Route.useParams();
   const [statusColor, setStatusColor] = useState("gray-200");
-  const { terminatedAt, fulfilledAt, name } = useOrder({id: BigInt(id)})
-  const order = { terminatedAt, fulfilledAt, name, id }
-  if (!terminatedAt) return <p>Order not found</p>;
+  const { order, isLoading } = useOrder(BigInt(id))
+
+  if (isLoading) return <></>;
+  if (!order) return <p>Order not found</p>;
+  const { terminatedAt, fulfilledAt} = order
   return (
     <div className="md:p-6 space-y-6">
       <div
@@ -33,10 +34,10 @@ export default function RollupDashboard() {
             terminatedAt > 0n ? "border border-alert-border" : "border-gray-200"
           )}
         >
-          <RollupHeader order={order as unknown as Order} />
+          <RollupHeader order={order} />
             {fulfilledAt > 0n && (
               <RollupActions
-                order={order as unknown as Order}
+                order={order}
                 setStatusColor={setStatusColor}
                 statusColor={statusColor}
               />
