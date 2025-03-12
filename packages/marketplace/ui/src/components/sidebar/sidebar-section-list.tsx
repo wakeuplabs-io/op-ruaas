@@ -13,7 +13,6 @@ import {
 import { Ellipsis, Search, ArrowLeft } from "lucide-react"
 import { Sheet, SheetClose, SheetContent } from "@/components/ui/sheet"
 
-/** Helper para extraer el texto de un ReactNode */
 function extractTextFromNode(node: React.ReactNode): string {
   if (typeof node === "string") return node
   if (Array.isArray(node)) {
