@@ -27,12 +27,12 @@ export const useUnsubscribe = ({ orderId }: { orderId: bigint }) => {
       throw new Error("Order already terminated");
     }
 
-    await ensureChainId(parseInt(MARKETPLACE_CHAIN_ID));
+    await ensureChainId(MARKETPLACE_CHAIN_ID);
 
     const terminateTx = await writeContractAsync({
       abi: MARKETPLACE_ABI,
       address: MARKETPLACE_ADDRESS,
-      chainId: parseInt(MARKETPLACE_CHAIN_ID),
+      chainId: MARKETPLACE_CHAIN_ID,
       functionName: "terminatePayment",
       args: [orderId],
     });

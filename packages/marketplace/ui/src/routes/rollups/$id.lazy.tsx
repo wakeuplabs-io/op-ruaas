@@ -3,10 +3,12 @@ import { RollupActions } from "@/components/rollup-detail/rollup-actions";
 import { RollupHeader } from "@/components/rollup-detail/rollup-header";
 import { Card } from "@/components/ui/card";
 import { createLazyFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Clock, Download, OctagonAlert } from "lucide-react";
-import { useOrder } from "@/lib/hooks/use-order";
+import { Clock, Download, OctagonAlert, TriangleAlert } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useOrders } from "@/lib/hooks/use-orders";
+import { Order } from "@/types";
 
 export const Route = createLazyFileRoute("/rollups/$id")({
   component: RollupDashboard,
@@ -14,23 +16,45 @@ export const Route = createLazyFileRoute("/rollups/$id")({
 
 export default function RollupDashboard() {
   const { id } = Route.useParams();
-  const { fulfilledAt } = useOrder({ id: BigInt(id) });
+  const { sequencerRollups } = useOrders();
   const [statusColor, setStatusColor] = useState("gray-200");
+  const [ terminatedAt, setTerminatedAt] = useState<bigint>(0n);
+  const [ fulfilledAt, setFulfilledAt] = useState<bigint>(0n);
+  const [ order, setOrder] = useState<Order>();
+
+
+  useEffect(()=>{
+    if(sequencerRollups.length > 0){
+      setTerminatedAt(sequencerRollups[0].terminatedAt)
+      setFulfilledAt(sequencerRollups[0].fulfilledAt)
+      setOrder(sequencerRollups[0])
+    }
+  }, [sequencerRollups])
 
   return (
     <div className="md:p-6 space-y-6">
-      <div className="rounded-lg bg-gradient-to-l from-gray-300 to-transparent p-px">
-        <div className="border px-8 py-6 shadow-sm bg-white rounded-[calc(0.75rem-1px)]">
-          <RollupHeader />
-
-          {fulfilledAt > 0 && (
-            <RollupActions
-              orderId={id}
-              offer={null!}
-              setStatusColor={setStatusColor}
-              statusColor={statusColor}
-            />
+      <div
+        className={cn(
+          "rounded-lg bg-gradient-to-l to-transparent p-pxfrom-gray-300"
+        )}
+      >
+        <div
+          className={cn(
+            "border px-8 py-6 shadow-sm bg-white rounded-[calc(0.75rem-1px)]",
+            terminatedAt > 0n ? "border border-alert-border" : "border-gray-200"
           )}
+        >
+          <RollupHeader order={sequencerRollups[0]} />
+
+
+            {fulfilledAt > 0n && (
+              <RollupActions
+                order={order!}
+                setStatusColor={setStatusColor}
+                statusColor={statusColor}
+              />
+            )}
+          
         </div>
       </div>
 
