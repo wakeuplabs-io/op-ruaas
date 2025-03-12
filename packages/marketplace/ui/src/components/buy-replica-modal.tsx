@@ -63,7 +63,7 @@ export const BuyReplicaModal: React.FC<
 
         router.navigate({ to: `/rollups/$id`, params: { id: orderId.toString()} });
       } catch (e: any) {
-        alert("Error creating order" + e?.message);
+        alert("Error creating order: " + e?.message);
       }
     },
     [artifacts, createOrder]

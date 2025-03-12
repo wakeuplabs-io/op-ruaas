@@ -35,7 +35,7 @@ async function main() {
   };
   const units = 100n;
 
-  const tx = await marketplace.createOffer(pricePerMonth, units, JSON.stringify(sequencerMetadata));
+  const tx = await marketplace.createOffer(pricePerMonth, units, JSON.stringify(replicaMetadata));
   const receipt = await tx.wait();
 
   const offerId = (receipt?.logs[0] as any).args[1];

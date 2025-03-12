@@ -8,7 +8,7 @@ async function main() {
   const tokenAddress = deployed_addresses["TestToken#TestToken"];
   const token = await ethers.getContractAt("TestToken", tokenAddress);
 
-  const tx = await token.mint("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", 1000_000_000_000_000_000_000_000_000n);
+  const tx = await token.mint("0x3e24adA7AcD59223147b2bbc7BE2fB4cA03303F9", 1000_000_000_000_000_000_000_000_000n);
 
   console.log(`Token minted with tx: ${tx.hash}`);
 }

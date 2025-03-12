@@ -21,15 +21,21 @@ export function useOffer(offerId?: bigint) {
     args: [offerId],
     chainId: MARKETPLACE_CHAIN_ID,
   });
-
   const offer: Offer | null = data
-    ? {
-        vendor: data[0],
-        pricePerMonth: data[1],
-        remainingUnits: data[2],
-        metadata: JSON.parse(data[3]) as OfferMetadata,
-      }
-    : null;
+  ? {
+      vendor: data[0],
+      pricePerMonth: data[1],
+      remainingUnits: data[2],
+      metadata: (() => {
+        try {
+          return JSON.parse(data[3]) as OfferMetadata;
+        } catch {
+          return {} as OfferMetadata;
+        }
+      })(),
+    }
+  : null;
+
 
   return { offer, isLoading, error };
 }
