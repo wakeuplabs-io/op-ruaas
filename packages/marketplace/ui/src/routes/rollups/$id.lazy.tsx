@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Clock, Download, OctagonAlert, TriangleAlert } from "lucide-react";
+import { Clock, Download, OctagonAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOrders } from "@/lib/hooks/use-orders";
 import { Order } from "@/types";
@@ -16,20 +16,10 @@ export const Route = createLazyFileRoute("/rollups/$id")({
 
 export default function RollupDashboard() {
   const { id } = Route.useParams();
-  const { sequencerRollups } = useOrders();
+  const { replicaRollups } = useOrders();
   const [statusColor, setStatusColor] = useState("gray-200");
-  const [ terminatedAt, setTerminatedAt] = useState<bigint>(0n);
-  const [ fulfilledAt, setFulfilledAt] = useState<bigint>(0n);
-  const [ order, setOrder] = useState<Order>();
+  
 
-
-  useEffect(()=>{
-    if(sequencerRollups.length > 0){
-      setTerminatedAt(sequencerRollups[0].terminatedAt)
-      setFulfilledAt(sequencerRollups[0].fulfilledAt)
-      setOrder(sequencerRollups[0])
-    }
-  }, [sequencerRollups])
 
   return (
     <div className="md:p-6 space-y-6">
@@ -44,12 +34,10 @@ export default function RollupDashboard() {
             terminatedAt > 0n ? "border border-alert-border" : "border-gray-200"
           )}
         >
-          <RollupHeader order={sequencerRollups[0]} />
-
-
+          <RollupHeader order={replicaRollups[0]} />
             {fulfilledAt > 0n && (
               <RollupActions
-                order={order!}
+                order={replicaRollups[0]}
                 setStatusColor={setStatusColor}
                 statusColor={statusColor}
               />

@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { DepositModal } from "./deposit-modal";
 import { useEffect, useState } from "react";
 import { useBalance } from "@/lib/hooks/use-balance";
-import { Offer, Order, Plan } from "@/types";
+import { Order, Plan } from "@/types";
 import {
   cn,
   formatTokenAmount,
