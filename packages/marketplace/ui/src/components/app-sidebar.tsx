@@ -1,19 +1,21 @@
-import * as React from "react";
-import { Plus, CircleDot, MoreHorizontal } from "lucide-react";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-} from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
-import CustomConnectButton from "./connect-wallet";
-import { buttonVariants } from "./ui/button";
-import { useGetUserRollups } from "@/lib/hooks/use-user-orders";
-import { Link } from "@tanstack/react-router";
+import * as React from "react"
+import { Plus } from "lucide-react"
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from "@/components/ui/sidebar"
+import { cn } from "@/lib/utils"
+import CustomConnectButton from "./connect-wallet"
+import { buttonVariants } from "./ui/button"
+import { Link } from "@tanstack/react-router"
+import { RollupList } from "./sidebar/rollup-list"
+import { useAccount } from "wagmi"
+import { useOrders } from "@/lib/hooks/use-orders"
+import { useProviderInfo } from "@/lib/hooks/use-provider-info"
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { rollups } = useGetUserRollups();
+export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
+  const { isConnected } = useAccount()
+  const { sequencerRollups, replicaRollups } = useOrders()
+  const { name, formattedAddress } = useProviderInfo()
+
+  const [selectedRollupId, setSelectedRollupId] = React.useState<bigint>()
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -23,43 +25,37 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-4 space-y-4">
-        <button className="w-full flex items-center gap-2 py-2 px-4 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition">
-          <Plus size={16} className="text-red-500" />
-          <span className="font-medium">New Rollup</span>
-        </button>
+      {isConnected && (
+        <SidebarContent className="px-4 space-y-4">
+          <Link
+            to="/"
+            className="w-full flex items-center gap-2 py-2 px-4 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+          >
+            <Plus size={16} className="text-red-500" />
+            <span className="font-primary">New Rollup</span>
+          </Link>
+          <hr />
 
-        <div className="mt-4">
-          <h4 className="text-sm text-gray-500 font-medium mb-2">My Rollups</h4>
-          <ul className="space-y-2">
-            {rollups?.map((rollup) => (
-              <li
-                key={rollup}
-                className="cursor-pointer hover:text-black transition"
-              >
-                <Link
-                  to="/rollups/$id"
-                  params={{ id: String(rollup) }}
-                  className="flex items-center gap-2 text-gray-700 text-sm"
-                >
-                  <CircleDot size={12} className="text-gray-500" />
-                  <span>Rollup</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-
-          <button className="mt-2 flex items-center gap-1 text-gray-500 text-sm hover:text-black transition">
-            <MoreHorizontal size={14} className="text-gray-500" />
-            View all Rounds
-          </button>
-        </div>
-      </SidebarContent>
+          <RollupList
+            name="Sequencer"
+            rollups={sequencerRollups}
+            selectedId={selectedRollupId}
+            onSelect={setSelectedRollupId}
+          />
+          <hr />
+          <RollupList
+            name="Replica"
+            rollups={replicaRollups}
+            selectedId={selectedRollupId}
+            onSelect={setSelectedRollupId}
+          />
+        </SidebarContent>
+      )}
 
       <div className="px-4 mt-auto text-sm text-gray-700">
         <h4 className="text-gray-500 text-xs mb-1">Provider</h4>
-        <p className="font-medium">John Doe</p>
-        <p className="text-xs text-gray-500">0x11247237...ashy760</p>
+        <p className="font-medium">{name}</p>
+        <p className="text-xs text-gray-500">{formattedAddress}</p>
       </div>
 
       <div className="px-4 mt-4">
@@ -78,8 +74,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <img className="h-[45px]" src="/wakeuplabs.png" alt="logo" />
         </a>
       </SidebarFooter>
-
-
     </Sidebar>
-  );
+  )
 }

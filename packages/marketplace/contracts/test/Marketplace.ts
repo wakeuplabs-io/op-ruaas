@@ -636,7 +636,7 @@ describe("Marketplace", function () {
     });
   });
 
-  describe("getUserOrders", function () {
+  describe("getClientOrders", function () {
     it("Should return user orders correctly", async function () {
       const { marketplace, client, vendorCreateOffer, clientCreateOrder } =
         await loadFixture(deployMarketplaceFixture);
@@ -646,7 +646,8 @@ describe("Marketplace", function () {
 
       const userOrders = await marketplace.getClientOrders(client.address);
 
-      expect(userOrders).to.deep.equal([orderId1, orderId2]);
+      expect(userOrders).to.have.lengthOf(2);
+      expect(userOrders.map((o: any) => o[0])).to.deep.equal([orderId1, orderId2]);
     });
 
     it("Should return an empty array for users with no orders", async function () {

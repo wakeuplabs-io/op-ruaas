@@ -2,8 +2,8 @@ import { Address } from "viem";
 import envParsed from "@/envParsed";
 import { optimismSepolia } from "viem/chains";
 
-export const SEQUENCER_IDS = ["9"];
-export const REPLICA_IDS = ["6"];
+export const SEQUENCER_IDS = ["0"];
+export const REPLICA_IDS = ["1"];
 
 export const MARKETPLACE_CHAIN_ID = optimismSepolia.id;
 export const MARKETPLACE_ADDRESS = envParsed().MARKETPLACE_ADDRESS as Address;
@@ -333,614 +333,693 @@ export const ERC20_TOKEN_ABI = [
 
 export const MARKETPLACE_ABI = [
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "contract IERC20",
-        name: "_paymentToken",
-        type: "address",
-      },
+        "internalType": "contract IERC20",
+        "name": "_paymentToken",
+        "type": "address"
+      }
     ],
-    stateMutability: "nonpayable",
-    type: "constructor",
+    "stateMutability": "nonpayable",
+    "type": "constructor"
   },
   {
-    inputs: [],
-    name: "FulfillmentPeriodExpired",
-    type: "error",
+    "inputs": [],
+    "name": "FulfillmentPeriodExpired",
+    "type": "error"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "address",
-        name: "user",
-        type: "address",
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
       },
       {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
     ],
-    name: "InsufficientBalance",
-    type: "error",
+    "name": "InsufficientBalance",
+    "type": "error"
   },
   {
-    inputs: [],
-    name: "OfferNotFound",
-    type: "error",
+    "inputs": [],
+    "name": "OfferNotFound",
+    "type": "error"
   },
   {
-    inputs: [],
-    name: "OrderAlreadyFulfilled",
-    type: "error",
+    "inputs": [],
+    "name": "OrderAlreadyFulfilled",
+    "type": "error"
   },
   {
-    inputs: [],
-    name: "OrderAlreadyTerminated",
-    type: "error",
+    "inputs": [],
+    "name": "OrderAlreadyTerminated",
+    "type": "error"
   },
   {
-    inputs: [],
-    name: "OrderNotFulfilled",
-    type: "error",
+    "inputs": [],
+    "name": "OrderNotFulfilled",
+    "type": "error"
   },
   {
-    inputs: [],
-    name: "OrderNotVerified",
-    type: "error",
+    "inputs": [],
+    "name": "OrderNotVerified",
+    "type": "error"
   },
   {
-    inputs: [],
-    name: "ReentrancyGuardReentrantCall",
-    type: "error",
+    "inputs": [],
+    "name": "ReentrancyGuardReentrantCall",
+    "type": "error"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "string",
-        name: "message",
-        type: "string",
-      },
+        "internalType": "string",
+        "name": "message",
+        "type": "string"
+      }
     ],
-    name: "Unauthorized",
-    type: "error",
+    "name": "Unauthorized",
+    "type": "error"
   },
   {
-    anonymous: false,
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        indexed: true,
-        internalType: "uint256",
-        name: "orderId",
-        type: "uint256",
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "orderId",
+        "type": "uint256"
       },
       {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
     ],
-    name: "Deposit",
-    type: "event",
+    "name": "Deposit",
+    "type": "event"
   },
   {
-    anonymous: false,
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        indexed: true,
-        internalType: "address",
-        name: "vendor",
-        type: "address",
+        "indexed": true,
+        "internalType": "address",
+        "name": "vendor",
+        "type": "address"
       },
       {
-        indexed: true,
-        internalType: "uint256",
-        name: "offerId",
-        type: "uint256",
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "offerId",
+        "type": "uint256"
       },
       {
-        indexed: false,
-        internalType: "uint256",
-        name: "pricePerMonth",
-        type: "uint256",
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "pricePerMonth",
+        "type": "uint256"
       },
       {
-        indexed: false,
-        internalType: "uint256",
-        name: "units",
-        type: "uint256",
-      },
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "units",
+        "type": "uint256"
+      }
     ],
-    name: "NewOffer",
-    type: "event",
+    "name": "NewOffer",
+    "type": "event"
   },
   {
-    anonymous: false,
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        indexed: true,
-        internalType: "address",
-        name: "vendor",
-        type: "address",
+        "indexed": true,
+        "internalType": "address",
+        "name": "vendor",
+        "type": "address"
       },
       {
-        indexed: true,
-        internalType: "address",
-        name: "client",
-        type: "address",
+        "indexed": true,
+        "internalType": "address",
+        "name": "client",
+        "type": "address"
       },
       {
-        indexed: true,
-        internalType: "uint256",
-        name: "orderId",
-        type: "uint256",
-      },
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "orderId",
+        "type": "uint256"
+      }
     ],
-    name: "NewOrder",
-    type: "event",
+    "name": "NewOrder",
+    "type": "event"
   },
   {
-    anonymous: false,
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        indexed: true,
-        internalType: "address",
-        name: "vendor",
-        type: "address",
+        "indexed": true,
+        "internalType": "address",
+        "name": "vendor",
+        "type": "address"
       },
       {
-        indexed: true,
-        internalType: "address",
-        name: "client",
-        type: "address",
+        "indexed": true,
+        "internalType": "address",
+        "name": "client",
+        "type": "address"
       },
       {
-        indexed: true,
-        internalType: "uint256",
-        name: "orderId",
-        type: "uint256",
-      },
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "orderId",
+        "type": "uint256"
+      }
     ],
-    name: "OrderFulfilled",
-    type: "event",
+    "name": "OrderFulfilled",
+    "type": "event"
   },
   {
-    anonymous: false,
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        indexed: true,
-        internalType: "address",
-        name: "vendor",
-        type: "address",
+        "indexed": true,
+        "internalType": "address",
+        "name": "vendor",
+        "type": "address"
       },
       {
-        indexed: true,
-        internalType: "address",
-        name: "client",
-        type: "address",
+        "indexed": true,
+        "internalType": "address",
+        "name": "client",
+        "type": "address"
       },
       {
-        indexed: true,
-        internalType: "uint256",
-        name: "orderId",
-        type: "uint256",
-      },
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "orderId",
+        "type": "uint256"
+      }
     ],
-    name: "OrderTerminated",
-    type: "event",
+    "name": "OrderTerminated",
+    "type": "event"
   },
   {
-    anonymous: false,
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        indexed: true,
-        internalType: "address",
-        name: "vendor",
-        type: "address",
+        "indexed": true,
+        "internalType": "address",
+        "name": "vendor",
+        "type": "address"
       },
       {
-        indexed: true,
-        internalType: "address",
-        name: "client",
-        type: "address",
+        "indexed": true,
+        "internalType": "address",
+        "name": "client",
+        "type": "address"
       },
       {
-        indexed: true,
-        internalType: "uint256",
-        name: "orderId",
-        type: "uint256",
-      },
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "orderId",
+        "type": "uint256"
+      }
     ],
-    name: "OrderVerifier",
-    type: "event",
+    "name": "OrderVerifier",
+    "type": "event"
   },
   {
-    anonymous: false,
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        indexed: true,
-        internalType: "address",
-        name: "user",
-        type: "address",
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
       },
       {
-        indexed: true,
-        internalType: "uint256",
-        name: "orderId",
-        type: "uint256",
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "orderId",
+        "type": "uint256"
       },
       {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
     ],
-    name: "Withdrawal",
-    type: "event",
+    "name": "Withdrawal",
+    "type": "event"
   },
   {
-    inputs: [],
-    name: "FULFILLMENT_PERIOD",
-    outputs: [
+    "inputs": [],
+    "name": "FULFILLMENT_PERIOD",
+    "outputs": [
       {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [],
-    name: "VERIFICATION_PERIOD",
-    outputs: [
+    "inputs": [],
+    "name": "VERIFICATION_PERIOD",
+    "outputs": [
       {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "address",
-        name: "_address",
-        type: "address",
+        "internalType": "address",
+        "name": "_address",
+        "type": "address"
       },
       {
-        internalType: "uint256",
-        name: "_orderId",
-        type: "uint256",
-      },
+        "internalType": "uint256",
+        "name": "_orderId",
+        "type": "uint256"
+      }
     ],
-    name: "balanceOf",
-    outputs: [
+    "name": "balanceOf",
+    "outputs": [
       {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "uint256",
-        name: "_pricePerMonth",
-        type: "uint256",
+        "internalType": "uint256",
+        "name": "_pricePerMonth",
+        "type": "uint256"
       },
       {
-        internalType: "uint256",
-        name: "_units",
-        type: "uint256",
+        "internalType": "uint256",
+        "name": "_units",
+        "type": "uint256"
       },
       {
-        internalType: "string",
-        name: "_metadata",
-        type: "string",
-      },
+        "internalType": "string",
+        "name": "_metadata",
+        "type": "string"
+      }
     ],
-    name: "createOffer",
-    outputs: [
+    "name": "createOffer",
+    "outputs": [
       {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
     ],
-    stateMutability: "nonpayable",
-    type: "function",
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "uint256",
-        name: "_offerId",
-        type: "uint256",
+        "internalType": "uint256",
+        "name": "_offerId",
+        "type": "uint256"
       },
       {
-        internalType: "uint256",
-        name: "_initialCommitment",
-        type: "uint256",
+        "internalType": "uint256",
+        "name": "_initialCommitment",
+        "type": "uint256"
       },
       {
-        internalType: "string",
-        name: "_setupMetadata",
-        type: "string",
-      },
+        "internalType": "string",
+        "name": "_setupMetadata",
+        "type": "string"
+      }
     ],
-    name: "createOrder",
-    outputs: [
+    "name": "createOrder",
+    "outputs": [
       {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
     ],
-    stateMutability: "nonpayable",
-    type: "function",
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "uint256",
-        name: "_orderId",
-        type: "uint256",
+        "internalType": "uint256",
+        "name": "_orderId",
+        "type": "uint256"
       },
       {
-        internalType: "uint256",
-        name: "_amount",
-        type: "uint256",
-      },
+        "internalType": "uint256",
+        "name": "_amount",
+        "type": "uint256"
+      }
     ],
-    name: "deposit",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    "name": "deposit",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "uint256",
-        name: "_orderId",
-        type: "uint256",
+        "internalType": "uint256",
+        "name": "_orderId",
+        "type": "uint256"
       },
       {
-        internalType: "string",
-        name: "_deploymentMetadata",
-        type: "string",
-      },
+        "internalType": "string",
+        "name": "_deploymentMetadata",
+        "type": "string"
+      }
     ],
-    name: "fulfillOrder",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    "name": "fulfillOrder",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "address",
-        name: "_user",
-        type: "address",
-      },
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
     ],
-    name: "getClientOrders",
-    outputs: [
+    "name": "getClientOrders",
+    "outputs": [
       {
-        internalType: "uint256[]",
-        name: "",
-        type: "uint256[]",
-      },
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "orderId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "client",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "offerId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "createdAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "fulfilledAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "terminatedAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastWithdrawal",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "balance",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "setupMetadata",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "deploymentMetadata",
+            "type": "string"
+          },
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "vendor",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "pricePerMonth",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "remainingUnits",
+                "type": "uint256"
+              },
+              {
+                "internalType": "string",
+                "name": "metadata",
+                "type": "string"
+              }
+            ],
+            "internalType": "struct IMarketplaceStructs.Offer",
+            "name": "offer",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct IMarketplaceStructs.OrderWithOffer[]",
+        "name": "",
+        "type": "tuple[]"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "address",
-        name: "_user",
-        type: "address",
-      },
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
     ],
-    name: "getVendorOrders",
-    outputs: [
+    "name": "getVendorOrders",
+    "outputs": [
       {
-        internalType: "uint256[]",
-        name: "",
-        type: "uint256[]",
-      },
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [],
-    name: "offerCount",
-    outputs: [
+    "inputs": [],
+    "name": "offerCount",
+    "outputs": [
       {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
     ],
-    name: "offers",
-    outputs: [
+    "name": "offers",
+    "outputs": [
       {
-        internalType: "address",
-        name: "vendor",
-        type: "address",
+        "internalType": "address",
+        "name": "vendor",
+        "type": "address"
       },
       {
-        internalType: "uint256",
-        name: "pricePerMonth",
-        type: "uint256",
+        "internalType": "uint256",
+        "name": "pricePerMonth",
+        "type": "uint256"
       },
       {
-        internalType: "uint256",
-        name: "remainingUnits",
-        type: "uint256",
+        "internalType": "uint256",
+        "name": "remainingUnits",
+        "type": "uint256"
       },
       {
-        internalType: "string",
-        name: "metadata",
-        type: "string",
-      },
+        "internalType": "string",
+        "name": "metadata",
+        "type": "string"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [],
-    name: "orderCount",
-    outputs: [
+    "inputs": [],
+    "name": "orderCount",
+    "outputs": [
       {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
     ],
-    name: "orders",
-    outputs: [
+    "name": "orders",
+    "outputs": [
       {
-        internalType: "address",
-        name: "client",
-        type: "address",
+        "internalType": "address",
+        "name": "client",
+        "type": "address"
       },
       {
-        internalType: "uint256",
-        name: "offerId",
-        type: "uint256",
+        "internalType": "uint256",
+        "name": "offerId",
+        "type": "uint256"
       },
       {
-        internalType: "uint256",
-        name: "balance",
-        type: "uint256",
+        "internalType": "uint256",
+        "name": "balance",
+        "type": "uint256"
       },
       {
-        internalType: "uint256",
-        name: "createdAt",
-        type: "uint256",
+        "internalType": "uint256",
+        "name": "createdAt",
+        "type": "uint256"
       },
       {
-        internalType: "uint256",
-        name: "fulfilledAt",
-        type: "uint256",
+        "internalType": "uint256",
+        "name": "fulfilledAt",
+        "type": "uint256"
       },
       {
-        internalType: "uint256",
-        name: "terminatedAt",
-        type: "uint256",
+        "internalType": "uint256",
+        "name": "terminatedAt",
+        "type": "uint256"
       },
       {
-        internalType: "uint256",
-        name: "lastWithdrawal",
-        type: "uint256",
+        "internalType": "uint256",
+        "name": "lastWithdrawal",
+        "type": "uint256"
       },
       {
-        internalType: "string",
-        name: "setupMetadata",
-        type: "string",
+        "internalType": "string",
+        "name": "setupMetadata",
+        "type": "string"
       },
       {
-        internalType: "string",
-        name: "deploymentMetadata",
-        type: "string",
-      },
+        "internalType": "string",
+        "name": "deploymentMetadata",
+        "type": "string"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [],
-    name: "paymentToken",
-    outputs: [
+    "inputs": [],
+    "name": "paymentToken",
+    "outputs": [
       {
-        internalType: "contract IERC20",
-        name: "",
-        type: "address",
-      },
+        "internalType": "contract IERC20",
+        "name": "",
+        "type": "address"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "uint256",
-        name: "_offerId",
-        type: "uint256",
+        "internalType": "uint256",
+        "name": "_offerId",
+        "type": "uint256"
       },
       {
-        internalType: "uint256",
-        name: "_remainingUnits",
-        type: "uint256",
-      },
+        "internalType": "uint256",
+        "name": "_remainingUnits",
+        "type": "uint256"
+      }
     ],
-    name: "setOfferRemainingUnits",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    "name": "setOfferRemainingUnits",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "uint256",
-        name: "_orderId",
-        type: "uint256",
-      },
+        "internalType": "uint256",
+        "name": "_orderId",
+        "type": "uint256"
+      }
     ],
-    name: "terminateOrder",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    "name": "terminateOrder",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "uint256",
-        name: "_orderId",
-        type: "uint256",
+        "internalType": "uint256",
+        "name": "_orderId",
+        "type": "uint256"
       },
       {
-        internalType: "uint256",
-        name: "_amount",
-        type: "uint256",
-      },
+        "internalType": "uint256",
+        "name": "_amount",
+        "type": "uint256"
+      }
     ],
-    name: "withdraw",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
+    "name": "withdraw",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
 ];

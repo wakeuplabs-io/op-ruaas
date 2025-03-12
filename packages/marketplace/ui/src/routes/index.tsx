@@ -84,7 +84,7 @@ const PlanCard: React.FC<{
           </p>
 
           <ul className="mt-16 space-y-4">
-            {offer?.metadata.features.map((feature, i) => (
+            {offer?.metadata?.features.map((feature, i) => (
               <li key={i} className="flex items-center gap-2 text-gray-700">
                 <CheckCircle className="text-red-500 w-4 h-4" />
                 <span className="text-sm font-medium">{feature}</span>

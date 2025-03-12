@@ -48,34 +48,52 @@ export type OfferMetadata = {
   };
 }
 
+export type OrderSetupMetadata = {
+  name: string;
+  artifacts: string | null;
+}
 
-export type Order = {
+export type OrderDeploymentMetadata = {
+  
+}
+
+export type OfferData = {
+  vendor: string;
+  pricePerMonth: bigint;
+  remainingUnits: bigint;
+  metadata: string;
+}
+
+export type OrderData = {
+  id: bigint;
   client: string;
+  name: string
   offerId: bigint;
   balance: bigint;
   createdAt: bigint;
   fulfilledAt: bigint;
   terminatedAt: bigint;
   lastWithdrawal: bigint;
-  metadata: OrderMetadata;
+  setupMetadata: string;
+  deploymentMetadata: string;
+  offer: OfferData;
 };
 
-export type OrderMetadata = {
-  name: string;
-  artifacts: string | null;
-}
 
-
-export type OrdersReturnTuple = [
-  client: string,
-  offerId: bigint,
-  balance: bigint,
-  createdAt: bigint,
-  fulfilledAt: bigint,
-  terminatedAt: bigint, 
-  lastWithdrawal: bigint,
-  metadata: string 
-]
+export type Order = {
+  id: bigint;
+  client: string;
+  name: string
+  offerId: bigint;
+  balance: bigint;
+  createdAt: bigint;
+  fulfilledAt: bigint;
+  terminatedAt: bigint;
+  lastWithdrawal: bigint;
+  setupMetadata: OrderSetupMetadata;
+  deploymentMetadata: OrderDeploymentMetadata;
+  offer: Offer;
+};
 
 export type OfferReturnTuple = [
   vendor: string,
@@ -87,4 +105,9 @@ export type OfferReturnTuple = [
 export type Plan = {
   months: bigint
   pricePerMonth: bigint
+}
+
+export type RollupItem = {
+  id: bigint;
+  name: string
 }
