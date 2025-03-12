@@ -6,7 +6,7 @@ import {
 } from "@/shared/constants/marketplace";
 import { useWalletClient, useWriteContract } from "wagmi";
 import { useEnsureChain } from "./use-ensure-chain";
-import { useOrder } from "./use-mock-order";
+import { useOrder } from "./use-order";
 
 export const useUnsubscribe = ({ orderId }: { orderId: bigint }) => {
   const { data: walletClient } = useWalletClient();
