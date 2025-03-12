@@ -65,7 +65,7 @@ export type OfferData = {
 }
 
 export type OrderData = {
-  orderId: bigint;
+  id: bigint;
   client: string;
   name: string
   offerId: bigint;

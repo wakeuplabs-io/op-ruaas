@@ -142,7 +142,7 @@ interface IMarketplaceStructs {
     /// @notice Represents an order placed by a client, including the offer details
     struct OrderWithOffer {
         /// @notice The ID of the order
-        uint256 orderId;
+        uint256 id;
         /// @notice The address of the client who placed the order
         address client;
         /// @notice The ID of the offer associated with this order

@@ -32,7 +32,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             className="w-full flex items-center gap-2 py-2 px-4 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
           >
             <Plus size={16} className="text-red-500" />
-            <span className="font-medium">New Rollup</span>
+            <span className="font-primary">New Rollup</span>
           </Link>
           <hr />
 
