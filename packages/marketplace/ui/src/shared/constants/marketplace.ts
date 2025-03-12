@@ -1,32 +1,11 @@
 import { Address } from "viem";
-import { OfferPlan } from "@/types";
 import envParsed from "@/envParsed";
+import { optimismSepolia } from "viem/chains";
 
-export const PLANS: OfferPlan[] = [
-  {
-    id: 1n,
-    title: "Basic",
-    pricePerMonth: 10n,
-    features: ["Lorem Ipsum", "Lorem Ipsum", "Lorem Ipsum"],
-    buttonText: "Buy now",
-  },
-  {
-    id: 1n,
-    title: "Premium",
-    pricePerMonth: 20n,
-    features: ["Lorem Ipsum", "Lorem Ipsum", "Lorem Ipsum"],
-    buttonText: "Select Plan",
-  },
-  {
-    id: 1n,
-    title: "Pro",
-    pricePerMonth: 30n,
-    features: ["Lorem Ipsum", "Lorem Ipsum", "Lorem Ipsum"],
-    buttonText: "Select Plan",
-  },
-];
+export const SEQUENCER_IDS = ["9"];
+export const REPLICA_IDS = ["6"];
 
-export const MARKETPLACE_CHAIN_ID = envParsed().MARKETPLACE_CHAIN_ID;
+export const MARKETPLACE_CHAIN_ID = optimismSepolia.id;
 export const MARKETPLACE_ADDRESS = envParsed().MARKETPLACE_ADDRESS as Address;
 export const MARKETPLACE_TOKEN = envParsed().ERC20_TOKEN_ADDRESS as Address;
 
@@ -494,7 +473,7 @@ export const MARKETPLACE_ABI = [
       {
         indexed: true,
         internalType: "uint256",
-        name: "offerId",
+        name: "orderId",
         type: "uint256",
       },
     ],

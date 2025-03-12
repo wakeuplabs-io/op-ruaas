@@ -15,6 +15,7 @@ import { useChainPermissions } from "@/lib/hooks/use-chain-permissions";
 import { zeroAddress } from "viem";
 import { useOrder } from "@/lib/hooks/use-order";
 import { useMemo } from "react";
+import { StepCard } from "./step-card";
 
 enum UnsubscribeStep {
   Unsubscribe,
@@ -144,32 +145,5 @@ export const UnsubscribeModal: React.FC<
         </ScrollArea>
       </DialogContent>
     </Dialog>
-  );
-};
-
-const StepCard: React.FC<{
-  className?: string;
-  isActive?: boolean;
-  isComplete?: boolean;
-  title?: string;
-  description?: string;
-  children?: React.ReactNode;
-}> = ({ className, isActive, isComplete, children, title, description }) => {
-  return (
-    <div
-      className={cn(
-        "border rounded-xl p-4",
-        isComplete
-          ? "bg-green-100 border-green-300 text-green-700"
-          : "bg-background",
-        className
-      )}
-    >
-      <div className="font-medium">{title}</div>
-      {!isComplete && (
-        <div className="text-muted-foreground text-sm mt-4">{description}</div>
-      )}
-      {isActive && children}
-    </div>
   );
 };

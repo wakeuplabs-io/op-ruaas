@@ -9,7 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import CustomConnectButton from "./connect-wallet";
 import { buttonVariants } from "./ui/button";
-import { useGetUserRollups } from "@/lib/hooks/use-get-user-orders";
+import { useGetUserRollups } from "@/lib/hooks/use-user-orders";
 import { Link } from "@tanstack/react-router";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -38,7 +38,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 className="cursor-pointer hover:text-black transition"
               >
                 <Link
-                  to={`/app/rollups/${rollup}`}
+                  to="/rollups/$id"
+                  params={{ id: String(rollup) }}
                   className="flex items-center gap-2 text-gray-700 text-sm"
                 >
                   <CircleDot size={12} className="text-gray-500" />
