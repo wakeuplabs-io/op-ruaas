@@ -260,7 +260,7 @@ contract Marketplace is IMarketplace, ReentrancyGuard {
             Offer memory offer = offers[order.offerId];
 
             result[i] = OrderWithOffer({
-                orderId: orderId,
+                id: orderId,
                 client: order.client,
                 offerId: order.offerId,
                 createdAt: order.createdAt,
