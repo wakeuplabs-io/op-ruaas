@@ -4,8 +4,11 @@ export const useOrder = ({ id }: { id: bigint }) => {
   return {
     name: "mock rollup",
     id: 1n,
-    fulfilledAt: 0n,
-    terminatedAt: 0n,
+    fulfilledAt: 1n,
+    terminatedAt: 1n,
+    offer: {
+      pricePerMonth: 10n * 10n ** 18n
+    },
     provider: {
       sequencer: "0x123",
       batcher: "0x123",
