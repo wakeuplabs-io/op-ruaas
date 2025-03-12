@@ -9,7 +9,7 @@ export function useGetUserRollups() {
     abi: MARKETPLACE_ABI,
     functionName: "getClientOrders",
     args: [address],
-    chainId: parseInt(MARKETPLACE_CHAIN_ID),
+    chainId: MARKETPLACE_CHAIN_ID,
   });
   const rollups: bigint[] = data as bigint[];
 

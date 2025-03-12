@@ -8,7 +8,7 @@ export function useGetBalance(orderId: string) {
     abi: MARKETPLACE_ABI,
     functionName: "balanceOf",
     args: [address, BigInt(orderId)],
-    chainId: parseInt(MARKETPLACE_CHAIN_ID),
+    chainId: MARKETPLACE_CHAIN_ID,
     query: {
       enabled: !!orderId,
     },

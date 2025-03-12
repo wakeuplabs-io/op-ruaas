@@ -19,7 +19,7 @@ export function useOffer(offerId?: bigint) {
     abi: MARKETPLACE_ABI,
     functionName: "offers",
     args: [offerId],
-    chainId: parseInt(MARKETPLACE_CHAIN_ID),
+    chainId: MARKETPLACE_CHAIN_ID,
   });
 
   const offer: Offer | null = data
