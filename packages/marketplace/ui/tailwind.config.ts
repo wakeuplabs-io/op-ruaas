@@ -75,8 +75,17 @@ export default {
           5: 'hsl(var(--chart-5))',
         },
         alert: {
-          border: "#911A27",
-          background: "#FFF4F4",
+          border: "hsl(var(--alert-border))",
+          background: "hsl(var(--alert-background))",
+        },
+        shield: {
+          border: "hsl(var(--shield-border))",
+          background: "hsl(var(--shield-background))",
+        },
+        tooltip: {
+          border: "hsl(var(--tooltip-border))",
+          background: "hsl(var(--tooltip-background))",
+          text: "hsl(var(--tooltip-text))",
         },
       },
       backgroundImage: {

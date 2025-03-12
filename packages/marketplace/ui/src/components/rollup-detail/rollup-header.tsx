@@ -41,32 +41,35 @@ export function RollupHeader({ order }: RollupHeaderProps) {
         </div>
       ) : (
         <div className="flex gap-3 mt-4 md:mt-0 w-full md:w-auto">
-          {fulfilledAt > 0n  &&<TooltipProvider delayDuration={0}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="h-10 w-10 rounded-[10px] border border-[#7DEB65] bg-[#E6FFE0] flex items-center justify-center !hover:bg-[#E6FFE0]"
+          {fulfilledAt > 0n && (
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="h-10 w-10 rounded-[10px] border border-shield-border bg-shield-background flex items-center justify-center !hover:bg-shield-background"
+                  >
+                    <ShieldCheck className="h-5 w-5 text-shield-border" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  className="bg-tooltip-background text-tooltip-text shadow-md border border-tooltip-border"
                 >
-                  <ShieldCheck className="h-5 w-5 text-[#7DEB65]" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent
-                side="top"
-                className="bg-white text-black shadow-md border border-gray-300"
-              >
-                <p>
-                  You have{" "}
-                  <span>
-                    {timeRemaining > 0
-                      ? Math.max(0, timeRemaining).toFixed(0)
-                      : "0"}
-                  </span>{" "}
-                  hours of warranty remaining to cancel the service at no cost.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>}
+                  <p>
+                    You have{" "}
+                    <span>
+                      {timeRemaining > 0
+                        ? Math.max(0, timeRemaining).toFixed(0)
+                        : "0"}
+                    </span>{" "}
+                    hours of warranty remaining to cancel the service at no
+                    cost.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
 
           <Button variant="outline" className="h-10 px-6">
             Change Plan
