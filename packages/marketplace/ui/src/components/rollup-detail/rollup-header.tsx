@@ -18,9 +18,9 @@ export function RollupHeader({ order }: RollupHeaderProps) {
   const { fulfilledAt, terminatedAt, id, name } = order;
   const currentUnixTime = BigInt(Math.floor(Date.now() / 1000));
 
-  const timeRemaining =
+  const timeRemainingInSeconds =
     fulfilledAt > 0n
-      ? Number(fulfilledAt + 48n * 3600n - currentUnixTime) / 3600
+      ? Number(fulfilledAt + 48n * 3600n - currentUnixTime)
       : 0;
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
@@ -41,7 +41,7 @@ export function RollupHeader({ order }: RollupHeaderProps) {
         </div>
       ) : (
         <div className="flex gap-3 mt-4 md:mt-0 w-full md:w-auto">
-          {fulfilledAt > 0n && (
+          {(fulfilledAt > 0n && timeRemainingInSeconds > 0 )&& (
             <TooltipProvider delayDuration={0}>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -59,8 +59,8 @@ export function RollupHeader({ order }: RollupHeaderProps) {
                   <p>
                     You have{" "}
                     <span>
-                      {timeRemaining > 0
-                        ? Math.max(0, timeRemaining).toFixed(0)
+                      {timeRemainingInSeconds > 0
+                        ? Math.max(0, timeRemainingInSeconds / 3600).toFixed(0)
                         : "0"}
                     </span>{" "}
                     hours of warranty remaining to cancel the service at no
