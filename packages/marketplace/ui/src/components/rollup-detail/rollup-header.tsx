@@ -19,7 +19,6 @@ export function RollupHeader({ order }: RollupHeaderProps) {
   if (!order) return <></>;
   const { fulfilledAt, terminatedAt, id, name } = order;
   const { step } = useUnsubscribe({ orderId: id });
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const currentUnixTime = BigInt(Math.floor(Date.now() / 1000));
 
   const timeRemainingInSeconds =
@@ -31,9 +30,6 @@ export function RollupHeader({ order }: RollupHeaderProps) {
         <h2 className="text-lg font-medium">
           {name} <span className="text-gray-500">/ Basic</span>
         </h2>
-        <button className="text-gray-400">
-          <PenLine className="h-4 w-4" />
-        </button>
       </div>
 
       {terminatedAt > 0n ? (
