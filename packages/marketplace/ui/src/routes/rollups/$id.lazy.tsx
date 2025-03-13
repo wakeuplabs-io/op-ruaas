@@ -17,8 +17,10 @@ export const Route = createLazyFileRoute("/rollups/$id")({
 export default function RollupDashboard() {
   const { id } = Route.useParams();
   const [statusColor, setStatusColor] = useState("gray-200");
-  const { terminatedAt, fulfilledAt, name, offer } = useOrder({id: BigInt(id)})
-  const order = { terminatedAt, fulfilledAt, name, id, offer }
+  const { terminatedAt, fulfilledAt, name, offer } = useOrder({
+    id: BigInt(id),
+  });
+  const order = { terminatedAt, fulfilledAt, name, id, offer };
   return (
     <div className="md:p-6 space-y-6">
       <div
@@ -33,14 +35,13 @@ export default function RollupDashboard() {
           )}
         >
           <RollupHeader order={order as unknown as Order} />
-            {fulfilledAt > 0n && (
-              <RollupActions
-                order={order as unknown as Order}
-                setStatusColor={setStatusColor}
-                statusColor={statusColor}
-              />
-            )}
-          
+          {fulfilledAt > 0n && (
+            <RollupActions
+              order={order as unknown as Order}
+              setStatusColor={setStatusColor}
+              statusColor={statusColor}
+            />
+          )}
         </div>
       </div>
 

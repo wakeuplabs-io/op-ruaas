@@ -13,7 +13,7 @@ import { useProviderInfo } from "@/lib/hooks/use-provider-info"
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { isConnected } = useAccount()
   const { sequencerRollups, replicaRollups } = useOrders()
-  const { name, formattedAddress } = useProviderInfo()
+  const { name } = useProviderInfo()
 
   const [selectedRollupId, setSelectedRollupId] = React.useState<bigint>()
 
@@ -55,7 +55,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       <div className="px-4 mt-auto text-sm text-gray-700">
         <h4 className="text-gray-500 text-xs mb-1">Provider</h4>
         <p className="font-medium">{name}</p>
-        <p className="text-xs text-gray-500">{formattedAddress}</p>
       </div>
 
       <div className="px-4 mt-4">

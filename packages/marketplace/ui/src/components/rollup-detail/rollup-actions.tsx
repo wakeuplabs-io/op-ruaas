@@ -8,9 +8,11 @@ import {
   formatTokenAmount,
   calculateStatusColor,
   formatRemainingTime,
+  sleep,
 } from "@/lib/utils";
 import { BookDown, TriangleAlert } from "lucide-react";
 import { DeploymentValue } from "../deployment-value";
+import { ONE_SECOND } from "@/shared/constants/marketplace";
 
 interface RollupActionsProps {
   order: Order;
@@ -24,7 +26,7 @@ export function RollupActions({
 }: RollupActionsProps) {
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [plans, setPlans] = useState<Plan[]>();
-  const [displayBalance, setDisplayBalance] = useState<string>("-");
+  const [displayRemainingTime, setDisplayRemainingTime] = useState<string>("-");
   const { balance, isLoading, refetch } = useBalance(order.id);
 
   useEffect(() => {
@@ -42,7 +44,7 @@ export function RollupActions({
     const { offer } = order;
     if (!isLoading && balance !== undefined && offer) {
       setStatusColor(calculateStatusColor(balance, offer.pricePerMonth));
-      setDisplayBalance(formatRemainingTime(balance, offer.pricePerMonth));
+      setDisplayRemainingTime(formatRemainingTime(balance, offer.pricePerMonth));
     }
   }, [balance, isLoading, order, setStatusColor]);
 
@@ -55,7 +57,7 @@ export function RollupActions({
       ) : (
         <div className="py-4">
           <h1 className={cn("text-4xl font-bold", `text-${statusColor}`)}>
-            {isLoading ? "-" : displayBalance}
+            {isLoading ? "-" : displayRemainingTime}
           </h1>
           <p className="text-gray-500 mt-1">
             ${isLoading ? "-" : formatTokenAmount(balance || 0n)}
@@ -78,14 +80,14 @@ export function RollupActions({
           <Button
             variant="outline"
             onClick={() => setIsDepositModalOpen(true)}
-            className="w-32 h-11 flex items-center justify-center gap-2"
+            className="w-32 h-11 flex items-center justify-center gap-2 mt-11"
           >
             <BookDown className="h-5 w-5" />
             Deposit
           </Button>
         )}
 
-        <div className="flex gap-4">
+        <div className="flex gap-4 mt-11">
           {[
             { label: "Chain ID", value: "0xDc64a14...F6C9" },
             { label: "RPC URL", value: "0xDc64a14...F6C9" },
@@ -103,8 +105,9 @@ export function RollupActions({
       <DepositModal
         orderId={order.id}
         isOpen={isDepositModalOpen}
-        onClose={() => {
+        onClose={async () => {
           setIsDepositModalOpen(false);
+          await sleep(ONE_SECOND * 2);
           refetch();
         }}
         plans={plans}

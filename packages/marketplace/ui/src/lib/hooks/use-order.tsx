@@ -4,8 +4,8 @@ export const useOrder = ({ id }: { id: bigint }) => {
   return {
     name: "mock rollup",
     id: 1n,
-    fulfilledAt: 1n,
-    terminatedAt: 1n,
+    fulfilledAt: 1741719683n,
+    terminatedAt: 0n,
     offer: {
       pricePerMonth: 10n * 10n ** 18n
     },
