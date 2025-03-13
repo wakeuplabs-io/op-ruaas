@@ -6,7 +6,9 @@ import { createLazyFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Clock, Download, OctagonAlert } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useOrder } from "@/lib/hooks/use-order";
+import { Order } from "@/types";
 
 export const Route = createLazyFileRoute("/rollups/$id")({
   component: RollupDashboard,
@@ -14,23 +16,31 @@ export const Route = createLazyFileRoute("/rollups/$id")({
 
 export default function RollupDashboard() {
   const { id } = Route.useParams();
-  const { fulfilledAt } = useOrder({ id: BigInt(id) });
   const [statusColor, setStatusColor] = useState("gray-200");
-
+  const { terminatedAt, fulfilledAt, name, offer } = useOrder({id: BigInt(id)})
+  const order = { terminatedAt, fulfilledAt, name, id, offer }
   return (
     <div className="md:p-6 space-y-6">
-      <div className="rounded-lg bg-gradient-to-l from-gray-300 to-transparent p-px">
-        <div className="border px-8 py-6 shadow-sm bg-white rounded-[calc(0.75rem-1px)]">
-          <RollupHeader />
-
-          {fulfilledAt > 0 && (
-            <RollupActions
-              orderId={id}
-              offer={null!}
-              setStatusColor={setStatusColor}
-              statusColor={statusColor}
-            />
+      <div
+        className={cn(
+          "rounded-lg bg-gradient-to-l to-transparent p-pxfrom-gray-300"
+        )}
+      >
+        <div
+          className={cn(
+            "border px-8 py-6 shadow-sm bg-white rounded-[calc(0.75rem-1px)]",
+            terminatedAt > 0n ? "border border-alert-border" : "border-gray-200"
           )}
+        >
+          <RollupHeader order={order as unknown as Order} />
+            {fulfilledAt > 0n && (
+              <RollupActions
+                order={order as unknown as Order}
+                setStatusColor={setStatusColor}
+                statusColor={statusColor}
+              />
+            )}
+          
         </div>
       </div>
 

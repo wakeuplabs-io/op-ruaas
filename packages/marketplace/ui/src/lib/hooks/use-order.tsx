@@ -2,8 +2,13 @@ export const useOrder = ({ id }: { id: bigint }) => {
   // TODO: unmock
 
   return {
-    fulfilledAt: 0n,
-    terminatedAt: 0n,
+    name: "mock rollup",
+    id: 1n,
+    fulfilledAt: 1n,
+    terminatedAt: 1n,
+    offer: {
+      pricePerMonth: 10n * 10n ** 18n
+    },
     provider: {
       sequencer: "0x123",
       batcher: "0x123",

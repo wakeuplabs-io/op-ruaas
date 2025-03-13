@@ -1,73 +1,89 @@
 import { Button } from "@/components/ui/button";
 import { DepositModal } from "./deposit-modal";
 import { useEffect, useState } from "react";
-import { useGetBalance } from "@/lib/hooks/use-get-balance";
-import { Offer, Plan } from "@/types";
+import { useBalance } from "@/lib/hooks/use-balance";
+import { Order, Plan } from "@/types";
 import {
   cn,
   formatTokenAmount,
   calculateStatusColor,
   formatRemainingTime,
 } from "@/lib/utils";
-import { BookDown } from "lucide-react";
+import { BookDown, TriangleAlert } from "lucide-react";
 import { DeploymentValue } from "../deployment-value";
 
 interface RollupActionsProps {
-  orderId: string;
-  offer: Offer | null;
+  order: Order;
   setStatusColor: (color: string) => void;
   statusColor: string;
 }
-
 export function RollupActions({
-  orderId,
-  offer,
+  order,
   setStatusColor,
   statusColor,
 }: RollupActionsProps) {
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [plans, setPlans] = useState<Plan[]>();
   const [displayBalance, setDisplayBalance] = useState<string>("-");
-  const { balance, isLoading, refetch } = useGetBalance(orderId);
+  const { balance, isLoading, refetch } = useBalance(order.id);
 
   useEffect(() => {
-    if (!offer) return;
-
+    if (!order) return;
+    const { offer } = order;
     setPlans([
       { months: 1n, pricePerMonth: offer.pricePerMonth },
       { months: 3n, pricePerMonth: offer.pricePerMonth },
       { months: 6n, pricePerMonth: offer.pricePerMonth },
       { months: 12n, pricePerMonth: offer.pricePerMonth },
     ]);
-  }, [offer]);
+  }, [order]);
 
   useEffect(() => {
+    const { offer } = order;
     if (!isLoading && balance !== undefined && offer) {
       setStatusColor(calculateStatusColor(balance, offer.pricePerMonth));
       setDisplayBalance(formatRemainingTime(balance, offer.pricePerMonth));
     }
-  }, [balance, isLoading, offer, setStatusColor]);
+  }, [balance, isLoading, order, setStatusColor]);
 
   return (
     <div>
-      <div className="py-4">
-        <h1 className={cn("text-4xl font-bold", `text-${statusColor}`)}>
-          {isLoading ? "-" : displayBalance}
-        </h1>
-        <p className="text-gray-500 mt-1">
-          ${isLoading ? "-" : formatTokenAmount(balance || 0n)}
-        </p>
-      </div>
+      {order.terminatedAt > 0n ? (
+        <h2 className="mt-4 text-2xl font-semibold text-alert-border">
+          Unsubscribed
+        </h2>
+      ) : (
+        <div className="py-4">
+          <h1 className={cn("text-4xl font-bold", `text-${statusColor}`)}>
+            {isLoading ? "-" : displayBalance}
+          </h1>
+          <p className="text-gray-500 mt-1">
+            ${isLoading ? "-" : formatTokenAmount(balance || 0n)}
+          </p>
+        </div>
+      )}
 
-      <div className="flex justify-between items-center gap-4 mt-4">
-        <Button
-          variant="outline"
-          onClick={() => setIsDepositModalOpen(true)}
-          className="w-32 h-11 flex items-center justify-center gap-2"
-        >
-          <BookDown className="h-5 w-5" />
-          Deposit
-        </Button>
+      <div className="flex justify-between items-center gap-4 mt-2">
+        {order.terminatedAt > 0n ? (
+          <div className="mt-4">
+            <div className=" p-4 bg-alert-background rounded-lg flex items-start gap-3">
+              <TriangleAlert className="h-11 w-11 text-alert-border stroke-[1.5] flex-shrink-0" />
+              <p className="text-sm text-alert-border">
+                You're unsubscribed, but provider permissions are still active.
+                Complete the process to revoke access.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <Button
+            variant="outline"
+            onClick={() => setIsDepositModalOpen(true)}
+            className="w-32 h-11 flex items-center justify-center gap-2"
+          >
+            <BookDown className="h-5 w-5" />
+            Deposit
+          </Button>
+        )}
 
         <div className="flex gap-4">
           {[
@@ -85,7 +101,7 @@ export function RollupActions({
       </div>
 
       <DepositModal
-        orderId={orderId}
+        orderId={order.id}
         isOpen={isDepositModalOpen}
         onClose={() => {
           setIsDepositModalOpen(false);
