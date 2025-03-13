@@ -8,6 +8,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { UnsubscribeStep, useUnsubscribe } from "@/lib/hooks/use-unsubscribe";
+import { useState } from "react";
 
 interface RollupHeaderProps {
   order: Order;
@@ -16,6 +18,8 @@ interface RollupHeaderProps {
 export function RollupHeader({ order }: RollupHeaderProps) {
   if (!order) return <></>;
   const { fulfilledAt, terminatedAt, id, name } = order;
+  const { step } = useUnsubscribe({ orderId: id });
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const currentUnixTime = BigInt(Math.floor(Date.now() / 1000));
 
   const timeRemainingInSeconds =
@@ -34,9 +38,14 @@ export function RollupHeader({ order }: RollupHeaderProps) {
 
       {terminatedAt > 0n ? (
         <div className="flex justify-end">
-          <Button className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700">
+
+          <UnsubscribeModal
+            orderId={id}
+            className="h-10 px-6 text-white"
+            step={step}
+          >
             Complete process
-          </Button>
+          </UnsubscribeModal>
         </div>
       ) : (
         <div className="flex gap-3 mt-4 md:mt-0 w-full md:w-auto">
@@ -73,16 +82,13 @@ export function RollupHeader({ order }: RollupHeaderProps) {
             </TooltipProvider>
           )}
 
-          <Button variant="outline" className="h-10 px-6">
-            Change Plan
-          </Button>
-          <UnsubscribeModal
+          {terminatedAt > 0n && step === UnsubscribeStep.Done && <UnsubscribeModal
             orderId={id}
             className="h-10 px-6 text-white"
-            disabled
+            step={step}
           >
             Unsubscribe
-          </UnsubscribeModal>
+          </UnsubscribeModal>}
         </div>
       )}
     </div>

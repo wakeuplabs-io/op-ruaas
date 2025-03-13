@@ -9,29 +9,20 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "./ui/scroll-area";
 import { ArrowRight } from "lucide-react";
-import { useUnsubscribe } from "@/lib/hooks/use-unsubscribe";
+import { UnsubscribeStep, useUnsubscribe } from "@/lib/hooks/use-unsubscribe";
 import { useChainPermissions } from "@/lib/hooks/use-chain-permissions";
 import { zeroAddress } from "viem";
-import { useMemo } from "react";
 import { StepCard } from "./step-card";
 import { useOrder } from "@/lib/hooks/use-order";
-
-enum UnsubscribeStep {
-  Unsubscribe,
-  SetSequencer,
-  SetBatcher,
-  SetOracle,
-  Done
-}
 
 export const UnsubscribeModal: React.FC<
   {
     orderId: bigint;
     disabled?: boolean;
+    step: UnsubscribeStep;
   } & ButtonProps
-> = ({ orderId, disabled, ...props }) => {
+> = ({ orderId, disabled, step, ...props }) => {
   const {
-    provider,
     network: { l1ChainId },
     addresses: {
       systemConfigProxy,
@@ -40,12 +31,8 @@ export const UnsubscribeModal: React.FC<
       proxyAdmin,
     },
   } = useOrder({ id: orderId });
-  const { isSubscribed, unsubscribe } = useUnsubscribe({ orderId });
+  const { unsubscribe } = useUnsubscribe({ orderId });
   const {
-    batcher,
-    sequencer,
-    proposer,
-    challenger,
     setBatcherAddress,
     setSequencerAddress,
     setOracleAddress,
@@ -56,15 +43,6 @@ export const UnsubscribeModal: React.FC<
     systemOwnerSafe: systemOwnerSafe as `0x${string}`,
     proxyAdmin: proxyAdmin as `0x${string}`,
   });
-
-  const step = useMemo(() => {
-    if (!isSubscribed) return UnsubscribeStep.Unsubscribe;
-    if (sequencer === provider.sequencer) return UnsubscribeStep.SetSequencer;
-    if (batcher === provider.batcher) return UnsubscribeStep.SetBatcher;
-    if (proposer === provider.proposer) return UnsubscribeStep.SetOracle;
-    if (challenger === provider.challenger) return UnsubscribeStep.SetOracle;
-    return UnsubscribeStep.Done;
-  }, [provider, isSubscribed, sequencer, batcher, proposer, challenger]);
 
   return (
     <Dialog>
