@@ -3,43 +3,46 @@ import {
   MARKETPLACE_ADDRESS,
   MARKETPLACE_CHAIN_ID,
 } from "@/shared/constants/marketplace";
-import { useEffect } from "react";
+import {
+  OfferMetadata,
+  OrderDeploymentMetadata,
+  OrderSetupMetadata,
+} from "@/types";
 import { useReadContract } from "wagmi";
 
-
-export const useOrder = ({ id }: { id: bigint }) => {
+export const useOrderDetails = ({ id }: { id: bigint }) => {
   const { data: order } = useReadContract({
     address: MARKETPLACE_ADDRESS,
     chainId: MARKETPLACE_CHAIN_ID,
     abi: MARKETPLACE_ABI,
-    functionName: "orders",
+    functionName: "getOrder",
     args: [id],
   });
 
   return {
     data: order
       ? {
-          client: (order as any)[0],
-          offerId: (order as any)[1],
-          createdAt: (order as any)[2],
-          fulfilledAt: (order as any)[3],
-          terminatedAt: (order as any)[4],
-          lastWithdrawal: (order as any)[5],
-          balance: (order as any)[6],
-          setupMetadata: JSON.parse((order as any)[7]),
-          deploymentMetadata: JSON.parse((order as any)[8]),
-          provider: {
-            sequencer: "0x123",
-            batcher: "0x123",
-            proposer: "0x123",
-            challenger: "0x123",
+          order: {
+            client: (order as any).client,
+            createdAt: (order as any).createdAt,
+            fulfilledAt: (order as any).fulfilledAt,
+            terminatedAt: (order as any).terminatedAt,
+            lastWithdrawal: (order as any).lastWithdrawal,
+            balance: (order as any).balance,
+            setupMetadata: JSON.parse(
+              (order as any).setupMetadata ?? "{}"
+            ) as OrderSetupMetadata,
+            deploymentMetadata: JSON.parse(
+              (order as any).deploymentMetadata ?? "{}"
+            ) as OrderDeploymentMetadata,
           },
-          network: { l1ChainId: 1n },
-          addresses: {
-            systemConfigProxy: "0x123",
-            l2OutputOracleProxy: "0x123",
-            systemOwnerSafe: "0x123",
-            proxyAdmin: "0x123",
+          offer: {
+            vendor: (order as any).offer.vendor,
+            pricePerMonth: (order as any).offer.pricePerMonth,
+            remainingUnits: (order as any).offer.remainingUnits,
+            metadata: JSON.parse(
+              (order as any).offer.metadata ?? "{}"
+            ) as OfferMetadata,
           },
         }
       : null,

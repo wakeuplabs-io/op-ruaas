@@ -7,22 +7,21 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "./ui/scroll-area";
+import { ScrollArea } from "../ui/scroll-area";
 import { ArrowRight } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useUnsubscribe } from "@/lib/hooks/use-unsubscribe";
 import { useChainPermissions } from "@/lib/hooks/use-chain-permissions";
 import { zeroAddress } from "viem";
-import { useOrder } from "@/lib/hooks/use-order";
+import { useOrderDetails } from "@/lib/hooks/use-order";
 import { useMemo } from "react";
-import { StepCard } from "./step-card";
+import { StepCard } from "../step-card";
 
 enum UnsubscribeStep {
   Unsubscribe,
   SetSequencer,
   SetBatcher,
   SetOracle,
-  Done
+  Done,
 }
 
 export const UnsubscribeModal: React.FC<
@@ -31,16 +30,7 @@ export const UnsubscribeModal: React.FC<
     disabled?: boolean;
   } & ButtonProps
 > = ({ orderId, disabled, ...props }) => {
-  const {
-    provider,
-    network: { l1ChainId },
-    addresses: {
-      systemConfigProxy,
-      l2OutputOracleProxy,
-      systemOwnerSafe,
-      proxyAdmin,
-    },
-  } = useOrder({ id: orderId });
+  const { data } = useOrderDetails({ id: orderId });
   const { isSubscribed, unsubscribe } = useUnsubscribe({ orderId });
   const {
     batcher,
@@ -51,12 +41,26 @@ export const UnsubscribeModal: React.FC<
     setSequencerAddress,
     setOracleAddress,
   } = useChainPermissions({
-    l1ChainId: Number(l1ChainId),
-    systemConfigProxy: systemConfigProxy as `0x${string}`,
-    l2OutputOracleProxy: l2OutputOracleProxy as `0x${string}`,
-    systemOwnerSafe: systemOwnerSafe as `0x${string}`,
-    proxyAdmin: proxyAdmin as `0x${string}`,
+    l1ChainId: Number(data?.order.deploymentMetadata.network.l1ChainID ?? 0),
+    systemConfigProxy:
+      data?.order.deploymentMetadata.addresses.systemConfigProxy ?? zeroAddress,
+    l2OutputOracleProxy:
+      data?.order.deploymentMetadata.addresses.l2OutputOracleProxy ??
+      zeroAddress,
+    systemOwnerSafe:
+      data?.order.deploymentMetadata.addresses.systemOwnerSafe ?? zeroAddress,
+    proxyAdmin:
+      data?.order.deploymentMetadata.addresses.proxyAdmin ?? zeroAddress,
   });
+
+  const provider = useMemo(() => {
+    return {
+      batcher: data?.offer.metadata.wallets?.batcher ?? zeroAddress,
+      sequencer: data?.offer.metadata.wallets?.sequencer ?? zeroAddress,
+      proposer: data?.offer.metadata.wallets?.proposer ?? zeroAddress,
+      challenger: data?.offer.metadata.wallets?.challenger ?? zeroAddress,
+    };
+  }, [data?.offer.metadata]);
 
   const step = useMemo(() => {
     if (!isSubscribed) return UnsubscribeStep.Unsubscribe;

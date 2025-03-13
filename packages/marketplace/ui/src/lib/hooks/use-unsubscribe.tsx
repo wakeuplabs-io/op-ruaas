@@ -5,13 +5,13 @@ import {
   MARKETPLACE_CHAIN_ID,
 } from "@/shared/constants/marketplace";
 import { useWalletClient, useWriteContract } from "wagmi";
-import { useOrder } from "./use-order";
+import { useOrderDetails } from "./use-order";
 import { useEnsureChain } from "./use-ensure-chain";
 
 export const useUnsubscribe = ({ orderId }: { orderId: bigint }) => {
   const { data: walletClient } = useWalletClient();
   const { writeContractAsync } = useWriteContract();
-  const { terminatedAt } = useOrder({ id: orderId });
+  const { terminatedAt } = useOrderDetails({ id: orderId });
   const { ensureChainId } = useEnsureChain();
 
   const isSubscribed = useMemo(() => {

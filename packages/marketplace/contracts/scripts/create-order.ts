@@ -15,15 +15,14 @@ async function main() {
   const marketplace = await ethers.getContractAt("Marketplace", marketplaceAddress);
   const token = await ethers.getContractAt("TestToken", tokenAddress);
 
-  const offerId = 10n;
+  const offerId = 0n;
   const initialCommitment = 1n;
   const metadata: OrderMetadata = {
-    name: "MyChain",
+    name: "Base",
     // if not artifacts then it's a brand new deployment
     artifacts: "QmVbzUdWgLwoDAtjz48uNT2rQh1AnjmyRXVqfK9ihmnjic"
   };
   
-
   // approve
   const approveTx = await token.approve(marketplaceAddress, ethers.MaxUint256);
   await approveTx.wait();
@@ -47,8 +46,7 @@ async function main() {
   }
 
   const orderId = event.args.orderId;
-  console.log(`Order created with tx: ${createOrderTx.hash}`);
-  console.log(`Order ID: ${orderId}`);
+  console.log(`Order created with tx: ${createOrderTx.hash} and orderId: ${orderId}`);
 }
 
 main()

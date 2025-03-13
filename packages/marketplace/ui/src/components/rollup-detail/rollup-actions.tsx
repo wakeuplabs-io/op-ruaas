@@ -1,31 +1,27 @@
 import { Button } from "@/components/ui/button";
-import { useMemo, useState } from "react";
-import { Offer } from "@/types";
+import React, { useMemo } from "react";
 import { cn, formatTokenAmount, formatRemainingTime } from "@/lib/utils";
 import { BookDown } from "lucide-react";
-import { DeploymentValue } from "../deployment-value";
+import { DeploymentValue } from "./deployment-value";
 
-interface RollupActionsProps {
-  orderId: string;
-  offer: Offer | null;
+export const RollupActions: React.FC<{
+  rpcUrl: string;
+  l2ChainId: number;
+  pricePerMonth: bigint;
   balance: bigint;
-}
-
-export function RollupActions({ offer, balance }: RollupActionsProps) {
-  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
-
+}> = ({ pricePerMonth, balance, l2ChainId, rpcUrl }) => {
   const remainingTimeString = useMemo(() => {
-    if (!offer?.pricePerMonth || balance === 0n) return "-";
-    return formatRemainingTime(balance, offer.pricePerMonth);
-  }, [offer, balance]);
+    if (!pricePerMonth || balance === 0n) return "-";
+    return formatRemainingTime(balance, pricePerMonth);
+  }, [pricePerMonth, balance]);
 
   const statusColor = useMemo(() => {
-    if (!offer?.pricePerMonth || balance === 0n) return "red-500";
-    const daysRemaining = balance / (offer.pricePerMonth / 30n);
+    if (!pricePerMonth || balance === 0n) return "red-500";
+    const daysRemaining = balance / (pricePerMonth / 30n);
     if (daysRemaining < 1n) return "red-500";
     if (daysRemaining < 30n) return "yellow-500";
     return "gray-800";
-  }, [offer, balance]);
+  }, [pricePerMonth, balance]);
 
   return (
     <div>
@@ -41,7 +37,6 @@ export function RollupActions({ offer, balance }: RollupActionsProps) {
       <div className="flex justify-between items-center gap-4 mt-4">
         <Button
           variant="outline"
-          onClick={() => setIsDepositModalOpen(true)}
           className="w-32 h-11 flex items-center justify-center gap-2"
         >
           <BookDown className="h-5 w-5" />
@@ -50,8 +45,8 @@ export function RollupActions({ offer, balance }: RollupActionsProps) {
 
         <div className="flex gap-4">
           {[
-            { label: "Chain ID", value: "0xDc64a14...F6C9" },
-            { label: "RPC URL", value: "0xDc64a14...F6C9" },
+            { label: "Chain ID", value: l2ChainId.toString() },
+            { label: "RPC URL", value: rpcUrl },
           ].map((item, index) => (
             <DeploymentValue
               key={index}
@@ -71,4 +66,4 @@ export function RollupActions({ offer, balance }: RollupActionsProps) {
       /> */}
     </div>
   );
-}
+};

@@ -248,6 +248,25 @@ contract Marketplace is IMarketplace, ReentrancyGuard {
     }
 
     /// @inheritdoc IMarketplace
+    function getOrder(
+        uint256 _orderId
+    ) public view returns (OrderWithOffer memory) {
+        return OrderWithOffer({
+            id: _orderId,
+            client: orders[_orderId].client,
+            offerId: orders[_orderId].offerId,
+            createdAt: orders[_orderId].createdAt,
+            fulfilledAt: orders[_orderId].fulfilledAt,
+            terminatedAt: orders[_orderId].terminatedAt,
+            lastWithdrawal: orders[_orderId].lastWithdrawal,
+            balance: orders[_orderId].balance,
+            setupMetadata: orders[_orderId].setupMetadata,
+            deploymentMetadata: orders[_orderId].deploymentMetadata,
+            offer: offers[orders[_orderId].offerId]
+        });
+    }
+
+    /// @inheritdoc IMarketplace
     function getClientOrders(
         address _user
     ) external view returns (OrderWithOffer[] memory) {
