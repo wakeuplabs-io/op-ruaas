@@ -220,6 +220,11 @@ interface IMarketplace is
         uint256 _orderId
     ) external view returns (uint256);
 
+    /// @notice Returns an order Detail
+    function getOrder(
+        uint256 _orderId
+    ) external view returns (OrderWithOffer memory);
+
     /// @notice Returns the list of orders where the given address is the client.
     function getClientOrders(
         address _user

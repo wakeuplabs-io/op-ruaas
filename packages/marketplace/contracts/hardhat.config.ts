@@ -6,7 +6,7 @@ const config: HardhatUserConfig = {
   solidity: "0.8.28",
   networks: {
     "op-sepolia": {
-      url: process.env.OP_SEPOLIA || "https://sepolia.optimism.io", 
+      url: process.env.RPC_OP_SEPOLIA || "https://sepolia.optimism.io", 
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
   },
