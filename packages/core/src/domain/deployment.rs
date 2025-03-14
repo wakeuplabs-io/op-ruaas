@@ -30,6 +30,26 @@ pub struct DeploymentOptions {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeploymentMonitorOptions {
+    pub kind: MonitorKind,
+    pub args: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum MonitorKind {
+  Multisig,
+  Fault,
+  Withdrawals,
+  Drippie,
+  Secrets,
+  GlobalEvents,
+  LivenessExpiration,
+  Balances,
+  Dispute
+}
+
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum DeploymentKind {
     Sequencer,
     Replica,
@@ -82,6 +102,18 @@ pub trait TDeploymentRunner {
         opts: &DeploymentOptions,
     ) -> Result<(), Box<dyn std::error::Error>>;
     fn stop(&self, release_tag: &str, release_namespace: &str) -> Result<(), Box<dyn std::error::Error>>;
+}
+
+
+#[async_trait::async_trait]
+pub trait TDeploymentMonitorRunner {
+    async fn run(
+        &self,
+        project: &Project,
+        deployment: &Deployment,
+        opts: &DeploymentMonitorOptions,
+    ) -> Result<(), Box<dyn std::error::Error>>;
+    fn stop(&self) -> Result<(), Box<dyn std::error::Error>>;
 }
 
 // implementations ========================================================

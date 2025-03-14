@@ -1,18 +1,38 @@
-pub struct MonitorService {}
+use crate::domain::{Deployment, DeploymentMonitorOptions, Project, TDeploymentMonitorRunner};
 
-impl MonitorService {
-    pub fn new() -> Self {
-        Self {}
+pub struct DeploymentMonitorRunnerService<DR>
+where
+    DR: TDeploymentMonitorRunner,
+{
+    deployment_monitor_runner: DR,
+}
+
+impl<DR> DeploymentMonitorRunnerService<DR>
+where
+    DR: TDeploymentMonitorRunner,
+{
+    pub fn new(deployment_monitor_runner: DR) -> Self {
+        Self {
+            deployment_monitor_runner,
+        }
     }
 
     pub async fn run(
         &self,
-        ctx: &AppContext,
-        target: &MonitorTarget,
-        deployment_id: &str,
-        subcmd: Option<String>,
-        args: Option<Vec<String>>,
-    ) -> Result<(), anyhow::Error> {
-        let config = config::CoreConfig::new();
+        project: &Project,
+        deployment: &Deployment,
+        opts: &DeploymentMonitorOptions,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.deployment_monitor_runner
+            .run(project, deployment, &opts)
+            .await?;
+
+        Ok(())
+    }
+
+    pub fn stop(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.deployment_monitor_runner.stop()?;
+
+        Ok(())
     }
 }

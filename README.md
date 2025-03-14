@@ -32,9 +32,10 @@ Usage: `opruaas [OPTIONS] <COMMAND>`
 - `init` Initialize a new project
 - `build` Compile sources and create Docker images
 - `release` Tag and push the already built Docker images to the registry for deployment
-- `dev` Spin up a local development environment
+- `start` Spin up a local development environment
 - `deploy` Deploy your blockchain. Target must be one of: `contracts`, `infra`, `all`
 - `inspect` Get details about the current deployment. Target must be one of: `contracts`, `infra`
+- `monitor` Monitor your deployment. A wrapper around [op-monitorism](https://github.com/ethereum-optimism/monitorism/tree/op-monitorism/v0.0.6/op-monitorism) and [op-dispute-mon](https://github.com/ethereum-optimism/optimism/tree/v1.12.1/op-dispute-mon)
 - `help` Print this message or the help for the given subcommand(s)
 
 #### Options:
@@ -66,9 +67,9 @@ npx opruaas release contracts
 
 > Please refer to current contracts image to output a cli compatible zip.
 
-### Test releases with dev
+### Test releases with start
 
-The dev command simplifies the setup for local testing. It performs the following actions:
+The `start` command simplifies the setup for local testing. It performs the following actions:
 
 1. Starts an L1 Node: Launches a Geth-based Layer 1 node.
 2. Deploys Deterministic Contracts: Sets up the deterministic contract deployer on the node.
@@ -85,7 +86,7 @@ Run the following command to execute the setup:
 
 ```bash
 # Use -v for verbose output; recommended as the process may take some time, specially first time when downloading images
-npx opruaas -v dev
+npx opruaas -v start
 ```
 
 Once all deployments are up and running, it may take some time for the system to become fully responsive. This includes:
@@ -152,7 +153,7 @@ Once the setup is complete, you can access the following services:
 - Off-chain Monitoring: http://localhost:80/monitoring
 - Explorer: http://localhost:80
 
-### Deploy contracts/infra(sequencer/replica)
+### Deploy contracts/infra(sequencer/replica) with `deploy`
 
 Ensure that your `config.toml` configuration file is properly set up before proceeding.
 
@@ -170,6 +171,19 @@ The deployment process will create a deployments/my-prod-deployment directory co
   These files are crucial for running your chain. Ensure you keep them safe and do not lose them.
 - Inspecting Artifacts:
   You can manually review the artifacts or use the inspect command for easier analysis.
+
+## Monitor your chain with `monitor`
+
+There're two main options here, `onchain` and `offchain`.
+
+- `onchain` is a wrapper around [op-monitorism]() and [op-dispute-mon]() which we prefill with the specified deployment data (Still user can overwrite if they see fit).
+- `offchain` will just remember the user the graphana url for them to check server status and other reports.
+
+Example usage:
+
+```bash
+
+```
 
 ## Chain management
 

@@ -2,17 +2,14 @@ mod commands;
 mod config;
 mod infrastructure;
 
-use build::BuildTargets;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
-use commands::{deploy::DeployDeploymentKind, monitor::MonitorTarget, start::StartDeploymentKind, *};
-use deploy::DeployTarget;
+use commands::{
+    build::BuildTargets, deploy::{DeployDeploymentKind, DeployTarget}, init::InitTargets, inspect::InspectTarget, monitor::{MonitorKind, MonitorTarget}, release::ReleaseTargets, start::StartDeploymentKind, BuildCommand, DeployCommand, InitCommand, InspectCommand, MonitorCommand, NewCommand, ReleaseCommand, StartCommand
+};
 use dotenv::dotenv;
 use infrastructure::console::print_error;
-use init::InitTargets;
-use inspect::InspectTarget;
 use log::{Level, LevelFilter};
-use release::ReleaseTargets;
 
 #[derive(Parser)]
 #[clap(name = "opruaas")]
@@ -47,6 +44,7 @@ enum Commands {
 
         #[arg(long, default_value_t = false)]
         default: bool,
+        
         // TODO: values file
     },
     /// Deploy your blockchain. Target must be one of: contracts, infra, all
@@ -84,9 +82,9 @@ enum Commands {
 
         #[arg(
             long,
-            help = "Monitoring subcommand to run. Available: multisig, fault, withdrawals, balances, drippie, secrets, global_events, liveness_expiration, faultproof_withdrawals, dispute"
+            help = "Monitoring kind to run. Available: multisig, fault, withdrawals, balances, drippie, secrets, global_events, liveness_expiration, faultproof_withdrawals, dispute"
         )]
-        subcmd: Option<String>,
+        kind: Option<MonitorKind>,
 
         #[arg(trailing_var_arg = true)]
         args: Option<Vec<String>>,
@@ -177,11 +175,11 @@ async fn main() {
         Commands::Monitor {
             target,
             deployment_id,
-            subcmd,
+            kind,
             args,
         } => {
             MonitorCommand::new()
-                .run(&ctx, &target, &deployment_id, subcmd, args)
+                .run(&ctx, &target, &deployment_id, kind, args)
                 .await
         }
     } {
