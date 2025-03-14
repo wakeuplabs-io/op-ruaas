@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Order } from "@/types";
+import { Offer, Order } from "@/types";
 import {
   Tooltip,
   TooltipContent,
@@ -12,11 +12,12 @@ import { ShieldCheck } from "lucide-react";
 
 interface RollupHeaderProps {
   order: Order;
+  offer: Offer;
 }
 
-export function RollupHeader({ order }: RollupHeaderProps) {
+export function RollupHeader({ order, offer }: RollupHeaderProps) {
   if (!order) return <></>;
-  const { fulfilledAt, terminatedAt, id, name, offer } = order;
+  const { fulfilledAt, terminatedAt, id, setupMetadata } = order;
   const { step } = useUnsubscribe({ orderId: id });
   const currentUnixTime = BigInt(Math.floor(Date.now() / 1000));
 
@@ -27,7 +28,7 @@ export function RollupHeader({ order }: RollupHeaderProps) {
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
       <div className="flex items-center gap-2">
         <h2 className="text-lg font-medium">
-          {name} <span className="text-gray-500">/ {offer.metadata.title}</span>
+          {setupMetadata.name} <span className="text-gray-500">/ {offer.metadata.title}</span>
         </h2>
       </div>
 

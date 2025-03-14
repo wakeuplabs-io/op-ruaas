@@ -36,6 +36,7 @@ export default function RollupDashboard() {
         <div className="border px-8 py-6 shadow-sm bg-white rounded-[calc(0.75rem-1px)]">
           <RollupHeader
             order={data.order}
+            offer={data.offer}
           />
 
           {order.fulfilledAt > 0 && (

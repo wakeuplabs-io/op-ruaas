@@ -1,4 +1,3 @@
-import { toEventSelector } from "viem";
 import { Offer } from "@/types";
 import {
   Dialog,
@@ -9,8 +8,8 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import { Button, ButtonProps } from "./ui/button";
-import { formatUnits, pad, toBytes, toHex, zeroAddress } from "viem";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { formatUnits, zeroAddress } from "viem";
+import React, { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useChainPermissions } from "@/lib/hooks/use-chain-permissions";
 import { ArrowRight, UploadIcon } from "lucide-react";

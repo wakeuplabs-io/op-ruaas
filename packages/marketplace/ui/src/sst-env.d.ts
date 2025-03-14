@@ -4,6 +4,13 @@
 /// <reference types="vite/client" />
 interface ImportMetaEnv {
   readonly VITE_APP_REGION: string
+  readonly VITE_IS_TESTNET: string
+  readonly VITE_MARKETPLACE_ADDRESS: string
+  readonly VITE_ERC20_TOKEN_ADDRESS: string
+  readonly VITE_MARKETPLACE_CHAIN_ID: string
+  readonly VITE_PINATA_JWT: string
+  readonly VITE_GATEWAY_URL: string
+  readonly VITE_PROVIDER_NAME: string
 }
 interface ImportMeta {
   readonly env: ImportMetaEnv
