@@ -34,7 +34,6 @@ export const useOrderDetails = ({ id }: { id: bigint }) => {
     }
   });
 
-  console.log({id, order})
   return {
     data: order
       ? {
