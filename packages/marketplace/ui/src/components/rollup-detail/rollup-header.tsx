@@ -32,7 +32,7 @@ export function RollupHeader({ order, offer }: RollupHeaderProps) {
         </h2>
       </div>
 
-      {terminatedAt > 0n ? (
+      {terminatedAt > 0n  && step === UnsubscribeStep.Done ? (
         <div className="flex justify-end">
 
           <UnsubscribeModal
@@ -78,7 +78,7 @@ export function RollupHeader({ order, offer }: RollupHeaderProps) {
             </TooltipProvider>
           )}
 
-          {terminatedAt > 0n && step === UnsubscribeStep.Done && <UnsubscribeModal
+          {terminatedAt > 0n && <UnsubscribeModal
             orderId={id}
             className="h-10 px-6 text-white"
             step={step}
