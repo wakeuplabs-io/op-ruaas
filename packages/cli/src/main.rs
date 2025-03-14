@@ -5,7 +5,14 @@ mod infrastructure;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 use commands::{
-    build::BuildTargets, deploy::{DeployDeploymentKind, DeployTarget}, init::InitTargets, inspect::InspectTarget, monitor::{MonitorKind, MonitorTarget}, release::ReleaseTargets, start::StartDeploymentKind, BuildCommand, DeployCommand, InitCommand, InspectCommand, MonitorCommand, NewCommand, ReleaseCommand, StartCommand
+    build::BuildTargets,
+    deploy::{DeployDeploymentKind, DeployTarget},
+    init::InitTargets,
+    inspect::InspectTarget,
+    monitor::{MonitorKind, MonitorTarget},
+    release::ReleaseTargets,
+    start::StartDeploymentKind,
+    BuildCommand, DeployCommand, InitCommand, InspectCommand, MonitorCommand, NewCommand, ReleaseCommand, StartCommand,
 };
 use dotenv::dotenv;
 use infrastructure::console::print_error;
@@ -44,7 +51,6 @@ enum Commands {
 
         #[arg(long, default_value_t = false)]
         default: bool,
-        
         // TODO: values file
     },
     /// Deploy your blockchain. Target must be one of: contracts, infra, all

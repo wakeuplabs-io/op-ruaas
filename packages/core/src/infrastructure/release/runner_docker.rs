@@ -21,12 +21,9 @@ impl DockerReleaseRunner {
 }
 
 impl TReleaseRunner for DockerReleaseRunner {
-    fn run(
-        &self,
-        release: &Release,
-        opts: ReleaseRunnerOptions
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let env_args: Vec<Vec<String>> = opts.env
+    fn run(&self, release: &Release, opts: ReleaseRunnerOptions) -> Result<(), Box<dyn std::error::Error>> {
+        let env_args: Vec<Vec<String>> = opts
+            .env
             .iter()
             .map(|(key, value)| vec!["-e".to_string(), format!("{}={}", key, value)])
             .collect();

@@ -37,17 +37,16 @@ pub struct DeploymentMonitorOptions {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum MonitorKind {
-  Multisig,
-  Fault,
-  Withdrawals,
-  Drippie,
-  Secrets,
-  GlobalEvents,
-  LivenessExpiration,
-  Balances,
-  Dispute
+    Multisig,
+    Fault,
+    Withdrawals,
+    Drippie,
+    Secrets,
+    GlobalEvents,
+    LivenessExpiration,
+    Balances,
+    Dispute,
 }
-
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum DeploymentKind {
@@ -103,7 +102,6 @@ pub trait TDeploymentRunner {
     ) -> Result<(), Box<dyn std::error::Error>>;
     fn stop(&self, release_tag: &str, release_namespace: &str) -> Result<(), Box<dyn std::error::Error>>;
 }
-
 
 #[async_trait::async_trait]
 pub trait TDeploymentMonitorRunner {

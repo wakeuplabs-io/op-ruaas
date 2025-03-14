@@ -176,13 +176,31 @@ The deployment process will create a deployments/my-prod-deployment directory co
 
 There're two main options here, `onchain` and `offchain`.
 
-- `onchain` is a wrapper around [op-monitorism]() and [op-dispute-mon]() which we prefill with the specified deployment data (Still user can overwrite if they see fit).
+- `onchain` is a wrapper around [op-monitorism](https://github.com/ethereum-optimism/monitorism/tree/op-monitorism/v0.0.6/op-monitorism) and [op-dispute-mon](https://github.com/ethereum-optimism/optimism/tree/v1.12.1/op-dispute-mon) which we prefill with the specified deployment data.
 - `offchain` will just remember the user the graphana url for them to check server status and other reports.
 
 Example usage:
 
 ```bash
+opraas monitor offchain --deployment-id dev
+# Monitor URL:
+# http://monitoring.localhost:80
 
+opraas -v monitor onchain --deployment-id dev --kind balances -- --accounts 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266:mine
+# Running monitor...
+# Remember to use '-v' to see the logs. We'll prefill some values for you.
+#  INFO opraas_core::utils::system > Executing command: "docker" "pull" "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-monitorism:latest"
+# latest: Pulling from oplabs-tools-artifacts/images/op-monitorism
+# Digest: sha256:f9e49a4d324ddcec97f677c98411dc901238a8c94f4ea35c7a1a87080a60cf2e
+# Status: Image is up to date for us-docker.pkg.dev/oplabs-tools-artifacts/images/op-monitorism:latest
+# us-docker.pkg.dev/oplabs-tools-artifacts/images/op-monitorism:latest
+#  INFO opraas_core::utils::system > Executing command: "docker" "run" "--rm" "-v" "/Users/matzapata/git-work/optimism/opruaas/other-demo:/shared" "--name" "op-monitor" "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-monitorism:latest" "/usr/local/bin/monitorism" "balances" "--node.url" "http://host.docker.internal:8545" "--accounts" "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266:mine"
+# t=2025-03-14T20:32:22+0000 lvl=info msg="creating balance monitor"
+# t=2025-03-14T20:32:22+0000 lvl=info msg="configured account" address=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 nickname=mine
+# t=2025-03-14T20:32:22+0000 lvl=info msg="starting metrics server" host=0.0.0.0 port=7300
+# t=2025-03-14T20:32:22+0000 lvl=info msg="starting monitor..." loop_interval_ms=60000
+# t=2025-03-14T20:32:22+0000 lvl=info msg="querying balances..."
+# t=2025-03-14T20:32:22+0000 lvl=info msg="set balance" address=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 nickname=mine balance=9998.980231447096
 ```
 
 ## Chain management
