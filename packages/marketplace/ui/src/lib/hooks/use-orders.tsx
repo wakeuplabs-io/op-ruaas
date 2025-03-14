@@ -30,7 +30,7 @@ export function useOrders() {
     },
   });
 
-  if (!orders) return { sequencerRollups: [], replicaRollups: [], isLoading, error, refetch: refetchOrders };
+  if (!orders) return { sequencerRollups: [] as Order[], replicaRollups: [], isLoading, error, refetch: refetchOrders };
 
   const { sequencerRollups, replicaRollups } = orders.reduce(
     (acc, order) => {
@@ -71,7 +71,6 @@ export function useOrders() {
           ...order.offer,
           metadata: offerMetadata,
         },
-        id: order.orderId,
       };
 
       if (offerMetadata.wallets) {

@@ -10,7 +10,7 @@ import { Loader2 } from "lucide-react"
 import { useAccount } from "wagmi";
 
 interface DepositModalProps {
-  orderId: string;
+  orderId: bigint;
   plans: Plan[] | undefined;
   isOpen: boolean;
   onClose: () => void;

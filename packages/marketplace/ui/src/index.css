@@ -56,6 +56,13 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+    --alert-border: 355, 71%, 32%;
+    --alert-background: 0, 100%, 97%;
+    --shield-border: 132, 80%, 63%;
+    --shield-background: 132, 100%, 91%;
+    --tooltip-border: 220, 14%, 83%;
+    --tooltip-background: 0, 0%, 100%;
+    --tooltip-text: 0, 0%, 0%;
   }
   .dark {
     --background: 224 71.4% 4.1%;
@@ -82,6 +89,13 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+    --alert-border: 355, 71%, 32%;
+    --alert-background: 0, 100%, 97%;
+    --shield-border: 132, 80%, 63%;
+    --shield-background: 132, 100%, 91%;
+    --tooltip-border: 220, 14%, 83%;
+    --tooltip-background: 0, 0%, 100%;
+    --tooltip-text: 0, 0%, 0%;
   }
 }
 
