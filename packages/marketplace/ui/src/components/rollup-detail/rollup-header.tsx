@@ -9,7 +9,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { UnsubscribeStep, useUnsubscribe } from "@/lib/hooks/use-unsubscribe";
-import { useState } from "react";
 
 interface RollupHeaderProps {
   order: Order;

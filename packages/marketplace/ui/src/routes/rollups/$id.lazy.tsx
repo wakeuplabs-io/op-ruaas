@@ -42,6 +42,15 @@ export default function RollupDashboard() {
               statusColor={statusColor}
             />
           )}
+          <RollupHeader order={order as unknown as Order} />
+            {fulfilledAt > 0n && (
+              <RollupActions
+                order={order as unknown as Order}
+                setStatusColor={setStatusColor}
+                statusColor={statusColor}
+              />
+            )}
+          
         </div>
       </div>
 
