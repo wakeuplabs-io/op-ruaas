@@ -1,26 +1,51 @@
-export const useOrder = ({ id }: { id: bigint }) => {
-  // TODO: unmock
+import {
+  MARKETPLACE_ABI,
+  MARKETPLACE_ADDRESS,
+  MARKETPLACE_CHAIN_ID,
+} from "@/shared/constants/marketplace";
+import {
+  OfferMetadata,
+  Order,
+  OrderDeploymentMetadata,
+  OrderSetupMetadata,
+} from "@/types";
+import { useReadContract } from "wagmi";
+
+export const useOrderDetails = ({ id }: { id: bigint }) => {
+  const { data: order } = useReadContract({
+    address: MARKETPLACE_ADDRESS,
+    chainId: MARKETPLACE_CHAIN_ID,
+    abi: MARKETPLACE_ABI,
+    functionName: "getOrder",
+    args: [id],
+  });
 
   return {
-    name: "mock rollup",
-    id: 1n,
-    fulfilledAt: 1741719683n,
-    terminatedAt: 0n,
-    offer: {
-      pricePerMonth: 10n * 10n ** 18n
-    },
-    provider: {
-      sequencer: "0x123",
-      batcher: "0x123",
-      proposer: "0x123",
-      challenger: "0x123",
-    },
-    network: { l1ChainId: 1n },
-    addresses: {
-      systemConfigProxy: "0x123",
-      l2OutputOracleProxy: "0x123",
-      systemOwnerSafe: "0x123",
-      proxyAdmin: "0x123",
-    },
+    data: order
+      ? {
+          order: {
+            client: (order as any).client,
+            createdAt: (order as any).createdAt,
+            fulfilledAt: (order as any).fulfilledAt,
+            terminatedAt: (order as any).terminatedAt,
+            lastWithdrawal: (order as any).lastWithdrawal,
+            balance: (order as any).balance,
+            setupMetadata: JSON.parse(
+              (order as any).setupMetadata ?? "{}"
+            ) as OrderSetupMetadata,
+            deploymentMetadata: JSON.parse(
+              (order as any).deploymentMetadata ?? "{}"
+            ) as OrderDeploymentMetadata,
+          } as Order,
+          offer: {
+            vendor: (order as any).offer.vendor,
+            pricePerMonth: (order as any).offer.pricePerMonth,
+            remainingUnits: (order as any).offer.remainingUnits,
+            metadata: JSON.parse(
+              (order as any).offer.metadata ?? "{}"
+            ) as OfferMetadata,
+          },
+        }
+      : null,
   };
 };

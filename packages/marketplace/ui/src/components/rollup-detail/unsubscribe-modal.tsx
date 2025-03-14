@@ -7,13 +7,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "./ui/scroll-area";
+import { ScrollArea } from "../ui/scroll-area";
 import { ArrowRight } from "lucide-react";
 import { UnsubscribeStep, useUnsubscribe } from "@/lib/hooks/use-unsubscribe";
 import { useChainPermissions } from "@/lib/hooks/use-chain-permissions";
 import { zeroAddress } from "viem";
-import { StepCard } from "./step-card";
-import { useOrder } from "@/lib/hooks/use-order";
+import { useOrderDetails } from "@/lib/hooks/use-order";
+import { StepCard } from "../step-card";
 
 export const UnsubscribeModal: React.FC<
   {
@@ -22,26 +22,23 @@ export const UnsubscribeModal: React.FC<
     step: UnsubscribeStep;
   } & ButtonProps
 > = ({ orderId, disabled, step, ...props }) => {
-  const {
-    network: { l1ChainId },
-    addresses: {
-      systemConfigProxy,
-      l2OutputOracleProxy,
-      systemOwnerSafe,
-      proxyAdmin,
-    },
-  } = useOrder({ id: orderId });
+  const { data } = useOrderDetails({ id: orderId });
   const { unsubscribe } = useUnsubscribe({ orderId });
   const {
     setBatcherAddress,
     setSequencerAddress,
     setOracleAddress,
   } = useChainPermissions({
-    l1ChainId: Number(l1ChainId),
-    systemConfigProxy: systemConfigProxy as `0x${string}`,
-    l2OutputOracleProxy: l2OutputOracleProxy as `0x${string}`,
-    systemOwnerSafe: systemOwnerSafe as `0x${string}`,
-    proxyAdmin: proxyAdmin as `0x${string}`,
+    l1ChainId: Number(data?.order.deploymentMetadata.network.l1ChainID ?? 0),
+    systemConfigProxy:
+      data?.order.deploymentMetadata.addresses.systemConfigProxy ?? zeroAddress,
+    l2OutputOracleProxy:
+      data?.order.deploymentMetadata.addresses.l2OutputOracleProxy ??
+      zeroAddress,
+    systemOwnerSafe:
+      data?.order.deploymentMetadata.addresses.systemOwnerSafe ?? zeroAddress,
+    proxyAdmin:
+      data?.order.deploymentMetadata.addresses.proxyAdmin ?? zeroAddress,
   });
 
   return (

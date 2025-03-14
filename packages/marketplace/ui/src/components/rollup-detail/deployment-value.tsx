@@ -15,13 +15,13 @@ export const DeploymentValue: React.FC<{
   }, []);
 
   return (
-    <div className={cn("h-[45px] px-4 border rounded-md relative", props.className)}>
+    <div className={cn("h-12 px-4 border rounded-md relative overflow-x-hidden", props.className)}>
       <div className="flex items-start justify-center flex-col h-full">
         <pre className="text-foreground text-sm overflow-clip">{props.value}</pre>
         <span className="text-xs text-muted-foreground">{props.description}</span>
       </div>
       <button
-        className="absolute right-0 top-1/2 -translate-y-1/2 rounded-sm h-[45px] w-[45px] border grid place-content-center bg-gray-100"
+        className="absolute right-0 top-1/2 -translate-y-1/2 rounded-sm h-12 w-12 border grid place-content-center bg-gray-100"
         onClick={onCopyClick}
       >
         {isCopied ? (

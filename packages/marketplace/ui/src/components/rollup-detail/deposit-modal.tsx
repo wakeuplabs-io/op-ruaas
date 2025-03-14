@@ -68,13 +68,7 @@ export function DepositModal({ orderId, plans, isOpen, onClose }: DepositModalPr
     }
   };
 
-  if (!plans) {
-    return <p className="text-center p-6 text-gray-600">Loading...</p>;
-  }
 
-  if (plans.length === 0) {
-    return <p className="text-center p-6 text-gray-600">No available plans</p>;
-  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -89,7 +83,7 @@ export function DepositModal({ orderId, plans, isOpen, onClose }: DepositModalPr
           </p>
 
           <div className="mt-8 pb-8 grid grid-cols-2 gap-3">
-            {plans.map((plan) => (
+            {plans?.map((plan) => (
               <button
                 key={plan.months}
                 onClick={() => setSelectedPlan(plan)}

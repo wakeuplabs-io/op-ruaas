@@ -1,14 +1,13 @@
-import { AddressManagerList } from "@/components/rollup-detail/address-manager-list";
 import { RollupActions } from "@/components/rollup-detail/rollup-actions";
 import { RollupHeader } from "@/components/rollup-detail/rollup-header";
 import { Card } from "@/components/ui/card";
 import { createLazyFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Clock, Download, OctagonAlert } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useOrder } from "@/lib/hooks/use-order";
-import { Order } from "@/types";
+import { useOrderDetails } from "@/lib/hooks/use-order";
+import { DeploymentValue } from "@/components/rollup-detail/deployment-value";
+import { useCallback } from "react";
+import { pinata } from "@/lib/pinata";
 
 export const Route = createLazyFileRoute("/rollups/$id")({
   component: RollupDashboard,
@@ -16,53 +15,60 @@ export const Route = createLazyFileRoute("/rollups/$id")({
 
 export default function RollupDashboard() {
   const { id } = Route.useParams();
-  const [statusColor, setStatusColor] = useState("gray-200");
-  const { terminatedAt, fulfilledAt, name, offer } = useOrder({
-    id: BigInt(id),
-  });
-  const order = { terminatedAt, fulfilledAt, name, id, offer };
+  const { data } = useOrderDetails({ id: BigInt(id) });
+
+  const onDownload = useCallback(async () => {
+    const artifactsCid = data?.order.deploymentMetadata.artifacts;
+    if (!artifactsCid) return;
+
+    const gatewayUrl = await pinata.gateways.public.convert(artifactsCid);
+    window.open(gatewayUrl, "_blank");
+  }, [data]);
+
+  if (!data) {
+    return "Not found";
+  }
+
+  const { order, offer } = data;
   return (
     <div className="md:p-6 space-y-6">
-      <div
-        className={cn(
-          "rounded-lg bg-gradient-to-l to-transparent p-pxfrom-gray-300"
-        )}
-      >
-        <div
-          className={cn(
-            "border px-8 py-6 shadow-sm bg-white rounded-[calc(0.75rem-1px)]",
-            terminatedAt > 0n ? "border border-alert-border" : "border-gray-200"
-          )}
-        >
-          <RollupHeader order={order as unknown as Order} />
-          {fulfilledAt > 0n && (
+      <div className="rounded-lg bg-gradient-to-l from-gray-300 to-transparent p-px">
+        <div className="border px-8 py-6 shadow-sm bg-white rounded-[calc(0.75rem-1px)]">
+          <RollupHeader
+            order={data.order}
+          />
+
+          {order.fulfilledAt > 0 && (
             <RollupActions
-              order={order as unknown as Order}
-              setStatusColor={setStatusColor}
-              statusColor={statusColor}
+              l2ChainId={order.deploymentMetadata.network.l2ChainID}
+              rpcUrl={order.deploymentMetadata.urls.rpc}
+              pricePerMonth={BigInt(offer.pricePerMonth)}
+              balance={BigInt(order.balance)}
             />
           )}
-          <RollupHeader order={order as unknown as Order} />
-            {fulfilledAt > 0n && (
-              <RollupActions
-                order={order as unknown as Order}
-                setStatusColor={setStatusColor}
-                statusColor={statusColor}
-              />
-            )}
-          
         </div>
       </div>
 
-      {fulfilledAt > 0 ? (
+      {order.fulfilledAt > 0 ? (
         <div>
           <Card className="p-6 border rounded-lg">
-            <AddressManagerList />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-9">
+              {Object.entries(order.deploymentMetadata.addresses).map(
+                ([key, value], index) => (
+                  <DeploymentValue
+                    key={index}
+                    value={value as string}
+                    description={key as string}
+                  />
+                )
+              )}
+            </div>
           </Card>
 
           <Button
-            variant="outline"
-            className="w-full mt-6 py-6 flex gap-2 items-center justify-center bg-gray-200"
+            variant="secondary"
+            className="w-full mt-6 py-6 flex gap-2 items-center justify-center"
+            onClick={onDownload}
           >
             <Download className="h-5 w-5" />
             Download zip

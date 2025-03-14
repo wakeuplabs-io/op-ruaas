@@ -28,14 +28,12 @@ async function main() {
       proposer: "0xf3A77F4dA4a4Fc14E40747C4e193b0F35FfbFe4F",
     }
   };
-
   const replicaMetadata = {
     title: "Ethereum",
     features: ["Run a replica node for your L2 chain", "Blockscout explorer"],
   };
-  const units = 100n;
 
-  const tx = await marketplace.createOffer(pricePerMonth, units, JSON.stringify(replicaMetadata));
+  const tx = await marketplace.createOffer(pricePerMonth, ethers.MaxUint256, JSON.stringify(sequencerMetadata));
   const receipt = await tx.wait();
 
   const offerId = (receipt?.logs[0] as any).args[1];

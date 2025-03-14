@@ -1,96 +1,52 @@
 import { Button } from "@/components/ui/button";
-import { DepositModal } from "./deposit-modal";
-import { useEffect, useState } from "react";
-import { useBalance } from "@/lib/hooks/use-balance";
-import { Order, Plan } from "@/types";
-import {
-  cn,
-  formatTokenAmount,
-  calculateStatusColor,
-  formatRemainingTime,
-  sleep,
-} from "@/lib/utils";
-import { BookDown, TriangleAlert } from "lucide-react";
-import { DeploymentValue } from "../deployment-value";
-import { ONE_SECOND } from "@/shared/constants/marketplace";
+import React, { useMemo } from "react";
+import { cn, formatTokenAmount, formatRemainingTime } from "@/lib/utils";
+import { BookDown } from "lucide-react";
+import { DeploymentValue } from "./deployment-value";
 
-interface RollupActionsProps {
-  order: Order;
-  setStatusColor: (color: string) => void;
-  statusColor: string;
-}
-export function RollupActions({
-  order,
-  setStatusColor,
-  statusColor,
-}: RollupActionsProps) {
-  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
-  const [plans, setPlans] = useState<Plan[]>();
-  const [displayRemainingTime, setDisplayRemainingTime] = useState<string>("-");
-  const { balance, isLoading, refetch } = useBalance(order.id);
+export const RollupActions: React.FC<{
+  rpcUrl: string;
+  l2ChainId: number;
+  pricePerMonth: bigint;
+  balance: bigint;
+}> = ({ pricePerMonth, balance, l2ChainId, rpcUrl }) => {
+  const remainingTimeString = useMemo(() => {
+    if (!pricePerMonth || balance === 0n) return "-";
+    return formatRemainingTime(balance, pricePerMonth);
+  }, [pricePerMonth, balance]);
 
-  useEffect(() => {
-    if (!order) return;
-    const { offer } = order;
-    setPlans([
-      { months: 1n, pricePerMonth: offer.pricePerMonth },
-      { months: 3n, pricePerMonth: offer.pricePerMonth },
-      { months: 6n, pricePerMonth: offer.pricePerMonth },
-      { months: 12n, pricePerMonth: offer.pricePerMonth },
-    ]);
-  }, [order]);
-
-  useEffect(() => {
-    const { offer } = order;
-    if (!isLoading && balance !== undefined && offer) {
-      setStatusColor(calculateStatusColor(balance, offer.pricePerMonth));
-      setDisplayRemainingTime(formatRemainingTime(balance, offer.pricePerMonth));
-    }
-  }, [balance, isLoading, order, setStatusColor]);
+  const statusColor = useMemo(() => {
+    if (!pricePerMonth || balance === 0n) return "red-500";
+    const daysRemaining = balance / (pricePerMonth / 30n);
+    if (daysRemaining < 1n) return "red-500";
+    if (daysRemaining < 30n) return "yellow-500";
+    return "gray-800";
+  }, [pricePerMonth, balance]);
 
   return (
     <div>
-      {order.terminatedAt > 0n ? (
-        <h2 className="mt-4 text-2xl font-semibold text-alert-border">
-          Unsubscribed
-        </h2>
-      ) : (
-        <div className="py-4">
-          <h1 className={cn("text-4xl font-bold", `text-${statusColor}`)}>
-            {isLoading ? "-" : displayRemainingTime}
-          </h1>
-          <p className="text-gray-500 mt-1">
-            ${isLoading ? "-" : formatTokenAmount(balance || 0n)}
-          </p>
-        </div>
-      )}
+      <div className="py-4">
+        <h1 className={cn("text-4xl font-bold", `text-${statusColor}`)}>
+          {remainingTimeString}
+        </h1>
+        <p className="text-gray-500 mt-1">
+          ${formatTokenAmount(balance || 0n)}
+        </p>
+      </div>
 
-      <div className="flex justify-between items-center gap-4 mt-2">
-        {order.terminatedAt > 0n ? (
-          <div className="mt-4">
-            <div className=" p-4 bg-alert-background rounded-lg flex items-start gap-3">
-              <TriangleAlert className="h-11 w-11 text-alert-border stroke-[1.5] flex-shrink-0" />
-              <p className="text-sm text-alert-border">
-                You're unsubscribed, but provider permissions are still active.
-                Complete the process to revoke access.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <Button
-            variant="outline"
-            onClick={() => setIsDepositModalOpen(true)}
-            className="w-32 h-11 flex items-center justify-center gap-2 mt-11"
-          >
-            <BookDown className="h-5 w-5" />
-            Deposit
-          </Button>
-        )}
+      <div className="flex justify-between items-center gap-4 mt-4">
+        <Button
+          variant="outline"
+          className="w-32 h-11 flex items-center justify-center gap-2"
+        >
+          <BookDown className="h-5 w-5" />
+          Deposit
+        </Button>
 
         <div className="flex gap-4 mt-11">
           {[
-            { label: "Chain ID", value: "0xDc64a14...F6C9" },
-            { label: "RPC URL", value: "0xDc64a14...F6C9" },
+            { label: "Chain ID", value: l2ChainId.toString() },
+            { label: "RPC URL", value: rpcUrl },
           ].map((item, index) => (
             <DeploymentValue
               key={index}
@@ -102,16 +58,12 @@ export function RollupActions({
         </div>
       </div>
 
-      <DepositModal
-        orderId={order.id}
+      {/* <DepositModal
+        orderId={orderId}
         isOpen={isDepositModalOpen}
-        onClose={async () => {
-          setIsDepositModalOpen(false);
-          await sleep(ONE_SECOND * 2);
-          refetch();
-        }}
+        onClose={() => setIsDepositModalOpen(false)}
         plans={plans}
-      />
+      /> */}
     </div>
   );
-}
+};

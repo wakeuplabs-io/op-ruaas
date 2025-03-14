@@ -829,6 +829,104 @@ export const MARKETPLACE_ABI = [
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "_orderId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getOrder",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "id",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "client",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "offerId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "createdAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "fulfilledAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "terminatedAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastWithdrawal",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "balance",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "setupMetadata",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "deploymentMetadata",
+            "type": "string"
+          },
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "vendor",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "pricePerMonth",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "remainingUnits",
+                "type": "uint256"
+              },
+              {
+                "internalType": "string",
+                "name": "metadata",
+                "type": "string"
+              }
+            ],
+            "internalType": "struct IMarketplaceStructs.Offer",
+            "name": "offer",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct IMarketplaceStructs.OrderWithOffer",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "_user",
         "type": "address"
@@ -1026,4 +1124,4 @@ export const MARKETPLACE_ABI = [
     "stateMutability": "nonpayable",
     "type": "function"
   }
-];
+]

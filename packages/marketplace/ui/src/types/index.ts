@@ -54,7 +54,19 @@ export type OrderSetupMetadata = {
 }
 
 export type OrderDeploymentMetadata = {
-  
+  artifacts: string;
+  urls: {
+    rpc: string;
+    explorer: string;
+    monitoring: string;
+  },
+  network: {
+    l1ChainID: number;
+    l2ChainID: number;
+  };
+  addresses: {
+    [key: string]: `0x${string}`;
+  };
 }
 
 export type OfferData = {
