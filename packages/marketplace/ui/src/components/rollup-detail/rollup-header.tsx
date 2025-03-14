@@ -23,7 +23,7 @@ export function RollupHeader({ order, offer }: RollupHeaderProps) {
 
   const timeRemainingInSeconds =
     fulfilledAt > 0n ? Number(fulfilledAt + 48n * 3600n - currentUnixTime) : 0;
-
+  console.log({terminatedAt, step})
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
       <div className="flex items-center gap-2">
@@ -32,7 +32,7 @@ export function RollupHeader({ order, offer }: RollupHeaderProps) {
         </h2>
       </div>
 
-      {terminatedAt > 0n  && step === UnsubscribeStep.Done ? (
+      {terminatedAt > 0n  && step !== UnsubscribeStep.Done ? (
         <div className="flex justify-end">
 
           <UnsubscribeModal
@@ -78,7 +78,7 @@ export function RollupHeader({ order, offer }: RollupHeaderProps) {
             </TooltipProvider>
           )}
 
-          {terminatedAt > 0n && <UnsubscribeModal
+          {fulfilledAt > 0n && <UnsubscribeModal
             orderId={id}
             className="h-10 px-6 text-white"
             step={step}
