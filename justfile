@@ -68,15 +68,13 @@ marketplace-ui-run:
 	npm run dev --workspace=marketplace-ui
 
 marketplace-deploy stage:
-  cd packages/marketplace && npx sst deploy --stage {{stage}}
+	cd packages/marketplace && npx sst deploy --stage {{stage}}
   
-# contracts
+marketplace-contracts-test:
+	npm test --workspace=marketplace-contracts
 
-contracts-test:
-	(cd packages/contracts && npm test)
-
-contracts-lint:
-	(cd packages/contracts && npm run lint)
+marketplace-contracts-lint:
+	npm run lint --workspace=marketplace-contracts
 
 # utils
 
