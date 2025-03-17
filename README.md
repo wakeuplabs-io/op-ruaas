@@ -318,6 +318,8 @@ Follow these steps to prepare and publish a new version of the package:
 
    - Update the version constant in `packages/cli/binary.js`.
    - Update the `version` field in `packages/cli/package.json`.
+   - Update `version` in `packages/cli/main.rs`.
+   - Update `version` in `justfile`.
 
 2. Update Artifacts (if applicable):  
    If the artifacts have changed, modify `packages/core/src/config/artifact.rs` to reflect the future version.
