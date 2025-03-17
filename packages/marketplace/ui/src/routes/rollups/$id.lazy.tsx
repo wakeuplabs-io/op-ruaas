@@ -35,7 +35,7 @@ export default function RollupDashboard() {
       <div className="rounded-lg bg-gradient-to-l from-gray-300 to-transparent p-px">
         <div className="border px-8 py-6 shadow-sm bg-white rounded-[calc(0.75rem-1px)]">
           <RollupHeader
-            order={order}
+            order={{...order, id: BigInt(id) }}
             offer={offer}
           />
           {order.fulfilledAt > 0 && (

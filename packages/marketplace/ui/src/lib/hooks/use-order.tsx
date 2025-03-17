@@ -23,7 +23,6 @@ export const useOrderDetails = ({ id }: { id: bigint }) => {
       enabled: !!id,
     }
   });
-
   return {
     data: order
       ? {

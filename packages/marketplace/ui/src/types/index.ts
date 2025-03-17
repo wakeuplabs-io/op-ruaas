@@ -123,3 +123,11 @@ export type RollupItem = {
   id: bigint;
   name: string
 }
+
+export enum UnsubscribeStep {
+  Unsubscribe,
+  SetSequencer,
+  SetBatcher,
+  SetOracle,
+  Done
+}

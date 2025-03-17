@@ -9,11 +9,12 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "../ui/scroll-area";
 import { ArrowRight } from "lucide-react";
-import { UnsubscribeStep, useUnsubscribe } from "@/lib/hooks/use-unsubscribe";
 import { useChainPermissions } from "@/lib/hooks/use-chain-permissions";
 import { zeroAddress } from "viem";
 import { useOrderDetails } from "@/lib/hooks/use-order";
 import { StepCard } from "../step-card";
+import { useTerminate } from "@/lib/hooks/use-terminate";
+import { UnsubscribeStep } from "@/types";
 
 export const UnsubscribeModal: React.FC<
   {
@@ -23,7 +24,7 @@ export const UnsubscribeModal: React.FC<
   } & ButtonProps
 > = ({ orderId, disabled, step, ...props }) => {
   const { data } = useOrderDetails({ id: orderId });
-  const { unsubscribe } = useUnsubscribe({ orderId });
+  const { terminate} = useTerminate({ orderId });
   const {
     setBatcherAddress,
     setSequencerAddress,
@@ -61,13 +62,13 @@ export const UnsubscribeModal: React.FC<
           </div>
 
           <StepCard
-            className="mt-8"
+            className="mt-8 text-white"
             title="1. Terminate payments."
             description="This will stop immediately the payment flow. Be aware the minimum payment unit is 30 days. You'll receive the remaining funds right away."
             isComplete={step > UnsubscribeStep.Unsubscribe}
             isActive={step === UnsubscribeStep.Unsubscribe}
           >
-            <Button className="mt-6" onClick={() => unsubscribe()}>
+            <Button className="mt-6" onClick={() => terminate()}>
               Terminate payments <ArrowRight />
             </Button>
           </StepCard>

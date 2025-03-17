@@ -49,6 +49,7 @@ const PlanCard: React.FC<{
   sequencer?: boolean;
 }> = ({ offerId, selected, sequencer }) => {
   const { offer, isLoading } = useOffer(BigInt(offerId));
+  
   if (isLoading) {
     return (
       <div className="border rounded-lg p-12 shadow-sm flex flex-col justify-between h-[550px]">
