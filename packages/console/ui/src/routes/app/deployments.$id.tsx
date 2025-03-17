@@ -12,7 +12,6 @@ import {
 import { Card } from '@/components/ui/card'
 import { getCurrentUser } from 'aws-amplify/auth'
 import { useSuspenseQueries } from '@tanstack/react-query'
-import { useAuth } from '@/lib/hooks/use-auth'
 import { capitalize } from '@/lib/strings'
 import { useCallback, useState } from 'react'
 import { UpdateDeploymentNameDialog } from '@/components/update-deployment-name-dialog'
@@ -26,7 +25,7 @@ import {
 } from '@/lib/queries/deployment-artifact'
 import { Deployment } from '@/lib/services/deployment'
 import { useToast } from '@/lib/hooks/use-toast'
-import { BreadcrumbHeader } from '@/components/breadcrumb-header'
+import { useAuth } from '@/lib/hooks/use-auth'
 
 export const Route = createFileRoute('/app/deployments/$id')({
   component: RouteComponent,
@@ -38,15 +37,15 @@ export const Route = createFileRoute('/app/deployments/$id')({
 })
 
 function RouteComponent() {
-  const { user } = useAuth()
   const { toast } = useToast()
   const { id } = Route.useParams()
+  const { user } = useAuth()
 
   const [{ data: deployment }, { data: deploymentHasArtifact }] =
     useSuspenseQueries({
       queries: [
-        deploymentById(user?.userId, id),
-        deploymentArtifactExists(user?.userId, id),
+        deploymentById(user?.id, id),
+        deploymentArtifactExists(user?.id, id),
       ],
     })
   const { mutateAsync: downloadArtifact, isPending: isDownloading } =
@@ -70,12 +69,7 @@ function RouteComponent() {
 
   return (
     <>
-      <BreadcrumbHeader
-        title="Deployments"
-        breadcrumb={[{ id: 0, label: capitalize(deployment.name) }]}
-      />
-
-      <main className="p-4 pt-0 pb-20">
+      <main className="p-16">
         <Card className="space-y-6">
           <div className="flex items-center justify-between">
             <h1 className="font-bold text-xl">{capitalize(deployment.name)}</h1>

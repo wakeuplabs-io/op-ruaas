@@ -1,4 +1,4 @@
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { deploymentsByOwner } from "@/lib/queries/deployment";
@@ -11,7 +11,7 @@ export const Route = createFileRoute("/app")({
 
 function RouteComponent() {
   const { user } = useAuth();
-  const { data: deployments } = useQuery(deploymentsByOwner(user?.userId));
+  const { data: deployments } = useQuery(deploymentsByOwner(user?.id));
 
   return (
     <SidebarProvider>

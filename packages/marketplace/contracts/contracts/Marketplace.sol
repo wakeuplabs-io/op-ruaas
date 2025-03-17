@@ -5,7 +5,6 @@ import {IMarketplace} from "./interfaces/IMarketplace.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-
 contract Marketplace is IMarketplace, ReentrancyGuard {
     IERC20 public paymentToken;
 
@@ -251,19 +250,20 @@ contract Marketplace is IMarketplace, ReentrancyGuard {
     function getOrder(
         uint256 _orderId
     ) public view returns (OrderWithOffer memory) {
-        return OrderWithOffer({
-            id: _orderId,
-            client: orders[_orderId].client,
-            offerId: orders[_orderId].offerId,
-            createdAt: orders[_orderId].createdAt,
-            fulfilledAt: orders[_orderId].fulfilledAt,
-            terminatedAt: orders[_orderId].terminatedAt,
-            lastWithdrawal: orders[_orderId].lastWithdrawal,
-            balance: orders[_orderId].balance,
-            setupMetadata: orders[_orderId].setupMetadata,
-            deploymentMetadata: orders[_orderId].deploymentMetadata,
-            offer: offers[orders[_orderId].offerId]
-        });
+        return
+            OrderWithOffer({
+                id: _orderId,
+                client: orders[_orderId].client,
+                offerId: orders[_orderId].offerId,
+                createdAt: orders[_orderId].createdAt,
+                fulfilledAt: orders[_orderId].fulfilledAt,
+                terminatedAt: orders[_orderId].terminatedAt,
+                lastWithdrawal: orders[_orderId].lastWithdrawal,
+                balance: orders[_orderId].balance,
+                setupMetadata: orders[_orderId].setupMetadata,
+                deploymentMetadata: orders[_orderId].deploymentMetadata,
+                offer: offers[orders[_orderId].offerId]
+            });
     }
 
     /// @inheritdoc IMarketplace
@@ -299,8 +299,31 @@ contract Marketplace is IMarketplace, ReentrancyGuard {
     /// @inheritdoc IMarketplace
     function getVendorOrders(
         address _user
-    ) external view returns (uint256[] memory) {
-        return vendorOrders[_user];
+    ) external view returns (OrderWithOffer[] memory) {
+        uint256[] memory orderIds = vendorOrders[_user];
+        OrderWithOffer[] memory result = new OrderWithOffer[](orderIds.length);
+
+        for (uint256 i = 0; i < orderIds.length; i++) {
+            uint256 orderId = orderIds[i];
+            Order memory order = orders[orderId];
+            Offer memory offer = offers[order.offerId];
+
+            result[i] = OrderWithOffer({
+                id: orderId,
+                client: order.client,
+                offerId: order.offerId,
+                createdAt: order.createdAt,
+                fulfilledAt: order.fulfilledAt,
+                terminatedAt: order.terminatedAt,
+                lastWithdrawal: order.lastWithdrawal,
+                balance: order.balance,
+                setupMetadata: order.setupMetadata,
+                deploymentMetadata: order.deploymentMetadata,
+                offer: offer
+            });
+        }
+
+        return result;
     }
 
     /// @notice Creates a new order

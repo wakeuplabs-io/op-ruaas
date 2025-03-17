@@ -1,26 +1,17 @@
 use crate::error::ApiError;
 use axum::{body::Body, extract::Request, http, http::Response, middleware::Next};
-use jsonwebtokens::Verifier;
-use jsonwebtokens_cognito::KeySet;
 
 #[derive(Clone)]
 pub struct AuthCurrentUser {
     pub id: String,
-    pub email: String,
 }
 
 #[derive(Clone)]
-pub struct Authorizer {
-    keyset: KeySet,
-    verifier: Verifier,
-}
+pub struct Authorizer {}
 
 impl Authorizer {
-    pub fn new(region: &str, user_pool_id: &str, client_ids: &[&str]) -> Result<Self, Box<dyn std::error::Error>> {
-        let keyset = KeySet::new(region, user_pool_id)?;
-        let verifier = keyset.new_id_token_verifier(client_ids).build()?;
-
-        Ok(Self { keyset, verifier })
+    pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
+        Ok(Self {})
     }
 
     pub async fn authorize(&self, mut req: Request, next: Next) -> Result<Response<Body>, ApiError> {
@@ -40,25 +31,27 @@ impl Authorizer {
         }
 
         let token_str = token.unwrap().to_string();
-        let res = self
-            .keyset
-            .verify(&token_str, &self.verifier)
-            .await
-            .map_err(|_| ApiError::AuthError("Invalid token".to_string()))?;
 
-        if let (Some(sub), Some(email)) = (
-            res.get("sub").and_then(|v| v.as_str()),
-            res.get("email").and_then(|v| v.as_str()),
-        ) {
-            let current_user = AuthCurrentUser {
-                id: sub.to_string(),
-                email: email.to_string(),
-            };
+        // TODO:
+        let current_user = AuthCurrentUser {
+            id: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266".to_string(),
+        };
 
-            req.extensions_mut().insert(current_user);
-            Ok(next.run(req).await)
-        } else {
-            Err(ApiError::AuthError("Invalid token".to_string()))
-        }
+        req.extensions_mut().insert(current_user);
+        Ok(next.run(req).await)
+
+        // if let (Some(sub), Some(email)) = (
+        //     res.get("sub").and_then(|v| v.as_str()),
+        //     res.get("email").and_then(|v| v.as_str()),
+        // ) {
+        //     let current_user = AuthCurrentUser {
+        //         id: sub.to_string(),
+        //     };
+
+        //     req.extensions_mut().insert(current_user);
+        //     Ok(next.run(req).await)
+        // } else {
+        //     Err(ApiError::AuthError("Invalid token".to_string()))
+        // }
     }
 }

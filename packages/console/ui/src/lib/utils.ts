@@ -13,3 +13,12 @@ export function readFile(f: File): Promise<string> {
     reader.readAsText(f);
   })
 }
+
+
+export function safeParseJSON (value: string | null | undefined) {
+  try {
+    return value ? JSON.parse(value) : {};
+  } catch {
+    return {};
+  }
+};

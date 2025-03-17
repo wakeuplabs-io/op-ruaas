@@ -49,7 +49,7 @@ Customer can create an order.
 npx hardhat create-order --network <network> --offer-id <id> --initial-commitment <number of months> --metadata <metadata>
 
 # example
-npx hardhat create-order --network op-sepolia --offer-id 0 --initial-commitment 3 --metadata '{"name":"Base","artifacts":"QmVbzUdWgLwoDAtjz48uNT2rQh1AnjmyRXVqfK9ihmnjic","sequencerUrl":"www.example.com/rpc"}'
+npx hardhat create-order --network op-sepolia --offer-id 0 --initial-commitment 1 --metadata '{"name":"Base","artifacts":"QmVbzUdWgLwoDAtjz48uNT2rQh1AnjmyRXVqfK9ihmnjic","sequencerUrl":"www.example.com/rpc"}'
 ```
 
 ### fulfill-order

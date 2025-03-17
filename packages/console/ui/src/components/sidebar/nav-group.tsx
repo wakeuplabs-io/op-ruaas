@@ -8,9 +8,11 @@ import {
 } from "@/components/ui/sidebar";
 import { Link, useRouterState } from "@tanstack/react-router";
 
-export function NavMain({
+export function NavGroup({
+  title,
   items,
 }: {
+  title: string;
   items: {
     title: string;
     url: string;
@@ -22,7 +24,7 @@ export function NavMain({
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Create</SidebarGroupLabel>
+      <SidebarGroupLabel>{title}</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item, index) => (
           <SidebarMenuItem key={index}>
