@@ -15,7 +15,6 @@ export const Route = createFileRoute("/")({
 
 export function SubscriptionPlans() {
   const [selected, setSelected] = React.useState<string>(SEQUENCER_IDS[0]);
-  console.log({REPLICA_IDS})
   return (
     <Tabs className="p-10" defaultValue="sequencer" onValueChange={(value) => {
       setSelected(value === "sequencer" ? SEQUENCER_IDS[0] : REPLICA_IDS[0]);
