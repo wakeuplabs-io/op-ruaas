@@ -198,7 +198,7 @@ task("withdraw", "Withdraws from order")
       const token = await hre.ethers.getContractAt("TestToken", paymentToken);
       const decimals = await token.decimals();
 
-      // fulfill order
+      // withdraw from order
       console.log("Withdrawing from order...");
       const tx = await marketplace.withdraw(
         orderId,
@@ -207,5 +207,31 @@ task("withdraw", "Withdraws from order")
       await tx.wait();
 
       console.log(`Withdraw from ${orderId} in tx ${tx.hash}`);
+    }
+  );
+
+task("balance", "Balance of actor in a order")
+  .addParam("of", "Address")
+  .addParam("orderId", "OrderId")
+  .setAction(
+    async (taskArguments: TaskArguments, hre: HardhatRuntimeEnvironment) => {
+      // validate params
+      const of = z.string().parse(taskArguments.of);
+      const orderId = z.number().gte(0).parse(taskArguments.orderId);
+
+      // recover deployment
+      const chain = await hre.ethers.provider.getNetwork();
+      const deployed_addresses = require(
+        `../ignition/deployments/chain-${chain.chainId}/deployed_addresses.json`
+      );
+      const marketplace = await hre.ethers.getContractAt(
+        "Marketplace",
+        deployed_addresses["MarketplaceModule#Marketplace"]
+      );
+
+      // balance
+      const balance = await marketplace.balanceOf(of, orderId);
+
+      console.log(`Balance: ${balance}`);
     }
   );
