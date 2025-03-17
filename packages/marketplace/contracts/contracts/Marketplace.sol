@@ -138,10 +138,10 @@ contract Marketplace is IMarketplace, ReentrancyGuard {
         Order storage order = orders[_orderId];
         Offer memory offer = offers[order.offerId];
 
-        uint256 timeSinceFulfilled = block.timestamp - order.fulfilledAt;
+        uint256 timeSinceCreated = block.timestamp - order.createdAt;
 
         // cannot terminate if not fulfilled and within fulfillment time.
-        if (order.fulfilledAt == 0 && timeSinceFulfilled > FULFILLMENT_PERIOD) {
+        if (order.fulfilledAt == 0 && timeSinceCreated < FULFILLMENT_PERIOD) {
             revert OrderNotFulfilled();
         }
 
