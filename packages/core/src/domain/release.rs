@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Release {
-    pub artifact_name: String, // TODO: rename as component?
+    pub artifact_name: String,
     pub artifact_tag: String,
     pub registry_url: String,
 }
@@ -23,12 +23,15 @@ pub trait TReleaseRepository: Send + Sync {
 }
 
 pub trait TReleaseRunner: Send + Sync {
-    fn run(
-        &self,
-        release: &Release,
-        volume: &Path,
-        env: HashMap<&str, String>,
-    ) -> Result<(), Box<dyn std::error::Error>>;
+    fn run(&self, release: &Release, opts: ReleaseRunnerOptions) -> Result<(), Box<dyn std::error::Error>>;
+    fn stop(&self, container_name: &str) -> Result<(), Box<dyn std::error::Error>>;
+}
+
+pub struct ReleaseRunnerOptions<'a> {
+    pub env: HashMap<&'a str, String>,
+    pub args: Vec<String>,
+    pub volume: &'a Path,
+    pub container_name: String,
 }
 
 // implementations =============================================
