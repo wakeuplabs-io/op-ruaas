@@ -34,7 +34,7 @@ export const RollupActions: React.FC<{
         </p>
       </div>
 
-      <div className="flex justify-between items-center gap-4 mt-8">
+      <div className="flex justify-between items-center gap-4 mt-10">
         <Button
           variant="outline"
           className="w-32 h-11 flex items-center justify-center gap-2 mt-8"
