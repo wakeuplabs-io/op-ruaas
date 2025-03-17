@@ -30,6 +30,8 @@ pub enum MonitorKind {
     Dispute,
 }
 
+// TODO: the impl Into looks weird, maybe there is a better way???
+
 impl Into<opraas_core::domain::MonitorKind> for MonitorKind {
     fn into(self) -> opraas_core::domain::MonitorKind {
         match self {

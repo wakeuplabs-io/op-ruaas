@@ -64,8 +64,8 @@ pub struct StartCommand {
     >,
 }
 
-const DEFAULT_REGISTRY: &str = "wakeuplabs";
-const DEFAULT_RELEASE_TAG: &str = "v0.0.4";
+const DEFAULT_REGISTRY: &str = "wakeuplabs"; // TODO: could be configurable?
+const DEFAULT_RELEASE_TAG: &str = "v0.0.4"; // TODO: why is starting from v0.0.4?
 
 impl StartCommand {
     pub fn new() -> Self {
@@ -140,6 +140,8 @@ impl StartCommand {
 
         // request release name and repository to test
 
+        // TODO: review release registry and release tag, should be configurable, maybe we don't need the defaults
+
         let release_registry: String = match default {
             true => DEFAULT_REGISTRY.into(),
             false => self
@@ -158,6 +160,9 @@ impl StartCommand {
         let enable_explorer = self.dialoguer.confirm("Do you want to enable explorer?");
 
         // update config for devnet mode
+
+        // TODO: wallet and private key should be configurable, NOT hardcoded
+        // SAME with chain id, rpc url ???
 
         let wallet_address = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
         let wallet_private_key = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";

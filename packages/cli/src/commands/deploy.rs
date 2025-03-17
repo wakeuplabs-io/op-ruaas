@@ -108,9 +108,16 @@ impl DeployCommand {
 
         let project = Project::try_from(std::env::current_dir()?)?;
         let config = CoreConfig::new_from_toml(&project.config).unwrap();
-        let owner_id = ctx.user_id.clone().ok_or("User not found")?;
+        let owner_id = ctx.user_id.clone().ok_or("User not found")?; // TODO: there is another error besides user not found?
 
         // dev is reserved for local deployments
+
+        // TODO: is there a better way to validate the deployment id? the only rules are:
+        // - cannot be 'dev'
+        // - cannot contain spaces
+        // - cannot be empty
+        // - any other ????
+
         if deployment_id == "dev" {
             return Err("Deployment id cannot be 'dev'".into());
         } else if deployment_id.contains(" ") {
@@ -194,9 +201,9 @@ impl DeployCommand {
                         host: domain,
                         monitoring: enable_monitoring,
                         explorer: enable_explorer,
-                        storage_class_name: "gp2".to_string(),
-                        release_tag: "opruaas".to_string(),
-                        release_namespace: "opruaas".to_string(),
+                        storage_class_name: "gp2".to_string(), // TODO: should be configurable?
+                        release_tag: "opruaas".to_string(), // TODO: should be configurable?
+                        release_namespace: "opruaas".to_string(), // TODO: should be configurable?
                         sequencer_url: Some(sequencer_url.to_string()),
                         kind: kind.into(),
                     },

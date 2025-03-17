@@ -100,7 +100,7 @@ impl InitCommand {
         for handle in handles {
             match handle.join() {
                 Ok(Ok(_)) => {}
-                Ok(Err(e)) => return Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, e))),
+                Ok(Err(e)) => return Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, e))), // TODO: could we do this more readable?
                 Err(_) => {
                     return Err(Box::new(std::io::Error::new(
                         std::io::ErrorKind::Other,
