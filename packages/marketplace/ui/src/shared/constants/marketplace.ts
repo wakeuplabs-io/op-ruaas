@@ -1,15 +1,15 @@
 import { Address } from "viem";
 import envParsed from "@/envParsed";
-import { optimismSepolia } from "viem/chains";
 
 
 export const DAYS_PER_MONTH = 30;
 export const ONE_SECOND = 1000;
 
-export const SEQUENCER_IDS = ["0"];
-export const REPLICA_IDS = ["1"];
 
-export const MARKETPLACE_CHAIN_ID = optimismSepolia.id;
+export const SEQUENCER_IDS = envParsed().MARKETPLACE_SEQUENCER_OFFERS.split(",");
+export const REPLICA_IDS = envParsed().MARKETPLACE_REPLICA_OFFERS.split(",");
+
+export const MARKETPLACE_CHAIN_ID = Number(envParsed().MARKETPLACE_CHAIN_ID);
 export const MARKETPLACE_ADDRESS = envParsed().MARKETPLACE_ADDRESS as Address;
 export const MARKETPLACE_TOKEN = envParsed().ERC20_TOKEN_ADDRESS as Address;
 

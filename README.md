@@ -297,13 +297,17 @@ cast send --rpc-url http://localhost:8545 --private-key ac0974bec39a17e36ba4a6b4
 cast send --rpc-url {L1Rpc} --private-key {AdminPrivateKey} {SystemOwnerSafe} "execTransaction(address,uint256,bytes,uint8,uint256,uint256,uint256,address,address,bytes)" {ProxyAdmin} 0x0 $(cast calldata "upgrade(address, address)" {L2OutputOracleProxy} {NewImplementation}) 0 0 0 0 0x0000000000000000000000000000000000000000  0x0000000000000000000000000000000000000000 0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266000000000000000000000000000000000000000000000000000000000000000001
 ```
 
+## Marketplace
+
+Marketplace is a set of contracts and ui interface that allows for the creation and management of rollup deployments. We have a set of contracts deployed in optimism that allow vendors to quickly interact with users while giving users some guarantees of uptime and security. We encourage vendors to customize with their brands and offers the ui and start forwarding users there to manage their orders. On top of that we encourage vendors to make full use of the ruaas toolkit to fulfill this orders, deploy sequencers, replicas and follow them with the console ui. To ease up marketplace contract interactions we also provide hardhat tasks in the `packages/marketplace/contracts` folder, you can read more there.
+
 ## Dev
 
 ### Justfile Commands
 
 - `just format`: Format the codebase.
 - `just lint`: Run linting checks on the codebase.
-- `just release-{windows/apple/linux}`:  
+- `just cli-build-{windows/apple/linux}`:  
   Creates binaries and zip releases for the specified platform (`windows`, `apple`, or `linux`) within the `releases` folder.
 
 ### NPM Distribution
@@ -343,4 +347,12 @@ just console-tunnel staging
 
 # in another and once tunnel is available run db migrations
 just console-migrate staging
+```
+
+### WWW marketplace Deployments
+
+With aws cli configure properly you just need to run
+
+```bash
+just marketplace-deploy staging
 ```

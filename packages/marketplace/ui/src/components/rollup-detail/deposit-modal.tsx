@@ -8,7 +8,7 @@ import { Plan } from "@/types"
 import { formatTokenAmount, sleep } from "@/lib/utils"
 import { Loader2 } from "lucide-react"
 import { useAccount } from "wagmi";
-import { DAYS_PER_MONTH, ONE_SECOND } from "@/shared/constants/marketplace"
+import { DAYS_PER_MONTH } from "@/shared/constants/marketplace"
 
 interface DepositModalProps {
   orderId: bigint;
@@ -46,9 +46,11 @@ export function DepositModal({ orderId, pricePerMonth, isOpen, onClose }: Deposi
     if (status === ModalStatus.SUCCESS) {
       const timer = setTimeout(async () => {
         onClose();
-        await sleep(ONE_SECOND);
+
+        await sleep(1000);
+        
         setStatus(ModalStatus.IDLE);
-      }, ONE_SECOND);
+      }, 1000);
   
       return () => clearTimeout(timer);
     }

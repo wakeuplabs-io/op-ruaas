@@ -1,24 +1,22 @@
 {
-  "name": "hardhat-project",
+  "name": "marketplace-contracts",
   "scripts": {
     "test": "hardhat test",
     "lint": "solhint 'contracts/**/*.sol'",
     "deploy:op-sepolia": "hardhat ignition deploy ignition/modules/Marketplace.ts --network op-sepolia --parameters ignition/parameters/op-sepolia.json",
-    "deploy-test-token:op-sepolia": "hardhat ignition deploy ignition/modules/TestToken.ts --network op-sepolia",
-    "create-offer:op-sepolia": "hardhat run scripts/create-offer.ts --network op-sepolia",
-    "create-order:op-sepolia": "hardhat run scripts/create-order.ts --network op-sepolia",
-    "fulfill-order:op-sepolia": "hardhat run scripts/fulfill-order.ts --network op-sepolia",
-    "mint-test-token:op-sepolia": "hardhat run scripts/mint-test-token.ts --network op-sepolia"
+    "deploy-test-token:op-sepolia": "hardhat ignition deploy ignition/modules/TestToken.ts --network op-sepolia"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.12",
     "@nomicfoundation/hardhat-toolbox": "5.0.0",
     "@nomicfoundation/hardhat-verify": "2.0.11",
     "@openzeppelin/contracts": "5.0.2",
     "@openzeppelin/hardhat-upgrades": "3.4.0",
+    "dotenv": "^16.4.7",
     "hardhat": "^2.22.18",
-    "solhint": "^5.0.5",
-    "@nomicfoundation/hardhat-network-helpers": "^1.0.12",
-    "dotenv": "^16.4.7"
+    "solhint": "^5.0.5"
   },
-  "dependencies": {}
+  "dependencies": {
+    "zod": "^3.24.2"
+  }
 }
