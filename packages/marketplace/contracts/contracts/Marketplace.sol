@@ -73,7 +73,7 @@ contract Marketplace is IMarketplace, ReentrancyGuard {
     function setOfferRemainingUnits(
         uint256 _offerId,
         uint256 _remainingUnits
-    ) public onlyVendor(_offerId, 0) {
+    ) public onlyVendor(_offerId, 0) { // TODO: onlyVendor with order id zero, what does that mean?
         offers[_offerId].remainingUnits = _remainingUnits;
     }
 
@@ -87,7 +87,7 @@ contract Marketplace is IMarketplace, ReentrancyGuard {
 
         // verify offer still available
         if (offer.remainingUnits == 0) {
-            revert OfferNotFound();
+            revert OfferNotFound(); // TODO: custom error, not remaining units?
         }
         offer.remainingUnits -= 1;
 
@@ -112,7 +112,7 @@ contract Marketplace is IMarketplace, ReentrancyGuard {
     function fulfillOrder(
         uint256 _orderId,
         string calldata _deploymentMetadata
-    ) public onlyVendor(0, _orderId) {
+    ) public onlyVendor(0, _orderId) { // TODO: onlyVendor with offer id zero, what does that mean?
         Order storage order = orders[_orderId];
         Offer memory offer = offers[order.offerId];
 

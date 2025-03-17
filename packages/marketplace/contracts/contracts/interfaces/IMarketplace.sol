@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
+// TODO: review this file, should we split it up into multiple files?
+// check other projects for examples
+
 /// @title Marketplace Errors Interface
 /// @notice Defines common errors used in the Marketplace contract
 interface IMarketplaceErrors {

@@ -124,6 +124,7 @@ impl ReleaseCommand {
             .collect();
 
         // wait for all threads to complete
+        // TODO: could we improve the error handling? maybe we can move this to another class or function
         for handle in handles {
             match handle.join() {
                 Ok(Ok(_)) => {}
