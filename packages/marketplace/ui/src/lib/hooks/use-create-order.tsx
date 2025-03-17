@@ -1,7 +1,5 @@
 import {
   useConfig,
-  usePublicClient,
-  useWaitForTransactionReceipt,
   useWriteContract,
 } from "wagmi";
 import { waitForTransactionReceipt } from "@wagmi/core";
@@ -13,7 +11,7 @@ import {
   ERC20_TOKEN_ABI,
   MARKETPLACE_CHAIN_ID,
 } from "../../shared/constants/marketplace";
-import { OrderMetadata } from "@/types";
+import { OrderSetupMetadata } from "@/types";
 import { decodeEventLog } from "viem";
 import { useEnsureChain } from "./use-ensure-chain";
 import { useState } from "react";
@@ -62,7 +60,7 @@ export function useCreateOrder() {
         args: [
           offerId,
           initialCommitment,
-          JSON.stringify({ name, artifacts: artifactsCid } as OrderMetadata),
+          JSON.stringify({ name, artifacts: artifactsCid } as OrderSetupMetadata),
         ],
         chainId: MARKETPLACE_CHAIN_ID,
       });

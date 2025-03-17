@@ -2,6 +2,10 @@ import { Address } from "viem";
 import envParsed from "@/envParsed";
 import { optimismSepolia } from "viem/chains";
 
+
+export const DAYS_PER_MONTH = 30n;
+export const ONE_SECOND = 1000;
+
 export const SEQUENCER_IDS = ["0"];
 export const REPLICA_IDS = ["1"];
 

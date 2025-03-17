@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useDeposit } from "@/lib/hooks/use-deposit"
 import { Plan } from "@/types"
-import { formatTokenAmount } from "@/lib/utils"
+import { formatTokenAmount, sleep } from "@/lib/utils"
 import { Loader2 } from "lucide-react"
 import { useAccount } from "wagmi";
+import { DAYS_PER_MONTH, ONE_SECOND } from "@/shared/constants/marketplace"
 
 interface DepositModalProps {
   orderId: bigint;
@@ -15,9 +16,6 @@ interface DepositModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-const DAYS_PER_MONTH = 30n;
-const ONE_SECOND = 1000;
 
 enum ModalStatus {
   IDLE = "idle",
@@ -39,8 +37,9 @@ export function DepositModal({ orderId, plans, isOpen, onClose }: DepositModalPr
 
   useEffect(() => {
     if (status === ModalStatus.SUCCESS) {
-      const timer = setTimeout(() => {
+      const timer = setTimeout(async () => {
         onClose();
+        await sleep(ONE_SECOND);
         setStatus(ModalStatus.IDLE);
       }, ONE_SECOND);
   

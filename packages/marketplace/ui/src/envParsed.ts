@@ -6,6 +6,7 @@ const env = {
   MARKETPLACE_ADDRESS: import.meta.env.VITE_MARKETPLACE_ADDRESS,
   ERC20_TOKEN_ADDRESS: import.meta.env.VITE_ERC20_TOKEN_ADDRESS,
   MARKETPLACE_CHAIN_ID: import.meta.env.VITE_MARKETPLACE_CHAIN_ID,
+  PROVIDER_NAME: import.meta.env.VITE_PROVIDER_NAME
 };
 
 const envSchema = z
@@ -14,6 +15,7 @@ const envSchema = z
     MARKETPLACE_ADDRESS: z.string(),
     MARKETPLACE_CHAIN_ID: z.string(),
     ERC20_TOKEN_ADDRESS: z.string(),
+    PROVIDER_NAME: z.string(),
   })
   .required();
 
