@@ -253,7 +253,7 @@ impl DeployCommand {
             {note}\n",
             title = "What's Next?".bright_white().bold(),
             bin_name=env!("CARGO_BIN_NAME").blue(),
-            command="inspect [contracts|infra|all] --name <deployment_name>".blue(),
+            command="inspect [contracts|infra] --name <deployment_name>".blue(),
             note="NOTE: At the moment there's no way to remove a deployment, you'll need to manually go to `infra/aws` and run `terraform destroy`. For upgrades you'll also need to run them directly in helm.".yellow()
         );
 
