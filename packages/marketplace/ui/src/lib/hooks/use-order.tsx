@@ -10,17 +10,7 @@ import {
   OrderSetupMetadata,
 } from "@/types";
 import { useReadContract } from "wagmi";
-
-
-const safeParseJSON = (value: string | null | undefined) => {
-  try {
-    return value ? JSON.parse(value) : {};
-  } catch {
-    return {};
-  }
-};
-
-
+import { safeParseJSON } from "../utils";
 
 export const useOrderDetails = ({ id }: { id: bigint }) => {
   const { data: order } = useReadContract({
