@@ -119,8 +119,8 @@ impl DeployCommand {
 
         let release_registry: String = self
             .dialoguer
-            .prompt("Input Docker registry url (e.g. dockerhub.io/wakeuplabs) ");
-        let release_tag: String = self.dialoguer.prompt("Input release tag (e.g. v0.1.0)");
+            .prompt("Input Docker registry url (e.g. wakeuplabs) ");
+        let release_tag: String = self.dialoguer.prompt("Input release tag (e.g. v0.0.4)");
 
         if !self
             .dialoguer
