@@ -24,8 +24,8 @@ helm repo add jetstack https://charts.jetstack.io && helm repo update
 helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --version v1.10.0 --set installCRDs=true
 ```
 
-4. Update values.yaml accordingly
-5. Deploy opraas chart
+4. Update values.yaml accordingly and place relevant files
+5. Deploy chart for sequencer or replica
 
 ```bash
 helm install opruaas ./helm --namespace opruaas --create-namespace -f ./helm/values.yaml

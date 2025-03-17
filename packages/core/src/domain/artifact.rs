@@ -153,31 +153,31 @@ impl ArtifactFactory {
             ArtifactKind::Batcher => Arc::new(Artifact::new(
                 ArtifactKind::Batcher,
                 &project.src.batcher,
-                &project.infra.docker.batcher,
+                &project.infrastructure.docker.batcher,
                 &config.artifacts.batcher,
             )),
             ArtifactKind::Contracts => Arc::new(Artifact::new(
                 ArtifactKind::Contracts,
                 &project.src.contracts,
-                &project.infra.docker.contracts,
+                &project.infrastructure.docker.contracts,
                 &config.artifacts.contracts,
             )),
             ArtifactKind::Geth => Arc::new(Artifact::new(
                 ArtifactKind::Geth,
                 &project.src.geth,
-                &project.infra.docker.geth,
+                &project.infrastructure.docker.geth,
                 &config.artifacts.geth,
             )),
             ArtifactKind::Node => Arc::new(Artifact::new(
                 ArtifactKind::Node,
                 &project.src.node,
-                &project.infra.docker.node,
+                &project.infrastructure.docker.node,
                 &config.artifacts.node,
             )),
             ArtifactKind::Proposer => Arc::new(Artifact::new(
                 ArtifactKind::Proposer,
                 &project.src.proposer,
-                &project.infra.docker.proposer,
+                &project.infrastructure.docker.proposer,
                 &config.artifacts.proposer,
             )),
         }

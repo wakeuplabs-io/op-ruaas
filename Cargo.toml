@@ -2,7 +2,6 @@
 members = [
     "packages/core",
     "packages/cli",
-    "packages/server"
 ]
 
 

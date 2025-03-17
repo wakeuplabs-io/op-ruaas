@@ -1,4 +1,6 @@
-use crate::domain::{self, Deployment, DeploymentArtifact, Project, Release, TContractsDeployerProvider};
+use crate::domain::{
+    self, Deployment, DeploymentArtifact, Project, Release, ReleaseRunnerOptions, TContractsDeployerProvider,
+};
 use rand::Rng;
 use std::{
     collections::HashMap,
@@ -13,6 +15,7 @@ pub struct DockerContractsDeployer {
 }
 
 const IN_NETWORK: &str = "in/deploy-config.json";
+const CONTAINER_NAME: &str = "op-contracts";
 
 // implementations ===================================================
 
@@ -73,7 +76,15 @@ impl TContractsDeployerProvider for DockerContractsDeployer {
 
         // ensure release is available locally for run and run it to generate contracts
         self.release_repository.pull(&contracts_release)?;
-        self.release_runner.run(&contracts_release, volume, env)?;
+        self.release_runner.run(
+            &contracts_release,
+            ReleaseRunnerOptions {
+                volume,
+                env,
+                args: vec![],
+                container_name: CONTAINER_NAME.to_string(),
+            },
+        )?;
 
         // Load outputs into deployment
         let mut artifacts_zip = File::open(volume_dir.path().join("out").join("artifacts.zip"))?;

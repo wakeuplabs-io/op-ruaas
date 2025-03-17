@@ -2,17 +2,21 @@ mod commands;
 mod config;
 mod infrastructure;
 
-use build::BuildTargets;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
-use commands::*;
-use deploy::DeployTarget;
+use commands::{
+    build::BuildTargets,
+    deploy::{DeployDeploymentKind, DeployTarget},
+    init::InitTargets,
+    inspect::InspectTarget,
+    monitor::{MonitorKind, MonitorTarget},
+    release::ReleaseTargets,
+    start::StartDeploymentKind,
+    BuildCommand, DeployCommand, InitCommand, InspectCommand, MonitorCommand, NewCommand, ReleaseCommand, StartCommand,
+};
 use dotenv::dotenv;
 use infrastructure::console::print_error;
-use init::InitTargets;
-use inspect::InspectTarget;
 use log::{Level, LevelFilter};
-use release::ReleaseTargets;
 
 #[derive(Parser)]
 #[clap(name = "opruaas")]
@@ -38,13 +42,23 @@ enum Commands {
     /// Tags and pushes already built docker images to the registry for usage in the deployment
     Release { target: ReleaseTargets },
     /// Spin up local dev environment
-    Dev {
+    Start {
+        #[arg(value_enum, default_value_t = StartDeploymentKind::Sequencer)]
+        kind: StartDeploymentKind,
+
+        #[arg(value_enum, default_value = "http://host.docker.internal:80/rpc")]
+        sequencer_url: String,
+
         #[arg(long, default_value_t = false)]
         default: bool,
+        // TODO: values file
     },
     /// Deploy your blockchain. Target must be one of: contracts, infra, all
     Deploy {
         target: DeployTarget,
+
+        #[arg(value_enum, default_value_t = DeployDeploymentKind::Sequencer)]
+        kind: DeployDeploymentKind,
 
         #[arg(long)]
         deployment_id: String,
@@ -54,6 +68,9 @@ enum Commands {
 
         #[arg(long, default_value_t = false)]
         deploy_deterministic_deployer: bool,
+
+        #[arg(long, default_value = "")]
+        sequencer_url: String,
     },
     /// Get details about the current deployment. Target must be one of: contracts, infra
     Inspect {
@@ -62,8 +79,22 @@ enum Commands {
         #[arg(long)]
         deployment_id: String,
     },
-    // /// Monitor your chain. Target must be one of: onchain, offchain
-    // Monitor { target: MonitorTarget },
+    /// Monitor your chain. Target must be one of: onchain, offchain
+    Monitor {
+        target: MonitorTarget,
+
+        #[arg(long)]
+        deployment_id: String,
+
+        #[arg(
+            long,
+            help = "Monitoring kind to run. Available: multisig, fault, withdrawals, balances, drippie, secrets, global_events, liveness_expiration, faultproof_withdrawals, dispute"
+        )]
+        kind: Option<MonitorKind>,
+
+        #[arg(trailing_var_arg = true)]
+        args: Option<Vec<String>>,
+    },
 }
 
 pub struct AppContext {
@@ -110,12 +141,22 @@ async fn main() {
         Commands::Init { target } => InitCommand::new().run(&ctx, &target),
         Commands::Build { target } => BuildCommand::new().run(&ctx, &target),
         Commands::Release { target } => ReleaseCommand::new().run(&ctx, target),
-        Commands::Dev { default } => DevCommand::new().run(&ctx, default).await,
+        Commands::Start {
+            default,
+            kind,
+            sequencer_url,
+        } => {
+            StartCommand::new()
+                .run(&ctx, kind, &sequencer_url, default)
+                .await
+        }
         Commands::Deploy {
             target,
             deployment_id,
             deployment_name,
             deploy_deterministic_deployer,
+            kind,
+            sequencer_url,
         } => {
             DeployCommand::new()
                 .run(
@@ -124,6 +165,8 @@ async fn main() {
                     &deployment_id,
                     &deployment_name,
                     deploy_deterministic_deployer,
+                    kind,
+                    &sequencer_url,
                 )
                 .await
         }
@@ -134,7 +177,17 @@ async fn main() {
             InspectCommand::new()
                 .run(&ctx, &target, &deployment_id)
                 .await
-        } // Commands::Monitor { target } => MonitorCommand::new(target).run(&config).await,
+        }
+        Commands::Monitor {
+            target,
+            deployment_id,
+            kind,
+            args,
+        } => {
+            MonitorCommand::new()
+                .run(&ctx, &target, &deployment_id, kind, args)
+                .await
+        }
     } {
         print_error(&format!("\n\nError: {}\n\n", e));
         std::process::exit(1);

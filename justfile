@@ -46,13 +46,13 @@ console-server-run:
 	ENV=dev && cargo run --package opraas_server 
 
 console-ui-run:
-	npm run dev --workspace=ui
+	npm run dev --workspace=console/ui
 
 console-predeploy:
-    cargo lambda build --package opraas_server --arm64 --release
+  cd packages/console && cargo lambda build --package opraas_server --arm64 --release
 
 console-deploy stage: console-predeploy
-	npx sst deploy --stage {{stage}}
+  cd packages/console && npx sst deploy --stage {{stage}}
 
 console-tunnel stage:
 	sudo npx sst tunnel install --stage {{stage}}
@@ -61,6 +61,20 @@ console-tunnel stage:
 console-migrate stage:
 	echo "Ensure tunnel is installed 'sudo npx sst tunnel install --stage {{stage}}' and running 'npx sst tunnel --stage {{stage}}' or 'just console-tunnel {{stage}}'"
 	npx sst shell --target db --stage {{stage}} sqlx migrate run
+
+# marketplace
+
+marketplace-ui-run:
+	npm run dev --workspace=marketplace-ui
+
+marketplace-deploy stage:
+	cd packages/marketplace && npx sst deploy --stage {{stage}}
+  
+marketplace-contracts-test:
+	npm test --workspace=marketplace-contracts
+
+marketplace-contracts-lint:
+	npm run lint --workspace=marketplace-contracts
 
 # utils
 

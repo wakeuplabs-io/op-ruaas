@@ -6,16 +6,23 @@ use crate::config::CoreConfig;
 pub struct Project {
     pub root: PathBuf,
     pub config: PathBuf,
-    pub infra: Infra,
+    pub infrastructure: Infrastructure,
     pub src: Src,
 }
 
 #[derive(Debug, Clone)]
-pub struct Infra {
+pub struct Infrastructure {
     pub root: PathBuf,
     pub aws: PathBuf,
-    pub helm: PathBuf,
+    pub helm: HelmCharts,
     pub docker: Dockerfiles,
+}
+
+#[derive(Debug, Clone)]
+pub struct HelmCharts {
+    pub root: PathBuf,
+    pub sequencer: PathBuf,
+    pub replica: PathBuf,
 }
 
 #[derive(Debug, Clone)]
@@ -70,10 +77,14 @@ impl TryFrom<PathBuf> for Project {
                 return Ok(Project {
                     root: root.clone(),
                     config: root.join("config.toml"),
-                    infra: Infra {
+                    infrastructure: Infrastructure {
                         root: root.join("infra"),
                         aws: root.join("infra").join("aws"),
-                        helm: root.join("infra").join("helm"),
+                        helm: HelmCharts {
+                            root: root.join("infra").join("helm"),
+                            sequencer: root.join("infra").join("helm").join("sequencer"),
+                            replica: root.join("infra").join("helm").join("replica"),
+                        },
                         docker: Dockerfiles {
                             root: root.join("infra").join("docker"),
                             node: root.join("infra").join("docker").join("node.dockerfile"),

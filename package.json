@@ -4,7 +4,11 @@
   "description": "Easy optimism rollups",
   "workspaces": [
     "packages/cli",
-    "packages/ui"
+    "packages/console",
+    "packages/console/ui",
+    "packages/marketplace/ui",
+    "packages/marketplace/contracts",
+    "packages/marketplace"
   ],
   "scripts": {
     "format:md": "prettier --write \"**/*.md\"",
@@ -12,10 +16,13 @@
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.4",
-    "typescript": "5.6.2",
     "git-format-staged": "3.1.1",
     "husky": "9.1.6",
     "prettier": "3.3.3",
-    "sst": "3.5.5"
+    "sst": "3.5.5",
+    "typescript": "5.6.2"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1"
   }
 }

@@ -12,7 +12,7 @@ Ensure you have the following tools installed and properly configured:
 
 - **Docker**: `>= 24.0.0`
 - **Docker Buildx**: `>= 0.18.0` (recommended if building images specially for arm machines to build linux/amd64)
-- **kubectl**: `>= 1.28.0`
+- **kubectl**: `>= 1.28.0` (ensure kubernetes engine is running when calling the cli, you can check with `kubectl version`)
 - **Helm**: `>= 3.0.0`
 - **Terraform**: `>= 1.9.8` (with AWS authentication configured)
 - **Git**: `>= 2.0.0`
@@ -32,14 +32,15 @@ Usage: `opruaas [OPTIONS] <COMMAND>`
 - `init` Initialize a new project
 - `build` Compile sources and create Docker images
 - `release` Tag and push the already built Docker images to the registry for deployment
-- `dev` Spin up a local development environment
+- `start` Spin up a local development environment
 - `deploy` Deploy your blockchain. Target must be one of: `contracts`, `infra`, `all`
 - `inspect` Get details about the current deployment. Target must be one of: `contracts`, `infra`
+- `monitor` Monitor your deployment. A wrapper around [op-monitorism](https://github.com/ethereum-optimism/monitorism/tree/op-monitorism/v0.0.6/op-monitorism) and [op-dispute-mon](https://github.com/ethereum-optimism/optimism/tree/v1.12.1/op-dispute-mon)
 - `help` Print this message or the help for the given subcommand(s)
 
 #### Options:
 
-- `-q`, `--quiet` Suppress logging output
+- `-v`, `--verbose` Verbose output
 - `-h`, `--help` Print help
 - `-V`, `--version` Print version
 
@@ -64,9 +65,11 @@ npx opruaas build contracts
 npx opruaas release contracts
 ```
 
-### Test releases with dev
+> Please refer to current contracts image to output a cli compatible zip.
 
-The dev command simplifies the setup for local testing. It performs the following actions:
+### Test releases with start
+
+The `start` command simplifies the setup for local testing. It performs the following actions:
 
 1. Starts an L1 Node: Launches a Geth-based Layer 1 node.
 2. Deploys Deterministic Contracts: Sets up the deterministic contract deployer on the node.
@@ -82,8 +85,8 @@ The dev command simplifies the setup for local testing. It performs the followin
 Run the following command to execute the setup:
 
 ```bash
-# Use -v for verbose output; recommended as the process may take some time
-npx opruaas -v dev
+# Use -v for verbose output; recommended as the process may take some time, specially first time when downloading images
+npx opruaas -v start
 ```
 
 Once all deployments are up and running, it may take some time for the system to become fully responsive. This includes:
@@ -150,17 +153,17 @@ Once the setup is complete, you can access the following services:
 - Off-chain Monitoring: http://localhost:80/monitoring
 - Explorer: http://localhost:80
 
-### Deploy contracts/infra/all
+### Deploy contracts/infra(sequencer/replica) with `deploy`
 
 Ensure that your `config.toml` configuration file is properly set up before proceeding.
 
 ```bash
 # Use -v for verbose output; recommended for detailed progress logs.
-npx opruaas -v deploy all --name my-prod-deployment
+npx opruaas -v deploy --deployment-id holenksy --deployment-name "My First Deployment"
 ```
 
 - Optional Flag:
-  Add `--deploy-deployer` if the L1 chain does not already have a deployer. For most popular L1 chains, this step is unnecessary.
+  Add `--deploy-deterministic-deployer` if the L1 chain does not already have a deployer. For most popular L1 chains, this step is unnecessary.
 
 The deployment process will create a deployments/my-prod-deployment directory containing the generated artifacts.
 
@@ -168,3 +171,34 @@ The deployment process will create a deployments/my-prod-deployment directory co
   These files are crucial for running your chain. Ensure you keep them safe and do not lose them.
 - Inspecting Artifacts:
   You can manually review the artifacts or use the inspect command for easier analysis.
+
+## Monitor your chain with `monitor`
+
+There're two main options here, `onchain` and `offchain`.
+
+- `onchain` is a wrapper around [op-monitorism](https://github.com/ethereum-optimism/monitorism/tree/op-monitorism/v0.0.6/op-monitorism) and [op-dispute-mon](https://github.com/ethereum-optimism/optimism/tree/v1.12.1/op-dispute-mon) which we prefill with the specified deployment data.
+- `offchain` will just remember the user the graphana url for them to check server status and other reports.
+
+Example usage:
+
+```bash
+opraas monitor offchain --deployment-id dev
+# Monitor URL:
+# http://monitoring.localhost:80
+
+opraas -v monitor onchain --deployment-id dev --kind balances -- --accounts 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266:mine
+# Running monitor...
+# Remember to use '-v' to see the logs. We'll prefill some values for you.
+#  INFO opraas_core::utils::system > Executing command: "docker" "pull" "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-monitorism:latest"
+# latest: Pulling from oplabs-tools-artifacts/images/op-monitorism
+# Digest: sha256:f9e49a4d324ddcec97f677c98411dc901238a8c94f4ea35c7a1a87080a60cf2e
+# Status: Image is up to date for us-docker.pkg.dev/oplabs-tools-artifacts/images/op-monitorism:latest
+# us-docker.pkg.dev/oplabs-tools-artifacts/images/op-monitorism:latest
+#  INFO opraas_core::utils::system > Executing command: "docker" "run" "--rm" "-v" "/Users/matzapata/git-work/optimism/opruaas/other-demo:/shared" "--name" "op-monitor" "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-monitorism:latest" "/usr/local/bin/monitorism" "balances" "--node.url" "http://host.docker.internal:8545" "--accounts" "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266:mine"
+# t=2025-03-14T20:32:22+0000 lvl=info msg="creating balance monitor"
+# t=2025-03-14T20:32:22+0000 lvl=info msg="configured account" address=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 nickname=mine
+# t=2025-03-14T20:32:22+0000 lvl=info msg="starting metrics server" host=0.0.0.0 port=7300
+# t=2025-03-14T20:32:22+0000 lvl=info msg="starting monitor..." loop_interval_ms=60000
+# t=2025-03-14T20:32:22+0000 lvl=info msg="querying balances..."
+# t=2025-03-14T20:32:22+0000 lvl=info msg="set balance" address=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 nickname=mine balance=9998.980231447096
+```
