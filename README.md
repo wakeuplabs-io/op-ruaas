@@ -323,7 +323,7 @@ Follow these steps to prepare and publish a new version of the package:
    If the artifacts have changed, modify `packages/core/src/config/artifact.rs` to reflect the future version.
 
 3. Tag the Release:  
-   Create a GitHub tag in the format `v{}.{}.{}` and push it to trigger the GitHub Actions workflow. Alternatively build binaries with Makefile
+   Create a GitHub tag in the format `v{}.{}.{}` and push it to trigger the GitHub Actions workflow. Alternatively build binaries with Makefile.
 
 4. Verify Actions:  
    Ensure the GitHub Actions workflow completes successfully.
