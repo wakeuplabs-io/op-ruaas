@@ -13,7 +13,6 @@ export const RollupActions: React.FC<{
   orderId: bigint;
 }> = ({ pricePerMonth, balance, l2ChainId, rpcUrl, orderId }) => {
   const [ isDepositModalOpen, setIsDepositModalOpen ] = useState(false);
-
   const remainingTimeString = useMemo(() => {
     if (!pricePerMonth || balance === 0n) return "-";
     return formatRemainingTime(balance, pricePerMonth);

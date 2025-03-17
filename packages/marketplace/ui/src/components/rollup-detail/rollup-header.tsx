@@ -23,7 +23,7 @@ export function RollupHeader({ order, offer }: RollupHeaderProps) {
 
   const timeRemainingInSeconds =
     fulfilledAt > 0n ? Number(fulfilledAt + 48n * 3600n - currentUnixTime) : 0;
-  console.log({terminatedAt, step})
+
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
       <div className="flex items-center gap-2">

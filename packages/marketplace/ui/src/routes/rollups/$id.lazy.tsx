@@ -38,14 +38,13 @@ export default function RollupDashboard() {
             order={order}
             offer={offer}
           />
-
           {order.fulfilledAt > 0 && (
             <RollupActions
               l2ChainId={order.deploymentMetadata.network.l2ChainID}
               rpcUrl={order.deploymentMetadata.urls.rpc}
               pricePerMonth={BigInt(offer.pricePerMonth)}
               balance={BigInt(order.balance)}
-              orderId={order.id}
+              orderId={BigInt(id)}
             />
           )}
         </div>

@@ -28,7 +28,6 @@ export function DepositModal({ orderId, pricePerMonth, isOpen, onClose }: Deposi
   const [isPending, setIsPending] = useState(false);
   const [status, setStatus] = useState<ModalStatus>(ModalStatus.IDLE);
   const { isConnected } = useAccount();
-
   const plans = useMemo(() => [
     { months: 1, pricePerMonth },
     { months: 3, pricePerMonth },
@@ -62,7 +61,6 @@ export function DepositModal({ orderId, pricePerMonth, isOpen, onClose }: Deposi
 
   const handleDeposit = async () => {
     if (!selectedPlan) return;
-
     setIsPending(true);
     setStatus(ModalStatus.IDLE);
 
@@ -75,8 +73,6 @@ export function DepositModal({ orderId, pricePerMonth, isOpen, onClose }: Deposi
       setIsPending(false);
     }
   };
-
-
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
