@@ -16,7 +16,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { name } = useProviderInfo()
 
   const [selectedRollupId, setSelectedRollupId] = React.useState<bigint>()
-
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -29,7 +28,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarContent className="px-4 space-y-4">
           <Link
             to="/"
-            className="w-full flex items-center gap-2 py-2 px-4 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+            className="w-full flex items-center gap-2 py-2 px-4 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-100 transition"
           >
             <Plus size={16} className="text-red-500" />
             <span className="font-primary">New Rollup</span>

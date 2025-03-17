@@ -26,7 +26,7 @@ async function main() {
     "Marketplace",
     deployed_addresses["MarketplaceModule#Marketplace"]
   );
-  const orderId = 1n;
+  const orderId = 2n;
 
   const tx = await marketplace.fulfillOrder(
     orderId,
