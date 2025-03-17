@@ -28,15 +28,15 @@ export default function RollupDashboard() {
   if (!data) {
     return "Not found";
   }
-
   const { order, offer } = data;
+
   return (
     <div className="md:p-6 space-y-6">
       <div className="rounded-lg bg-gradient-to-l from-gray-300 to-transparent p-px">
         <div className="border px-8 py-6 shadow-sm bg-white rounded-[calc(0.75rem-1px)]">
           <RollupHeader
-            order={data.order}
-            offer={data.offer}
+            order={order}
+            offer={offer}
           />
 
           {order.fulfilledAt > 0 && (
@@ -45,6 +45,7 @@ export default function RollupDashboard() {
               rpcUrl={order.deploymentMetadata.urls.rpc}
               pricePerMonth={BigInt(offer.pricePerMonth)}
               balance={BigInt(order.balance)}
+              orderId={order.id}
             />
           )}
         </div>

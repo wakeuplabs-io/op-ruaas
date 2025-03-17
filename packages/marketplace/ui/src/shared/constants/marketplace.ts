@@ -3,7 +3,7 @@ import envParsed from "@/envParsed";
 import { optimismSepolia } from "viem/chains";
 
 
-export const DAYS_PER_MONTH = 30n;
+export const DAYS_PER_MONTH = 30;
 export const ONE_SECOND = 1000;
 
 export const SEQUENCER_IDS = ["0"];

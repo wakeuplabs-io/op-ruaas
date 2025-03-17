@@ -1,15 +1,19 @@
 import { Button } from "@/components/ui/button";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { cn, formatTokenAmount, formatRemainingTime } from "@/lib/utils";
 import { BookDown } from "lucide-react";
 import { DeploymentValue } from "./deployment-value";
+import { DepositModal } from "./deposit-modal";
 
 export const RollupActions: React.FC<{
   rpcUrl: string;
   l2ChainId: number;
   pricePerMonth: bigint;
   balance: bigint;
-}> = ({ pricePerMonth, balance, l2ChainId, rpcUrl }) => {
+  orderId: bigint;
+}> = ({ pricePerMonth, balance, l2ChainId, rpcUrl, orderId }) => {
+  const [ isDepositModalOpen, setIsDepositModalOpen ] = useState(false);
+
   const remainingTimeString = useMemo(() => {
     if (!pricePerMonth || balance === 0n) return "-";
     return formatRemainingTime(balance, pricePerMonth);
@@ -34,16 +38,17 @@ export const RollupActions: React.FC<{
         </p>
       </div>
 
-      <div className="flex justify-between items-center gap-4 mt-10">
+      <div className="flex justify-between items-center gap-4  mt-5">
         <Button
           variant="outline"
-          className="w-32 h-11 flex items-center justify-center gap-2 mt-8"
+          className="w-32 h-12 flex items-center justify-center gap-2"
+          onClick={() => setIsDepositModalOpen(true)}
         >
           <BookDown className="h-5 w-5" />
           Deposit
         </Button>
 
-        <div className="flex gap-4 mt-11">
+        <div className="flex gap-4">
           {[
             { label: "Chain ID", value: l2ChainId.toString() },
             { label: "RPC URL", value: rpcUrl },
@@ -58,12 +63,12 @@ export const RollupActions: React.FC<{
         </div>
       </div>
 
-      {/* <DepositModal
+      <DepositModal
         orderId={orderId}
+        pricePerMonth={pricePerMonth}
         isOpen={isDepositModalOpen}
         onClose={() => setIsDepositModalOpen(false)}
-        plans={plans}
-      /> */}
+      />
     </div>
   );
 };

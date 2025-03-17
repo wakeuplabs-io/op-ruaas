@@ -344,7 +344,7 @@ export const BuySequencerModal: React.FC<
             />
 
             <Button
-              className="mt-12 text-white"
+              className="w-full mt-8 bg-red-500 hover:bg-red-600 text-white py-6 rounded-full flex items-center justify-center gap-2 text-lg"
               size="lg"
               onClick={() => setShowSetup(true)}
             >

@@ -21,7 +21,11 @@ export function useOffer(offerId?: bigint) {
     args: [offerId],
     chainId: MARKETPLACE_CHAIN_ID,
   });
-  const offer: Offer | null = data
+
+  const isInvalidOffer =
+    !data || data[0] === "0x0000000000000000000000000000000000000000";
+
+  const offer: Offer | null = !isInvalidOffer
   ? {
       vendor: data[0],
       pricePerMonth: data[1],

@@ -115,7 +115,7 @@ export type OfferReturnTuple = [
 ];
 
 export type Plan = {
-  months: bigint
+  months: number
   pricePerMonth: bigint
 }
 
