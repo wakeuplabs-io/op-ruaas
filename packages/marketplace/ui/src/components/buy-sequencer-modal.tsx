@@ -267,14 +267,14 @@ export const BuySequencerModal: React.FC<
                 )}
 
                 <Button
-                  className="w-full mt-12"
+                  className="w-full mt-12 text-white"
                   type="submit"
                   size="lg"
                   isPending={isCreateOrderPending}
                   disabled={
-                    !form.formState.isValid
-                    || (sequencerType === SequencerType.Existing &&
-                    step < SubscribeStep.Done)
+                    !form.formState.isValid ||
+                    (sequencerType === SequencerType.Existing &&
+                      step < SubscribeStep.Done)
                   }
                 >
                   Create Order
@@ -342,7 +342,7 @@ export const BuySequencerModal: React.FC<
             />
 
             <Button
-              className="mt-12"
+              className="mt-12 text-white"
               size="lg"
               onClick={() => setShowSetup(true)}
             >

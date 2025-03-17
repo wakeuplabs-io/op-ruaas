@@ -37,7 +37,7 @@ export const RollupActions: React.FC<{
       <div className="flex justify-between items-center gap-4 mt-8">
         <Button
           variant="outline"
-          className="w-32 h-11 flex items-center justify-center gap-2 mt-80"
+          className="w-32 h-11 flex items-center justify-center gap-2 mt-8"
         >
           <BookDown className="h-5 w-5" />
           Deposit
