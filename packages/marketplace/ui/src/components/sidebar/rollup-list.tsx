@@ -42,5 +42,5 @@ function Content({ name, rollups, selectedId, onSelect }: RollupListProps) {
 }
 
 function EmptyState() {
-  return <p className="text-center text-sm">There are no categories yet.</p>
+  return <p className="text-center text-sm text-gray-700">There are no categories yet.</p>
 }

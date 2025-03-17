@@ -9,34 +9,22 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "../ui/scroll-area";
 import { ArrowRight } from "lucide-react";
-import { useUnsubscribe } from "@/lib/hooks/use-unsubscribe";
+import { UnsubscribeStep, useUnsubscribe } from "@/lib/hooks/use-unsubscribe";
 import { useChainPermissions } from "@/lib/hooks/use-chain-permissions";
 import { zeroAddress } from "viem";
 import { useOrderDetails } from "@/lib/hooks/use-order";
-import { useMemo } from "react";
 import { StepCard } from "../step-card";
-
-enum UnsubscribeStep {
-  Unsubscribe,
-  SetSequencer,
-  SetBatcher,
-  SetOracle,
-  Done,
-}
 
 export const UnsubscribeModal: React.FC<
   {
     orderId: bigint;
     disabled?: boolean;
+    step: UnsubscribeStep;
   } & ButtonProps
-> = ({ orderId, disabled, ...props }) => {
+> = ({ orderId, disabled, step, ...props }) => {
   const { data } = useOrderDetails({ id: orderId });
-  const { isSubscribed, unsubscribe } = useUnsubscribe({ orderId });
+  const { unsubscribe } = useUnsubscribe({ orderId });
   const {
-    batcher,
-    sequencer,
-    proposer,
-    challenger,
     setBatcherAddress,
     setSequencerAddress,
     setOracleAddress,
@@ -52,24 +40,6 @@ export const UnsubscribeModal: React.FC<
     proxyAdmin:
       data?.order.deploymentMetadata.addresses.proxyAdmin ?? zeroAddress,
   });
-
-  const provider = useMemo(() => {
-    return {
-      batcher: data?.offer.metadata.wallets?.batcher ?? zeroAddress,
-      sequencer: data?.offer.metadata.wallets?.sequencer ?? zeroAddress,
-      proposer: data?.offer.metadata.wallets?.proposer ?? zeroAddress,
-      challenger: data?.offer.metadata.wallets?.challenger ?? zeroAddress,
-    };
-  }, [data?.offer.metadata]);
-
-  const step = useMemo(() => {
-    if (!isSubscribed) return UnsubscribeStep.Unsubscribe;
-    if (sequencer === provider.sequencer) return UnsubscribeStep.SetSequencer;
-    if (batcher === provider.batcher) return UnsubscribeStep.SetBatcher;
-    if (proposer === provider.proposer) return UnsubscribeStep.SetOracle;
-    if (challenger === provider.challenger) return UnsubscribeStep.SetOracle;
-    return UnsubscribeStep.Done;
-  }, [provider, isSubscribed, sequencer, batcher, proposer, challenger]);
 
   return (
     <Dialog>

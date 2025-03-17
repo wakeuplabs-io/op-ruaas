@@ -13,10 +13,9 @@ import { useProviderInfo } from "@/lib/hooks/use-provider-info"
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { isConnected } = useAccount()
   const { sequencerRollups, replicaRollups } = useOrders()
-  const { name, formattedAddress } = useProviderInfo()
+  const { name } = useProviderInfo()
 
   const [selectedRollupId, setSelectedRollupId] = React.useState<bigint>()
-
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -29,7 +28,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarContent className="px-4 space-y-4">
           <Link
             to="/"
-            className="w-full flex items-center gap-2 py-2 px-4 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+            className="w-full flex items-center gap-2 py-2 px-4 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-100 transition"
           >
             <Plus size={16} className="text-red-500" />
             <span className="font-primary">New Rollup</span>
@@ -55,7 +54,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       <div className="px-4 mt-auto text-sm text-gray-700">
         <h4 className="text-gray-500 text-xs mb-1">Provider</h4>
         <p className="font-medium">{name}</p>
-        <p className="text-xs text-gray-500">{formattedAddress}</p>
       </div>
 
       <div className="px-4 mt-4">

@@ -54,7 +54,7 @@ export type OrderSetupMetadata = {
 }
 
 export type OrderDeploymentMetadata = {
-  artifacts: string;
+  artifacts: string | null;
   urls: {
     rpc: string;
     explorer: string;

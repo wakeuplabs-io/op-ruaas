@@ -35,9 +35,8 @@ export default function RollupDashboard() {
       <div className="rounded-lg bg-gradient-to-l from-gray-300 to-transparent p-px">
         <div className="border px-8 py-6 shadow-sm bg-white rounded-[calc(0.75rem-1px)]">
           <RollupHeader
-            orderId={BigInt(id)}
-            orderName={order.setupMetadata.name}
-            offerName={offer.metadata.title}
+            order={data.order}
+            offer={data.offer}
           />
 
           {order.fulfilledAt > 0 && (
@@ -48,7 +47,6 @@ export default function RollupDashboard() {
               balance={BigInt(order.balance)}
             />
           )}
-
         </div>
       </div>
 

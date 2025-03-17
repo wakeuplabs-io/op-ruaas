@@ -36,7 +36,7 @@ export function useOrders() {
     (acc, order) => {
       let offerMetadata: OfferMetadata = { title: "Unknown", features: [] };
       let setupMetadata: OrderSetupMetadata = { name: "Unknown Rollup", artifacts: null };
-      let deploymentMetadata: OrderDeploymentMetadata = { name: "Unknown Rollup", artifacts: null };
+      let deploymentMetadata: OrderDeploymentMetadata = { artifacts: null, urls: { rpc: "", explorer: "", monitoring: "" }, network: { l1ChainID: 0, l2ChainID: 0 }, addresses: {} };
 
       try {
         if (order.offer.metadata) {
@@ -59,7 +59,7 @@ export function useOrders() {
           deploymentMetadata = JSON.parse(order.deploymentMetadata);
         }
       } catch {
-        deploymentMetadata = { name: "Unknown Rollup", artifacts: null };
+        deploymentMetadata = { artifacts: null, urls: { rpc: "", explorer: "", monitoring: "" }, network: { l1ChainID: 0, l2ChainID: 0 }, addresses: {} };
       }
 
       const categorizedOrder = {

@@ -60,3 +60,15 @@ export function formatRemainingTime(balance: bigint, pricePerMonth: bigint): str
 
   return `${remainingSeconds.toString()} seconds remaining`;
 }
+
+export function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export function safeParseJSON (value: string | null | undefined) {
+  try {
+    return value ? JSON.parse(value) : {};
+  } catch {
+    return {};
+  }
+};

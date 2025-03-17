@@ -5,10 +5,12 @@ import {
 } from "@/shared/constants/marketplace";
 import {
   OfferMetadata,
+  Order,
   OrderDeploymentMetadata,
   OrderSetupMetadata,
 } from "@/types";
 import { useReadContract } from "wagmi";
+import { safeParseJSON } from "../utils";
 
 export const useOrderDetails = ({ id }: { id: bigint }) => {
   const { data: order } = useReadContract({
@@ -17,6 +19,9 @@ export const useOrderDetails = ({ id }: { id: bigint }) => {
     abi: MARKETPLACE_ABI,
     functionName: "getOrder",
     args: [id],
+    query: {
+      enabled: !!id,
+    }
   });
 
   return {
@@ -29,20 +34,14 @@ export const useOrderDetails = ({ id }: { id: bigint }) => {
             terminatedAt: (order as any).terminatedAt,
             lastWithdrawal: (order as any).lastWithdrawal,
             balance: (order as any).balance,
-            setupMetadata: JSON.parse(
-              (order as any).setupMetadata ?? "{}"
-            ) as OrderSetupMetadata,
-            deploymentMetadata: JSON.parse(
-              (order as any).deploymentMetadata ?? "{}"
-            ) as OrderDeploymentMetadata,
-          },
+            setupMetadata: safeParseJSON((order as any).setupMetadata) as OrderSetupMetadata,
+            deploymentMetadata: safeParseJSON((order as any).deploymentMetadata) as OrderDeploymentMetadata,
+          } as Order,
           offer: {
             vendor: (order as any).offer.vendor,
             pricePerMonth: (order as any).offer.pricePerMonth,
             remainingUnits: (order as any).offer.remainingUnits,
-            metadata: JSON.parse(
-              (order as any).offer.metadata ?? "{}"
-            ) as OfferMetadata,
+            metadata: safeParseJSON((order as any).offer.metadata) as OfferMetadata,
           },
         }
       : null,
