@@ -72,3 +72,5 @@ export function safeParseJSON (value: string | null | undefined) {
     return {};
   }
 };
+
+export const currentUnixTime = BigInt(Math.floor(Date.now() / 1000));

@@ -101,7 +101,7 @@ describe("Marketplace", function () {
           .createOffer(PRICE_PER_MONTH, UNITS, OFFER_METADATA)
       )
         .to.emit(marketplace, "NewOffer")
-        .withArgs(vendor.address, 0n, PRICE_PER_MONTH, UNITS);
+        .withArgs(vendor.address, 1n, PRICE_PER_MONTH, UNITS);
     });
   });
 
@@ -149,7 +149,7 @@ describe("Marketplace", function () {
           .connect(client)
           .createOrder(offerId, INITIAL_COMMITMENT, ORDER_METADATA)
       ).not.to.be.reverted;
-      expect((await marketplace.orders(0n)).balance).to.equal(
+      expect((await marketplace.orders(1n)).balance).to.equal(
         INITIAL_COMMITMENT * PRICE_PER_MONTH
       );
       expect((await marketplace.offers(offerId)).remainingUnits).to.equal(
@@ -354,6 +354,15 @@ describe("Marketplace", function () {
       );
       expect(orderBalanceAfter).to.equal(0n);
     });
+
+    it("Should allow termination if FULFILLMENT_PERIOD has passed and order is not fulfilled", async function () {
+      const { marketplace, client, vendorCreateOffer, clientCreateOrder } =
+      await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+      await time.increase(await marketplace.FULFILLMENT_PERIOD());
+      await expect(marketplace.connect(client).terminateOrder(orderId)).to.not.be.reverted;
+    });
+    
   });
 
   describe("Deposit", function () {

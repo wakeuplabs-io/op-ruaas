@@ -95,7 +95,6 @@ export type OrderData = {
 export type Order = {
   id: bigint;
   client: string;
-  name: string
   offerId: bigint;
   balance: bigint;
   createdAt: bigint;
@@ -104,7 +103,6 @@ export type Order = {
   lastWithdrawal: bigint;
   setupMetadata: OrderSetupMetadata;
   deploymentMetadata: OrderDeploymentMetadata;
-  offer: Offer;
 };
 
 export type OfferReturnTuple = [
@@ -115,11 +113,19 @@ export type OfferReturnTuple = [
 ];
 
 export type Plan = {
-  months: bigint
+  months: number
   pricePerMonth: bigint
 }
 
 export type RollupItem = {
   id: bigint;
   name: string
+}
+
+export enum UnsubscribeStep {
+  Unsubscribe,
+  SetSequencer,
+  SetBatcher,
+  SetOracle,
+  Done
 }

@@ -29,6 +29,7 @@ import {
 import { useCreateOrder } from "@/lib/hooks/use-create-order";
 import { useRouter } from "@tanstack/react-router";
 import { readArtifact } from "@/lib/artifacts";
+import { useOrders } from "@/lib/hooks/use-orders";
 
 enum SubscribeStep {
   UploadArtifacts,
@@ -51,6 +52,7 @@ export const BuySequencerModal: React.FC<
   { offerId: string; offer: Offer } & ButtonProps
 > = ({ offer, offerId, ...props }) => {
   const router = useRouter();
+  const { refetch: refetchOrders } = useOrders();
   const [selectedMonths, setSelectedMonths] = useState("1");
   const [sequencerType, setSequencerType] = useState<SequencerType>(
     SequencerType.New
@@ -99,7 +101,7 @@ export const BuySequencerModal: React.FC<
           data.name,
           artifacts
         );
-
+        await refetchOrders();
         router.navigate({
           to: `/rollups/$id`,
           params: { id: orderId.toString() },
@@ -342,7 +344,7 @@ export const BuySequencerModal: React.FC<
             />
 
             <Button
-              className="mt-12 text-white"
+              variant="primary"
               size="lg"
               onClick={() => setShowSetup(true)}
             >

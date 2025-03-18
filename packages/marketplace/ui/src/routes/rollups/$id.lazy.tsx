@@ -8,6 +8,7 @@ import { useOrderDetails } from "@/lib/hooks/use-order";
 import { DeploymentValue } from "@/components/rollup-detail/deployment-value";
 import { useCallback } from "react";
 import { pinata } from "@/lib/pinata";
+import { NotFoundPage } from "@/components/not-found";
 
 export const Route = createLazyFileRoute("/rollups/$id")({
   component: RollupDashboard,
@@ -26,25 +27,27 @@ export default function RollupDashboard() {
   }, [data]);
 
   if (!data) {
-    return "Not found";
+    return <NotFoundPage />;
   }
-
+  console.log({data});
   const { order, offer } = data;
+
   return (
     <div className="md:p-6 space-y-6">
       <div className="rounded-lg bg-gradient-to-l from-gray-300 to-transparent p-px">
         <div className="border px-8 py-6 shadow-sm bg-white rounded-[calc(0.75rem-1px)]">
           <RollupHeader
-            order={data.order}
-            offer={data.offer}
+            order={{...order, id: BigInt(id) }}
+            offer={offer}
           />
-
           {order.fulfilledAt > 0 && (
             <RollupActions
               l2ChainId={order.deploymentMetadata.network.l2ChainID}
               rpcUrl={order.deploymentMetadata.urls.rpc}
               pricePerMonth={BigInt(offer.pricePerMonth)}
               balance={BigInt(order.balance)}
+              orderId={BigInt(id)}
+              terminatedAt={order.terminatedAt}
             />
           )}
         </div>

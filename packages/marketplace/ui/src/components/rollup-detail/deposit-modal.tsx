@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react"
+"use client"
+
+import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useDeposit } from "@/lib/hooks/use-deposit"
@@ -6,11 +8,10 @@ import { Plan } from "@/types"
 import { formatTokenAmount, sleep } from "@/lib/utils"
 import { Loader2 } from "lucide-react"
 import { useAccount } from "wagmi";
-import { DAYS_PER_MONTH } from "@/shared/constants/marketplace"
 
 interface DepositModalProps {
   orderId: bigint;
-  plans: Plan[] | undefined;
+  pricePerMonth: bigint;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -20,19 +21,26 @@ enum ModalStatus {
   SUCCESS = "success",
 }
 
-export function DepositModal({ orderId, plans, isOpen, onClose }: DepositModalProps) {
+export function DepositModal({ orderId, pricePerMonth, isOpen, onClose }: DepositModalProps) {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const { depositFunds } = useDeposit();
   const [isPending, setIsPending] = useState(false);
   const [status, setStatus] = useState<ModalStatus>(ModalStatus.IDLE);
   const { isConnected } = useAccount();
+  const plans = useMemo(() => [
+    { months: 1, pricePerMonth },
+    { months: 3, pricePerMonth },
+    { months: 6, pricePerMonth },
+    { months: 12, pricePerMonth },
+  ], [pricePerMonth]);
 
   useEffect(() => {
-    if (plans && plans.length > 0) {
+    if (!selectedPlan && plans.length > 0) {
       setSelectedPlan(plans[0]);
     }
-  }, [plans]);
+  }, [plans, selectedPlan]);
 
+  
   useEffect(() => {
     if (status === ModalStatus.SUCCESS) {
       const timer = setTimeout(async () => {
@@ -49,12 +57,11 @@ export function DepositModal({ orderId, plans, isOpen, onClose }: DepositModalPr
   
 
   const calculateTotal = (plan: Plan): bigint => {
-    return BigInt(plan.months * plan.pricePerMonth);
+    return BigInt(plan.months) * plan.pricePerMonth;
   };
 
   const handleDeposit = async () => {
     if (!selectedPlan) return;
-
     setIsPending(true);
     setStatus(ModalStatus.IDLE);
 
@@ -67,8 +74,6 @@ export function DepositModal({ orderId, plans, isOpen, onClose }: DepositModalPr
       setIsPending(false);
     }
   };
-
-
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -91,7 +96,7 @@ export function DepositModal({ orderId, plans, isOpen, onClose }: DepositModalPr
                   selectedPlan === plan ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
                 }`}
               >
-                <div className="text-lg text-2xl">{(plan.months * DAYS_PER_MONTH).toString(10)} days</div>
+                <div className="text-lg text-2xl">{plan.months * 30} days</div>
                 <div className="text-gray-500 font-medium mt-2 text-base">${formatTokenAmount(calculateTotal(plan), 18n, 0)}</div>
               </button>
             ))}
@@ -100,7 +105,7 @@ export function DepositModal({ orderId, plans, isOpen, onClose }: DepositModalPr
           {selectedPlan && (
             <>
               <Button
-                className="w-full mt-8 bg-red-500 hover:bg-red-600 text-white py-6 rounded-full flex items-center justify-center gap-2 text-xl"
+                variant="primary"
                 onClick={handleDeposit}
                 isPending={isPending}
                 disabled={isPending || !isConnected || status ===  ModalStatus.SUCCESS}

@@ -1,7 +1,8 @@
 import { Address } from "viem";
 import envParsed from "@/envParsed";
 
-export const DAYS_PER_MONTH = 30n;
+
+export const DAYS_PER_MONTH = 30;
 
 export const SEQUENCER_IDS = envParsed().MARKETPLACE_SEQUENCER_OFFERS.split(",");
 export const REPLICA_IDS = envParsed().MARKETPLACE_REPLICA_OFFERS.split(",");
