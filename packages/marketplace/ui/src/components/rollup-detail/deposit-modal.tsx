@@ -1,12 +1,17 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useMemo } from "react"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { useDeposit } from "@/lib/hooks/use-deposit"
-import { Plan } from "@/types"
-import { formatTokenAmount, sleep } from "@/lib/utils"
-import { Loader2 } from "lucide-react"
+import { useState, useEffect, useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useDeposit } from "@/lib/hooks/use-deposit";
+import { Plan } from "@/types";
+import { formatTokenAmount, sleep } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 import { useAccount } from "wagmi";
 
 interface DepositModalProps {
@@ -21,18 +26,26 @@ enum ModalStatus {
   SUCCESS = "success",
 }
 
-export function DepositModal({ orderId, pricePerMonth, isOpen, onClose }: DepositModalProps) {
+export function DepositModal({
+  orderId,
+  pricePerMonth,
+  isOpen,
+  onClose,
+}: DepositModalProps) {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const { depositFunds } = useDeposit();
   const [isPending, setIsPending] = useState(false);
   const [status, setStatus] = useState<ModalStatus>(ModalStatus.IDLE);
   const { isConnected } = useAccount();
-  const plans = useMemo(() => [
-    { months: 1, pricePerMonth },
-    { months: 3, pricePerMonth },
-    { months: 6, pricePerMonth },
-    { months: 12, pricePerMonth },
-  ], [pricePerMonth]);
+  const plans = useMemo(
+    () => [
+      { months: 1, pricePerMonth },
+      { months: 3, pricePerMonth },
+      { months: 6, pricePerMonth },
+      { months: 12, pricePerMonth },
+    ],
+    [pricePerMonth]
+  );
 
   useEffect(() => {
     if (!selectedPlan && plans.length > 0) {
@@ -40,21 +53,19 @@ export function DepositModal({ orderId, pricePerMonth, isOpen, onClose }: Deposi
     }
   }, [plans, selectedPlan]);
 
-  
   useEffect(() => {
     if (status === ModalStatus.SUCCESS) {
       const timer = setTimeout(async () => {
         onClose();
 
         await sleep(1000);
-        
+
         setStatus(ModalStatus.IDLE);
       }, 1000);
-  
+
       return () => clearTimeout(timer);
     }
   }, [status, onClose]);
-  
 
   const calculateTotal = (plan: Plan): bigint => {
     return BigInt(plan.months) * plan.pricePerMonth;
@@ -80,7 +91,9 @@ export function DepositModal({ orderId, pricePerMonth, isOpen, onClose }: Deposi
       <DialogContent className="w-[547px] h-[517px] p-4 sm:p-4 overflow-hidden rounded-2xl">
         <div className="p-6">
           <DialogHeader className="flex flex-row items-start justify-between">
-            <DialogTitle className="text-xl font-semibold">Deposit Funds</DialogTitle>
+            <DialogTitle className="text-xl font-semibold">
+              Deposit Funds
+            </DialogTitle>
           </DialogHeader>
 
           <p className="mt-2 text-base text-gray-700">
@@ -93,11 +106,15 @@ export function DepositModal({ orderId, pricePerMonth, isOpen, onClose }: Deposi
                 key={plan.months}
                 onClick={() => setSelectedPlan(plan)}
                 className={`p-4 rounded-lg border transition-colors ${
-                  selectedPlan === plan ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
+                  selectedPlan === plan
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-200 hover:border-gray-300"
                 }`}
               >
-                <div className="text-lg text-2xl">{plan.months * 30} days</div>
-                <div className="text-gray-500 font-medium mt-2 text-base">${formatTokenAmount(calculateTotal(plan), 18n, 0)}</div>
+                <div className="text-lg ">{plan.months * 30} days</div>
+                <div className="text-gray-500 font-medium mt-2 text-base">
+                  ${formatTokenAmount(calculateTotal(plan), 18n, 0)}
+                </div>
               </button>
             ))}
           </div>
@@ -105,14 +122,18 @@ export function DepositModal({ orderId, pricePerMonth, isOpen, onClose }: Deposi
           {selectedPlan && (
             <>
               <Button
+                size="lg"
                 variant="primary"
                 onClick={handleDeposit}
                 isPending={isPending}
-                disabled={isPending || !isConnected || status ===  ModalStatus.SUCCESS}
+                disabled={
+                  isPending || !isConnected || status === ModalStatus.SUCCESS
+                }
               >
-                {isPending && <Loader2 className="animate-spin h-5 w-5" />}
                 {!isConnected && "Connect your wallet to deposit"}
-                {isConnected && status === ModalStatus.IDLE && "Complete Deposit"}
+                {isConnected &&
+                  status === ModalStatus.IDLE &&
+                  "Complete Deposit"}
                 {isConnected && status === ModalStatus.SUCCESS && <>Success</>}
               </Button>
               {!isConnected && (

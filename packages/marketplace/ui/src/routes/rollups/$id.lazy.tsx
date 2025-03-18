@@ -29,17 +29,17 @@ export default function RollupDashboard() {
   if (!data) {
     return <NotFoundPage />;
   }
-  console.log({data});
-  const { order, offer } = data;
 
+  const { order, offer } = data;
   return (
     <div className="md:p-6 space-y-6">
       <div className="rounded-lg bg-gradient-to-l from-gray-300 to-transparent p-px">
-        <div className="border px-8 py-6 shadow-sm bg-white rounded-[calc(0.75rem-1px)]">
+        <div className="px-8 py-6 bg-white rounded-[calc(0.6rem-1px)]">
           <RollupHeader
             order={{...order, id: BigInt(id) }}
             offer={offer}
           />
+          
           {order.fulfilledAt > 0 && (
             <RollupActions
               l2ChainId={order.deploymentMetadata.network.l2ChainID}

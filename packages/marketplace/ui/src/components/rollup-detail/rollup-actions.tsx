@@ -44,7 +44,7 @@ export const RollupActions: React.FC<{
         </div>
       )}
 
-      <div className="flex justify-between items-center gap-4  mt-5">
+      <div className="flex justify-between items-end gap-4  mt-5">
         {terminatedAt > 0n ? (
           <div className="mt-4">
             <div className=" p-4 bg-alert-background rounded-lg flex items-start gap-3">

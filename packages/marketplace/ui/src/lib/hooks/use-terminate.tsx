@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   MARKETPLACE_ABI,
   MARKETPLACE_ADDRESS,
@@ -13,6 +13,7 @@ export const useTerminate = ({ orderId }: { orderId: bigint }) => {
   const { writeContractAsync } = useWriteContract();
   const { data } = useOrderDetails({ id: orderId });
   const { ensureChainId } = useEnsureChain();
+  const [isPending, setIsPending] = useState(false)
 
   const isSubscribed = useMemo(() => {
     if (!data) return false;
@@ -27,21 +28,29 @@ export const useTerminate = ({ orderId }: { orderId: bigint }) => {
       throw new Error("Order already terminated");
     }
 
-    await ensureChainId(MARKETPLACE_CHAIN_ID);
+    setIsPending(true);
 
-    const terminateTx = await writeContractAsync({
-      abi: MARKETPLACE_ABI,
-      address: MARKETPLACE_ADDRESS,
-      chainId: MARKETPLACE_CHAIN_ID,
-      functionName: "terminateOrder",
-      args: [orderId],
-    });
-    console.log({terminateTx})
-    return terminateTx;
+    try {
+      await ensureChainId(MARKETPLACE_CHAIN_ID);
+
+      const terminateTx = await writeContractAsync({
+        abi: MARKETPLACE_ABI,
+        address: MARKETPLACE_ADDRESS,
+        chainId: MARKETPLACE_CHAIN_ID,
+        functionName: "terminateOrder",
+        args: [orderId],
+      });
+      return terminateTx;
+    } catch (e) {
+      throw e;
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return {
     isSubscribed,
+    isPending,
     terminate,
   };
 };

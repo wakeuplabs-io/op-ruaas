@@ -14,7 +14,6 @@ api.interceptors.request.use(
   async (config) => {
     const { message, signature } = safeParseJSON(window.localStorage.getItem(SIWE_LOCALSTORAGE_KEY));
     const token =  btoa(`${message}||${signature}`);
-    console.log("token", token)
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

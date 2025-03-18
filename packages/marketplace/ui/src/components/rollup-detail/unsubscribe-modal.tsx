@@ -11,45 +11,74 @@ import { ScrollArea } from "../ui/scroll-area";
 import { ArrowRight } from "lucide-react";
 import { useChainPermissions } from "@/lib/hooks/use-chain-permissions";
 import { zeroAddress } from "viem";
-import { useOrderDetails } from "@/lib/hooks/use-order";
 import { StepCard } from "../step-card";
 import { useTerminate } from "@/lib/hooks/use-terminate";
-import { UnsubscribeStep } from "@/types";
+import { Offer, Order, UnsubscribeStep } from "@/types";
+import { useMemo } from "react";
 
 export const UnsubscribeModal: React.FC<
   {
-    orderId: bigint;
+    order: Order;
+    offer: Offer;
     disabled?: boolean;
-    step: UnsubscribeStep;
   } & ButtonProps
-> = ({ orderId, disabled, step, ...props }) => {
-  const { data } = useOrderDetails({ id: orderId });
-  const { terminate} = useTerminate({ orderId });
+> = ({ order, offer, disabled, ...props }) => {
+  const { terminate, isPending: isTerminatePending } = useTerminate({ orderId: order.id });
   const {
+    batcher,
+    sequencer,
+    challenger,
+    proposer,
     setBatcherAddress,
     setSequencerAddress,
     setOracleAddress,
   } = useChainPermissions({
-    l1ChainId: Number(data?.order.deploymentMetadata.network.l1ChainID ?? 0),
+    l1ChainId: Number(order.deploymentMetadata.network.l1ChainID ?? 0),
     systemConfigProxy:
-      data?.order.deploymentMetadata.addresses.systemConfigProxy ?? zeroAddress,
+      order.deploymentMetadata.addresses.systemConfigProxy ?? zeroAddress,
     l2OutputOracleProxy:
-      data?.order.deploymentMetadata.addresses.l2OutputOracleProxy ??
-      zeroAddress,
+      order.deploymentMetadata.addresses.l2OutputOracleProxy ?? zeroAddress,
     systemOwnerSafe:
-      data?.order.deploymentMetadata.addresses.systemOwnerSafe ?? zeroAddress,
-    proxyAdmin:
-      data?.order.deploymentMetadata.addresses.proxyAdmin ?? zeroAddress,
+      order.deploymentMetadata.addresses.systemOwnerSafe ?? zeroAddress,
+    proxyAdmin: order.deploymentMetadata.addresses.proxyAdmin ?? zeroAddress,
   });
+
+  const isSubscribed = useMemo(() => {
+    return order.terminatedAt == 0n;
+  }, [order]);
+
+  const provider = useMemo(() => {
+    return {
+      batcher: offer.metadata.wallets?.batcher ?? zeroAddress,
+      sequencer: offer.metadata.wallets?.sequencer ?? zeroAddress,
+      proposer: offer.metadata.wallets?.proposer ?? zeroAddress,
+      challenger: offer.metadata.wallets?.challenger ?? zeroAddress,
+    };
+  }, [offer]);
+
+  const step = useMemo(() => {
+    if (isSubscribed) return UnsubscribeStep.Unsubscribe;
+    if (sequencer === provider.sequencer) return UnsubscribeStep.SetSequencer;
+    if (batcher === provider.batcher) return UnsubscribeStep.SetBatcher;
+    if (proposer === provider.proposer) return UnsubscribeStep.SetOracle;
+    if (challenger === provider.challenger) return UnsubscribeStep.SetOracle;
+    return UnsubscribeStep.Done;
+  }, [provider, isSubscribed, sequencer, batcher, proposer, challenger]);
+
+  if (order.terminatedAt !== 0n && step === UnsubscribeStep.Done) return null;
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button {...props} />
+        <Button {...props}>
+          {step === UnsubscribeStep.Unsubscribe
+            ? "Unsubscribe"
+            : "Complete unsubscribe"}
+        </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[700px]">
+      <DialogContent className="sm:max-w-[700px] p-12">
         <ScrollArea className="max-h-[600px]">
-          <DialogHeader>
+          <DialogHeader className="space-y-4">
             <DialogTitle>Unsubscribe</DialogTitle>
             <DialogDescription>
               Terminate payments and revoke provider permissions. This is
@@ -57,18 +86,18 @@ export const UnsubscribeModal: React.FC<
             </DialogDescription>
           </DialogHeader>
 
-          <div className="bg-red-100 text-red-800 py-2 px-4 rounded-md mt-8">
+          <div className="bg-[#FFF4F4] text-[#911A27] py-2 px-4 rounded-md mt-8 text-sm">
             All unsubscribe actions are permanent and cannot be undone.
           </div>
 
           <StepCard
-            className="mt-8 text-white"
+            className="mt-8"
             title="1. Terminate payments."
             description="This will stop immediately the payment flow. Be aware the minimum payment unit is 30 days. You'll receive the remaining funds right away."
             isComplete={step > UnsubscribeStep.Unsubscribe}
             isActive={step === UnsubscribeStep.Unsubscribe}
           >
-            <Button className="mt-6" onClick={() => terminate()}>
+            <Button isPending={isTerminatePending} className="mt-6" onClick={() => terminate()}>
               Terminate payments <ArrowRight />
             </Button>
           </StepCard>
