@@ -1,10 +1,5 @@
 import * as React from "react";
-import {
-  PackageIcon,
-  Rocket,
-  SettingsIcon,
-  ShieldCheck,
-} from "lucide-react";
+import { PackageIcon, Rocket, SettingsIcon, ShieldCheck } from "lucide-react";
 import { NavGroup } from "@/components/sidebar/nav-group";
 import {
   Sidebar,
@@ -59,31 +54,21 @@ export function AppSidebar({
 
       <SidebarContent className="px-4">
         <NavGroup items={[...navCreate, ...navMarketplace]} />
-        <hr className="my-2"/>
+        <hr className="my-2" />
         <NavDeployments
-          deployments={[
-            ...deployments.map((d) => ({
-              id: d.id,
-              name: capitalize(d.name),
-            })),
-            ...deployments.map((d) => ({
-              id: d.id,
-              name: capitalize(d.name),
-            })),
-            ...deployments.map((d) => ({
-              id: d.id,
-              name: capitalize(d.name),
-            }))
-          ]}
+          deployments={deployments.map((d) => ({
+            id: d.id,
+            name: capitalize(d.name),
+          }))}
         />
       </SidebarContent>
 
       <SidebarFooter className="pb-10 px-4 space-y-2">
-        <hr  className="border-muted"/>
+        <hr className="border-muted" />
 
         <CustomConnectButton />
 
-        <hr  className="border-muted"/>
+        <hr className="border-muted" />
 
         <a
           href="https://www.wakeuplabs.io/"
