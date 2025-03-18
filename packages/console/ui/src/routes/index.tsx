@@ -5,5 +5,5 @@ export const Route = createFileRoute('/')({
 })
 
 function RouteComponent() {
-  return <Navigate to="/app" />
+  return <Navigate to="/create/setup" />
 }

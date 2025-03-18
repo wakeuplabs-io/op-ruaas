@@ -46,10 +46,10 @@ console-server-run:
 	ENV=dev && cargo run --package opraas_server 
 
 console-ui-run:
-	npm run dev --workspace=console/ui
+	npm run dev --workspace=console-ui
 
 console-predeploy:
-  cd packages/console && cargo lambda build --package opraas_server --arm64 --release
+	cargo lambda build --package opraas_server --arm64 --release
 
 console-deploy stage: console-predeploy
   cd packages/console && npx sst deploy --stage {{stage}}

@@ -1,4 +1,3 @@
-import { BreadcrumbHeader } from "@/components/breadcrumb-header";
 import { Pagination } from "@/components/pagination";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -10,11 +9,11 @@ import { useCreateDeploymentMutation } from "@/lib/queries/deployment";
 import { useSetDeploymentArtifactMutation } from "@/lib/queries/deployment-artifact";
 import { Deployment } from "@/lib/services/deployment";
 import { cn, readFile } from "@/lib/utils";
-import { createLazyFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Check, Upload } from "lucide-react";
 import { useCallback, useState } from "react";
 
-export const Route = createLazyFileRoute("/app/verify/")({
+export const Route = createFileRoute("/create/verify/")({
   component: RouteComponent,
 });
 
@@ -59,14 +58,6 @@ function RouteComponent() {
       return;
     }
 
-    if (!user) {
-      return toast({
-        variant: "destructive",
-        title: "Failed to create deployment",
-        description: "You must be signed in to create a deployment",
-      });
-    }
-
     try {
       const deployment = await createDeployment(
         JSON.parse(await readFile(deploymentFile)) as Deployment
@@ -84,7 +75,7 @@ function RouteComponent() {
         });
       }
 
-      navigate({ to: "/app/deployments/$id", params: { id: deployment.id } });
+      navigate({ to: "/deployments/$id", params: { id: deployment.id } });
     } catch (error) {
       toast({
         variant: "destructive",
@@ -96,9 +87,7 @@ function RouteComponent() {
 
   return (
     <>
-      <BreadcrumbHeader title="Verify" />
-
-      <main className="p-4 pt-0 pb-20">
+      <main className="p-16">
         <Card>
           <CardTitle>Verify and upload chain artifacts</CardTitle>
           <CardDescription className="mt-4 md:mt-6">
