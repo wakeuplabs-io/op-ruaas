@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import React, { useMemo, useState } from "react";
 import { cn, formatTokenAmount, formatRemainingTime } from "@/lib/utils";
-import { BookDown } from "lucide-react";
+import { BookDown, TriangleAlert } from "lucide-react";
 import { DeploymentValue } from "./deployment-value";
 import { DepositModal } from "./deposit-modal";
 
@@ -11,8 +11,9 @@ export const RollupActions: React.FC<{
   pricePerMonth: bigint;
   balance: bigint;
   orderId: bigint;
-}> = ({ pricePerMonth, balance, l2ChainId, rpcUrl, orderId }) => {
-  const [ isDepositModalOpen, setIsDepositModalOpen ] = useState(false);
+  terminatedAt: bigint;
+}> = ({ pricePerMonth, balance, l2ChainId, rpcUrl, orderId, terminatedAt }) => {
+  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const remainingTimeString = useMemo(() => {
     if (!pricePerMonth || balance === 0n) return "-";
     return formatRemainingTime(balance, pricePerMonth);
@@ -28,24 +29,42 @@ export const RollupActions: React.FC<{
 
   return (
     <div>
-      <div className="py-4">
-        <h1 className={cn("text-4xl font-bold", `text-${statusColor}`)}>
-          {remainingTimeString}
-        </h1>
-        <p className="text-gray-500 mt-1">
-          ${formatTokenAmount(balance || 0n)}
-        </p>
-      </div>
+      {terminatedAt > 0n ? (
+        <h2 className="mt-4 text-2xl font-semibold text-alert-border">
+          Unsubscribed
+        </h2>
+      ) : (
+        <div className="py-4">
+          <h1 className={cn("text-4xl font-bold", `text-${statusColor}`)}>
+            {remainingTimeString}
+          </h1>
+          <p className="text-gray-500 mt-1">
+            ${formatTokenAmount(balance || 0n)}
+          </p>
+        </div>
+      )}
 
       <div className="flex justify-between items-center gap-4  mt-5">
-        <Button
-          variant="outline"
-          className="w-32 h-12 flex items-center justify-center gap-2"
-          onClick={() => setIsDepositModalOpen(true)}
-        >
-          <BookDown className="h-5 w-5" />
-          Deposit
-        </Button>
+        {terminatedAt > 0n ? (
+          <div className="mt-4">
+            <div className=" p-4 bg-alert-background rounded-lg flex items-start gap-3">
+              <TriangleAlert className="h-11 w-11 text-alert-border stroke-[1.5] flex-shrink-0" />
+              <p className="text-sm text-alert-border">
+                You're unsubscribed, but provider permissions are still active.
+                Complete the process to revoke access.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <Button
+            variant="outline"
+            className="w-32 h-12 flex items-center justify-center gap-2"
+            onClick={() => setIsDepositModalOpen(true)}
+          >
+            <BookDown className="h-5 w-5" />
+            Deposit
+          </Button>
+        )}
 
         <div className="flex gap-4">
           {[

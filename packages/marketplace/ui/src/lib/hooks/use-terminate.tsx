@@ -16,7 +16,6 @@ export const useTerminate = ({ orderId }: { orderId: bigint }) => {
 
   const isSubscribed = useMemo(() => {
     if (!data) return false;
-    console.log(data.order.terminatedAt)
     return data.order.terminatedAt == 0n;
   }, [data]);
 
@@ -24,7 +23,6 @@ export const useTerminate = ({ orderId }: { orderId: bigint }) => {
     if (!walletClient) {
       throw new Error("No wallet connected");
     }
-    console.log({isSubscribed, termi: data?.order.terminatedAt})
     if (!isSubscribed) {
       throw new Error("Order already terminated");
     }

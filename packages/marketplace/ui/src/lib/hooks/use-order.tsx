@@ -24,7 +24,6 @@ export const useOrderDetails = ({ id }: { id: bigint }) => {
       enabled: !!id,
     },
   });
-  console.log({order})
   if (!order || (order as any).client === zeroAddress) return { data: null };
   const currentUnixTime = BigInt(Math.floor(Date.now() / 1000));
   const secondsElapsed =

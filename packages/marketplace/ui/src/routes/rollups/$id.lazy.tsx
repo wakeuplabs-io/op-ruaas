@@ -47,6 +47,7 @@ export default function RollupDashboard() {
               pricePerMonth={BigInt(offer.pricePerMonth)}
               balance={BigInt(order.balance)}
               orderId={BigInt(id)}
+              terminatedAt={order.terminatedAt}
             />
           )}
         </div>
