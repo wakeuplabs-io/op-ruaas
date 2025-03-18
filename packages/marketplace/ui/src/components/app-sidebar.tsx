@@ -1,21 +1,26 @@
-import * as React from "react"
-import { Plus } from "lucide-react"
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from "@/components/ui/sidebar"
-import { cn } from "@/lib/utils"
-import CustomConnectButton from "./connect-wallet"
-import { buttonVariants } from "./ui/button"
-import { Link } from "@tanstack/react-router"
-import { RollupList } from "./sidebar/rollup-list"
-import { useAccount } from "wagmi"
-import { useOrders } from "@/lib/hooks/use-orders"
-import { useProviderInfo } from "@/lib/hooks/use-provider-info"
+import * as React from "react";
+import { Plus } from "lucide-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+} from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
+import CustomConnectButton from "./connect-wallet";
+import { buttonVariants } from "./ui/button";
+import { Link } from "@tanstack/react-router";
+import { RollupList } from "./sidebar/rollup-list";
+import { useAccount } from "wagmi";
+import { useOrders } from "@/lib/hooks/use-orders";
+import { useProviderInfo } from "@/lib/hooks/use-provider-info";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
-  const { isConnected } = useAccount()
-  const { sequencerRollups, replicaRollups } = useOrders()
-  const { name } = useProviderInfo()
+  const { name } = useProviderInfo();
+  const { isConnected } = useAccount();
+  const { sequencerRollups, replicaRollups } = useOrders();
 
-  const [selectedRollupId, setSelectedRollupId] = React.useState<bigint>()
+  const [selectedRollupId, setSelectedRollupId] = React.useState<bigint>();
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -33,6 +38,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             <Plus size={16} className="text-red-500" />
             <span className="font-primary">New Rollup</span>
           </Link>
+
           <hr />
 
           <RollupList
@@ -41,7 +47,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             selectedId={selectedRollupId}
             onSelect={setSelectedRollupId}
           />
+
           <hr />
+
           <RollupList
             name="Replica"
             rollups={replicaRollups}
@@ -51,27 +59,31 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         </SidebarContent>
       )}
 
-      <div className="px-4 mt-auto text-sm text-gray-700">
-        <h4 className="text-gray-500 text-xs mb-1">Provider</h4>
-        <p className="font-medium">{name}</p>
-      </div>
+      <SidebarFooter className="pb-10 px-4 space-y-2">
+        <hr className="border-muted" />
 
-      <div className="px-4 mt-4">
+        <div className="text-sm text-gray-700">
+          <h4 className="text-gray-500 text-xs mb-1">Provider</h4>
+          <p className="font-medium">{name}</p>
+        </div>
+
+        <hr className="border-muted" />
+
         <CustomConnectButton />
-      </div>
 
-      <SidebarFooter className="pb-4 px-4 flex flex-col items-center mt-4">
+        <hr className="border-muted" />
+
         <a
           href="https://www.wakeuplabs.io/"
           target="_blank"
           className={cn(
             buttonVariants({ variant: "secondary" }),
-            "w-full h-[74px] flex justify-center items-center"
+            "w-full h-[58px]"
           )}
         >
           <img className="h-[45px]" src="/wakeuplabs.png" alt="logo" />
         </a>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

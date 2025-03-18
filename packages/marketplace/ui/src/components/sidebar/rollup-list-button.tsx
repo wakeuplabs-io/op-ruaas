@@ -9,14 +9,18 @@ type RollupListButtonProps = {
   isSelected?: boolean;
 };
 
-export function RollupListButton({ rollup, onClick, isSelected = false }: RollupListButtonProps) {
+export function RollupListButton({
+  rollup,
+  onClick,
+  isSelected = false,
+}: RollupListButtonProps) {
   return (
     <SidebarListButton isSelected={isSelected} onClick={onClick}>
-        <Link
-          to="/rollups/$id"
-          params={{ id: rollup.id.toString(16) }}
-          className="..."
-        >
+      <Link
+        to="/rollups/$id"
+        params={{ id: rollup.id.toString(16) }}
+        className="..."
+      >
         <CircleDot size={12} />
         <span className="hover:text-black transition">{rollup.name}</span>
       </Link>

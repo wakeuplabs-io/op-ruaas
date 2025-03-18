@@ -9,12 +9,10 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "../ui/scroll-area";
 import { ArrowRight } from "lucide-react";
-import { useChainPermissions } from "@/lib/hooks/use-chain-permissions";
 import { zeroAddress } from "viem";
 import { StepCard } from "../step-card";
-import { useTerminate } from "@/lib/hooks/use-terminate";
 import { Offer, Order, UnsubscribeStep } from "@/types";
-import { useMemo } from "react";
+import { useUnsubscribe } from "@/lib/hooks/use-unsubscribe";
 
 export const UnsubscribeModal: React.FC<
   {
@@ -23,47 +21,14 @@ export const UnsubscribeModal: React.FC<
     disabled?: boolean;
   } & ButtonProps
 > = ({ order, offer, disabled, ...props }) => {
-  const { terminate, isPending: isTerminatePending } = useTerminate({ orderId: order.id });
   const {
-    batcher,
-    sequencer,
-    challenger,
-    proposer,
+    step,
+    isTerminatePending,
+    terminate,
     setBatcherAddress,
-    setSequencerAddress,
     setOracleAddress,
-  } = useChainPermissions({
-    l1ChainId: Number(order.deploymentMetadata.network.l1ChainID ?? 0),
-    systemConfigProxy:
-      order.deploymentMetadata.addresses.systemConfigProxy ?? zeroAddress,
-    l2OutputOracleProxy:
-      order.deploymentMetadata.addresses.l2OutputOracleProxy ?? zeroAddress,
-    systemOwnerSafe:
-      order.deploymentMetadata.addresses.systemOwnerSafe ?? zeroAddress,
-    proxyAdmin: order.deploymentMetadata.addresses.proxyAdmin ?? zeroAddress,
-  });
-
-  const isSubscribed = useMemo(() => {
-    return order.terminatedAt == 0n;
-  }, [order]);
-
-  const provider = useMemo(() => {
-    return {
-      batcher: offer.metadata.wallets?.batcher ?? zeroAddress,
-      sequencer: offer.metadata.wallets?.sequencer ?? zeroAddress,
-      proposer: offer.metadata.wallets?.proposer ?? zeroAddress,
-      challenger: offer.metadata.wallets?.challenger ?? zeroAddress,
-    };
-  }, [offer]);
-
-  const step = useMemo(() => {
-    if (isSubscribed) return UnsubscribeStep.Unsubscribe;
-    if (sequencer === provider.sequencer) return UnsubscribeStep.SetSequencer;
-    if (batcher === provider.batcher) return UnsubscribeStep.SetBatcher;
-    if (proposer === provider.proposer) return UnsubscribeStep.SetOracle;
-    if (challenger === provider.challenger) return UnsubscribeStep.SetOracle;
-    return UnsubscribeStep.Done;
-  }, [provider, isSubscribed, sequencer, batcher, proposer, challenger]);
+    setSequencerAddress,
+  } = useUnsubscribe({ order, offer });
 
   if (order.terminatedAt !== 0n && step === UnsubscribeStep.Done) return null;
 
@@ -97,7 +62,11 @@ export const UnsubscribeModal: React.FC<
             isComplete={step > UnsubscribeStep.Unsubscribe}
             isActive={step === UnsubscribeStep.Unsubscribe}
           >
-            <Button isPending={isTerminatePending} className="mt-6" onClick={() => terminate()}>
+            <Button
+              isPending={isTerminatePending}
+              className="mt-6"
+              onClick={() => terminate()}
+            >
               Terminate payments <ArrowRight />
             </Button>
           </StepCard>

@@ -1,6 +1,4 @@
-import { RollupActions } from "@/components/rollup-detail/rollup-actions";
 import { RollupHeader } from "@/components/rollup-detail/rollup-header";
-import { Card } from "@/components/ui/card";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Clock, Download, OctagonAlert } from "lucide-react";
@@ -33,41 +31,25 @@ export default function RollupDashboard() {
   const { order, offer } = data;
   return (
     <div className="md:p-6 space-y-6">
-      <div className="rounded-lg bg-gradient-to-l from-gray-300 to-transparent p-px">
-        <div className="px-8 py-6 bg-white rounded-[calc(0.6rem-1px)]">
-          <RollupHeader
-            order={{...order, id: BigInt(id) }}
-            offer={offer}
-          />
-          
-          {order.fulfilledAt > 0 && (
-            <RollupActions
-              l2ChainId={order.deploymentMetadata.network.l2ChainID}
-              rpcUrl={order.deploymentMetadata.urls.rpc}
-              pricePerMonth={BigInt(offer.pricePerMonth)}
-              balance={BigInt(order.balance)}
-              orderId={BigInt(id)}
-              terminatedAt={order.terminatedAt}
-            />
-          )}
-        </div>
-      </div>
+      <RollupHeader order={{ ...order, id: BigInt(id) }} offer={offer} />
 
       {order.fulfilledAt > 0 ? (
         <div>
-          <Card className="p-6 border rounded-lg">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-9">
-              {Object.entries(order.deploymentMetadata.addresses).map(
-                ([key, value], index) => (
-                  <DeploymentValue
-                    key={index}
-                    value={value as string}
-                    description={key as string}
-                  />
-                )
-              )}
+          <div className="rounded-lg bg-gradient-to-l from-gray-300 to-transparent p-px">
+            <div className="px-8 py-6 bg-white rounded-[calc(0.6rem-1px)]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-9">
+                {Object.entries(order.deploymentMetadata.addresses).map(
+                  ([key, value], index) => (
+                    <DeploymentValue
+                      key={index}
+                      value={value as string}
+                      description={key as string}
+                    />
+                  )
+                )}
+              </div>
             </div>
-          </Card>
+          </div>
 
           <Button
             variant="secondary"

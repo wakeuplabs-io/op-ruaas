@@ -74,7 +74,7 @@ export const BuyReplicaModal: React.FC<
       <DialogTrigger>
         <Button {...props} />
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[550px]">
+      <DialogContent className="sm:max-w-[550px] p-12">
         {showSetup ? (
           <>
             <Form {...form}>
