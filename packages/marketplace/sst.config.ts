@@ -43,6 +43,7 @@ export default $config({
         VITE_GATEWAY_URL: process.env.VITE_GATEWAY_URL || "",
         VITE_PROVIDER_NAME: process.env.VITE_PROVIDER_NAME || "",
       },
+      domain: `${PROJECT_NAME}.wakeuplabs.link`,
       indexPage: "index.html",
       errorPage: "index.html",
       invalidation: {
