@@ -63,7 +63,7 @@ export const useChainPermissions = ({
     chainId: l1ChainId,
   });
 
-  const { data } = useReadContracts({
+  const { data, error } = useReadContracts({
     query: { enabled: l2OutputOracle !== undefined, refetchInterval: 1000 },
     contracts: [
       {
@@ -122,7 +122,6 @@ export const useChainPermissions = ({
       },
     ],
   });
-
   useEffect(() => {
     const [
       batcher,
