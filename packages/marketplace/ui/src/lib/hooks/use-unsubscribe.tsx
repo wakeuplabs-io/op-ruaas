@@ -42,7 +42,7 @@ export const useUnsubscribe = ({ order, offer }: { order: Order; offer: Offer })
 
   const step = useMemo(() => {
     if (isSubscribed) return UnsubscribeStep.Unsubscribe;
-    if (sequencer === provider.sequencer) return UnsubscribeStep.SetSequencer;
+    if (sequencer === null || sequencer === provider.sequencer) return UnsubscribeStep.SetSequencer;
     if (batcher === provider.batcher) return UnsubscribeStep.SetBatcher;
     if (proposer === provider.proposer) return UnsubscribeStep.SetOracle;
     if (challenger === provider.challenger) return UnsubscribeStep.SetOracle;

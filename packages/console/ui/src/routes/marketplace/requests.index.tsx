@@ -24,7 +24,7 @@ function RouteComponent() {
   }, [orders]);
 
   return (
-    <main className="p-16">
+    <main className="p-6">
       <Tabs defaultValue="new">
         <TabsList className="">
           <TabsTrigger className="w-48 h-10 flex justify-center" value="new">

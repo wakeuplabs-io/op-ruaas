@@ -16,7 +16,7 @@ export const Route = createFileRoute("/")({
 export function SubscriptionPlans() {
   const [selected, setSelected] = React.useState<string>(SEQUENCER_IDS[0]);
   return (
-    <Tabs className="p-10" defaultValue="sequencer" onValueChange={(value) => {
+    <Tabs className="p-6" defaultValue="sequencer" onValueChange={(value) => {
       setSelected(value === "sequencer" ? SEQUENCER_IDS[0] : REPLICA_IDS[0]);
     }}>
       <div className="flex justify-between items-center mb-8">

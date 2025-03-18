@@ -44,7 +44,7 @@ function RouteComponent() {
 
   return (
     <>
-      <main className="p-16">
+      <main className="p-6">
         {step === DeploymentStep.INSTALL_DEPENDENCIES && (
           <InstallDependenciesStep />
         )}

@@ -63,7 +63,7 @@ function RouteComponent() {
 
   return (
     <>
-      <main className="p-16">
+      <main className="p-6">
         <Card className="">
           <div className="flex items-center justify-between mb-10">
             <h1 className="font-bold text-xl">{capitalize(deployment.name)}</h1>

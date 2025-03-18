@@ -87,7 +87,7 @@ function RouteComponent() {
 
   return (
     <>
-      <main className="p-16">
+      <main className="p-6">
         <Card>
           <CardTitle>Verify and upload chain artifacts</CardTitle>
           <CardDescription className="mt-4 md:mt-6">

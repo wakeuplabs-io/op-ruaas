@@ -78,7 +78,7 @@ function RouteComponent() {
 
   return (
     <>
-      <main className="p-16">
+      <main className="p-6">
         {step == SetupStep.L1_CHAIN && (
           <L1ChainStep mainnet={mainnet} setMainnet={setMainnet} />
         )}
