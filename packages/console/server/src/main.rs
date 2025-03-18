@@ -48,6 +48,12 @@ async fn main() -> Result<(), Error> {
     let db_pool = get_db_pool()
         .await
         .expect("Unable to connect to the database");
+    
+    // Run database migrations
+    sqlx::migrate!()
+        .run(&db_pool)
+        .await
+        .expect("Failed to run database migrations");
 
     // authorizer
     let authorizer = middlewares::auth::Authorizer::new().unwrap();

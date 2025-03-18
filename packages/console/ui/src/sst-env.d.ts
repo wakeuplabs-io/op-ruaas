@@ -5,8 +5,14 @@
 interface ImportMetaEnv {
   readonly VITE_SERVER_URL: string
   readonly VITE_APP_REGION: string
-  readonly VITE_USER_POOL_ID: string
-  readonly VITE_USER_POOL_CLIENT_ID: string
+  readonly VITE_IS_TESTNET: string
+  readonly VITE_ERC20_TOKEN_DECIMALS: string
+  readonly VITE_ERC20_TOKEN_SYMBOL: string
+  readonly VITE_MARKETPLACE_ADDRESS: string
+  readonly VITE_ERC20_TOKEN_ADDRESS: string
+  readonly VITE_MARKETPLACE_CHAIN_ID: string
+  readonly VITE_PINATA_JWT: string
+  readonly VITE_GATEWAY_URL: string
 }
 interface ImportMeta {
   readonly env: ImportMetaEnv

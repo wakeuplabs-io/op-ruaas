@@ -55,12 +55,12 @@ console-deploy stage: console-predeploy
   cd packages/console && npx sst deploy --stage {{stage}}
 
 console-tunnel stage:
-	sudo npx sst tunnel install --stage {{stage}}
-	npx sst tunnel --stage {{stage}}
+	cd packages/console && sudo npx sst tunnel install --stage {{stage}}
+	cd packages/console && npx sst tunnel --stage {{stage}}
 
 console-migrate stage:
 	echo "Ensure tunnel is installed 'sudo npx sst tunnel install --stage {{stage}}' and running 'npx sst tunnel --stage {{stage}}' or 'just console-tunnel {{stage}}'"
-	npx sst shell --target db --stage {{stage}} sqlx migrate run
+	cd packages/console && npx sst shell --target db --stage {{stage}} -- sqlx migrate run --source server/migrations
 
 # marketplace
 
