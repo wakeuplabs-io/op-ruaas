@@ -13,7 +13,7 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Check, Upload } from "lucide-react";
 import { useCallback, useState } from "react";
 
-export const Route = createFileRoute("/app/verify/")({
+export const Route = createFileRoute("/create/verify/")({
   component: RouteComponent,
 });
 
@@ -75,7 +75,7 @@ function RouteComponent() {
         });
       }
 
-      navigate({ to: "/app/deployments/$id", params: { id: deployment.id } });
+      navigate({ to: "/deployments/$id", params: { id: deployment.id } });
     } catch (error) {
       toast({
         variant: "destructive",

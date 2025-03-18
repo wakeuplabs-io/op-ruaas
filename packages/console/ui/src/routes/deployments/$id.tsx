@@ -26,7 +26,7 @@ import { Deployment } from '@/lib/services/deployment'
 import { useToast } from '@/lib/hooks/use-toast'
 import { useAuth } from '@/lib/hooks/use-auth'
 
-export const Route = createFileRoute('/app/deployments/$id')({
+export const Route = createFileRoute('/deployments/$id')({
   component: RouteComponent,
 })
 
@@ -64,16 +64,16 @@ function RouteComponent() {
   return (
     <>
       <main className="p-16">
-        <Card className="space-y-6">
-          <div className="flex items-center justify-between">
+        <Card className="">
+          <div className="flex items-center justify-between mb-10">
             <h1 className="font-bold text-xl">{capitalize(deployment.name)}</h1>
             <OptionsMenu deployment={deployment} />
           </div>
 
           {deployment.infra_base_url && (
-            <div className="space-y-2">
+            <div className="space-y-2 mb-6">
               <h2 className="text-sm">Infrastructure</h2>
-              <ul className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              <ul className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
                 <li>
                   <DeploymentValue
                     value={`${deployment.infra_base_url}`}
@@ -99,7 +99,7 @@ function RouteComponent() {
           {deployment.contracts_addresses && (
             <div className="space-y-2">
               <h2 className="text-sm">Addresses</h2>
-              <ul className="grid gap-3  grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              <ul className="grid gap-y-4 gap-x-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
                 {Object.entries(JSON.parse(deployment.contracts_addresses) as { [key: string]: string }).map(
                   ([key, value]) => (
                     <li>
@@ -148,7 +148,7 @@ const OptionsMenu: React.FC<{ deployment: Deployment }> = ({ deployment }) => {
   const onDelete = useCallback(() => {
     if (window.confirm("Are you sure? There's no way back")) {
       deleteDeployment(deployment.id).then(() => {
-        navigate({ to: '/app' })
+        navigate({ to: '/create/deploy' })
       })
     }
   }, [navigate, deleteDeployment, deployment])

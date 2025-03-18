@@ -4,7 +4,7 @@ import React, { useMemo, useState } from "react";
 import { Pagination } from "@/components/pagination";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 
-export const Route = createFileRoute("/app/deploy/")({
+export const Route = createFileRoute("/create/deploy/")({
   component: RouteComponent,
 });
 
@@ -32,7 +32,7 @@ function RouteComponent() {
     if (currentStepIndex < steps.length - 1) {
       setStep(steps[currentStepIndex + 1].step);
     } else {
-      router.navigate({ to: "/app/verify" });
+      router.navigate({ to: "/create/verify" });
     }
   };
 

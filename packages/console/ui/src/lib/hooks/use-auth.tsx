@@ -2,6 +2,7 @@ import { SiweMessage } from "siwe";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useAccount, useSignMessage } from "wagmi";
 import { safeParseJSON } from "../utils";
+import { SIWE_LOCALSTORAGE_KEY } from "@/shared/constants/siwe";
 
 export type AuthUser = {
   id: string;
@@ -53,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     window.localStorage.setItem(
-      "siwe-token",
+      SIWE_LOCALSTORAGE_KEY,
       JSON.stringify({ message, signature })
     );
     setUser({ id: address });
@@ -62,19 +63,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = () => {
     setLoading(true);
-    window.localStorage.removeItem("siwe-token");
+    window.localStorage.removeItem(SIWE_LOCALSTORAGE_KEY);
     setUser(null);
     setLoading(false);
   };
 
   const getToken = () => {
-    const { message, signature } = safeParseJSON(window.localStorage.getItem("siwe-token"));
+    const { message, signature } = safeParseJSON(
+      window.localStorage.getItem(SIWE_LOCALSTORAGE_KEY)
+    );
     return btoa(`${message}||${signature}`);
   };
 
   useEffect(() => {
     try {
-      const { message, signature } = safeParseJSON(window.localStorage.getItem("siwe-token"));
+      const { message, signature } = safeParseJSON(
+        window.localStorage.getItem(SIWE_LOCALSTORAGE_KEY)
+      );
 
       const SIWEObject = new SiweMessage(message);
       SIWEObject.validate(signature).then((r) => {
@@ -86,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setLoading(false);
       });
     } catch (e) {
-      window.localStorage.removeItem("siwe-token");
+      window.localStorage.removeItem(SIWE_LOCALSTORAGE_KEY);
       setUser(null);
       setLoading(false);
     }

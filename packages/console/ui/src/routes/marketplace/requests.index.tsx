@@ -6,7 +6,7 @@ import { useVendorOrders } from "@/lib/hooks/use-vendor-orders";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
 
-export const Route = createFileRoute("/app/requests/")({
+export const Route = createFileRoute("/marketplace/requests/")({
   component: RouteComponent,
 });
 

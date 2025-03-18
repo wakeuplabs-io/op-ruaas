@@ -18,12 +18,11 @@ import { capitalize } from "@/lib/utils";
 import { Deployment } from "@/lib/services/deployment";
 import { cn } from "@/lib/utils";
 import CustomConnectButton from "../connect-wallet";
-import { useAuth } from "@/lib/hooks/use-auth";
 
 const navMarketplace = [
   {
     title: "Requests",
-    url: "/app/requests",
+    url: "/marketplace/requests",
     icon: PackageIcon,
   },
 ];
@@ -31,17 +30,17 @@ const navMarketplace = [
 const navCreate = [
   {
     title: "Setup",
-    url: "/app",
+    url: "/create/setup",
     icon: SettingsIcon,
   },
   {
     title: "Deploy",
-    url: "/app/deploy",
+    url: "/create/deploy",
     icon: Rocket,
   },
   {
     title: "Verify",
-    url: "/app/verify",
+    url: "/create/verify",
     icon: ShieldCheck,
   },
 ];

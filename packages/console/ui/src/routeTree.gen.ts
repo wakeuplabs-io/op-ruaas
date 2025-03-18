@@ -12,11 +12,11 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
-import { Route as AppIndexImport } from './routes/app/index'
-import { Route as AppVerifyIndexImport } from './routes/app/verify.index'
-import { Route as AppRequestsIndexImport } from './routes/app/requests.index'
-import { Route as AppDeployIndexImport } from './routes/app/deploy.index'
-import { Route as AppDeploymentsIdImport } from './routes/app/deployments.$id'
+import { Route as DeploymentsIdImport } from './routes/deployments/$id'
+import { Route as MarketplaceRequestsIndexImport } from './routes/marketplace/requests.index'
+import { Route as CreateVerifyIndexImport } from './routes/create/verify.index'
+import { Route as CreateSetupIndexImport } from './routes/create/setup.index'
+import { Route as CreateDeployIndexImport } from './routes/create/deploy.index'
 
 // Create/Update Routes
 
@@ -26,33 +26,33 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const AppIndexRoute = AppIndexImport.update({
-  id: '/app/',
-  path: '/app/',
+const DeploymentsIdRoute = DeploymentsIdImport.update({
+  id: '/deployments/$id',
+  path: '/deployments/$id',
   getParentRoute: () => rootRoute,
 } as any)
 
-const AppVerifyIndexRoute = AppVerifyIndexImport.update({
-  id: '/app/verify/',
-  path: '/app/verify/',
+const MarketplaceRequestsIndexRoute = MarketplaceRequestsIndexImport.update({
+  id: '/marketplace/requests/',
+  path: '/marketplace/requests/',
   getParentRoute: () => rootRoute,
 } as any)
 
-const AppRequestsIndexRoute = AppRequestsIndexImport.update({
-  id: '/app/requests/',
-  path: '/app/requests/',
+const CreateVerifyIndexRoute = CreateVerifyIndexImport.update({
+  id: '/create/verify/',
+  path: '/create/verify/',
   getParentRoute: () => rootRoute,
 } as any)
 
-const AppDeployIndexRoute = AppDeployIndexImport.update({
-  id: '/app/deploy/',
-  path: '/app/deploy/',
+const CreateSetupIndexRoute = CreateSetupIndexImport.update({
+  id: '/create/setup/',
+  path: '/create/setup/',
   getParentRoute: () => rootRoute,
 } as any)
 
-const AppDeploymentsIdRoute = AppDeploymentsIdImport.update({
-  id: '/app/deployments/$id',
-  path: '/app/deployments/$id',
+const CreateDeployIndexRoute = CreateDeployIndexImport.update({
+  id: '/create/deploy/',
+  path: '/create/deploy/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -67,39 +67,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/app/': {
-      id: '/app/'
-      path: '/app'
-      fullPath: '/app'
-      preLoaderRoute: typeof AppIndexImport
+    '/deployments/$id': {
+      id: '/deployments/$id'
+      path: '/deployments/$id'
+      fullPath: '/deployments/$id'
+      preLoaderRoute: typeof DeploymentsIdImport
       parentRoute: typeof rootRoute
     }
-    '/app/deployments/$id': {
-      id: '/app/deployments/$id'
-      path: '/app/deployments/$id'
-      fullPath: '/app/deployments/$id'
-      preLoaderRoute: typeof AppDeploymentsIdImport
+    '/create/deploy/': {
+      id: '/create/deploy/'
+      path: '/create/deploy'
+      fullPath: '/create/deploy'
+      preLoaderRoute: typeof CreateDeployIndexImport
       parentRoute: typeof rootRoute
     }
-    '/app/deploy/': {
-      id: '/app/deploy/'
-      path: '/app/deploy'
-      fullPath: '/app/deploy'
-      preLoaderRoute: typeof AppDeployIndexImport
+    '/create/setup/': {
+      id: '/create/setup/'
+      path: '/create/setup'
+      fullPath: '/create/setup'
+      preLoaderRoute: typeof CreateSetupIndexImport
       parentRoute: typeof rootRoute
     }
-    '/app/requests/': {
-      id: '/app/requests/'
-      path: '/app/requests'
-      fullPath: '/app/requests'
-      preLoaderRoute: typeof AppRequestsIndexImport
+    '/create/verify/': {
+      id: '/create/verify/'
+      path: '/create/verify'
+      fullPath: '/create/verify'
+      preLoaderRoute: typeof CreateVerifyIndexImport
       parentRoute: typeof rootRoute
     }
-    '/app/verify/': {
-      id: '/app/verify/'
-      path: '/app/verify'
-      fullPath: '/app/verify'
-      preLoaderRoute: typeof AppVerifyIndexImport
+    '/marketplace/requests/': {
+      id: '/marketplace/requests/'
+      path: '/marketplace/requests'
+      fullPath: '/marketplace/requests'
+      preLoaderRoute: typeof MarketplaceRequestsIndexImport
       parentRoute: typeof rootRoute
     }
   }
@@ -109,76 +109,76 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/app': typeof AppIndexRoute
-  '/app/deployments/$id': typeof AppDeploymentsIdRoute
-  '/app/deploy': typeof AppDeployIndexRoute
-  '/app/requests': typeof AppRequestsIndexRoute
-  '/app/verify': typeof AppVerifyIndexRoute
+  '/deployments/$id': typeof DeploymentsIdRoute
+  '/create/deploy': typeof CreateDeployIndexRoute
+  '/create/setup': typeof CreateSetupIndexRoute
+  '/create/verify': typeof CreateVerifyIndexRoute
+  '/marketplace/requests': typeof MarketplaceRequestsIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/app': typeof AppIndexRoute
-  '/app/deployments/$id': typeof AppDeploymentsIdRoute
-  '/app/deploy': typeof AppDeployIndexRoute
-  '/app/requests': typeof AppRequestsIndexRoute
-  '/app/verify': typeof AppVerifyIndexRoute
+  '/deployments/$id': typeof DeploymentsIdRoute
+  '/create/deploy': typeof CreateDeployIndexRoute
+  '/create/setup': typeof CreateSetupIndexRoute
+  '/create/verify': typeof CreateVerifyIndexRoute
+  '/marketplace/requests': typeof MarketplaceRequestsIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/app/': typeof AppIndexRoute
-  '/app/deployments/$id': typeof AppDeploymentsIdRoute
-  '/app/deploy/': typeof AppDeployIndexRoute
-  '/app/requests/': typeof AppRequestsIndexRoute
-  '/app/verify/': typeof AppVerifyIndexRoute
+  '/deployments/$id': typeof DeploymentsIdRoute
+  '/create/deploy/': typeof CreateDeployIndexRoute
+  '/create/setup/': typeof CreateSetupIndexRoute
+  '/create/verify/': typeof CreateVerifyIndexRoute
+  '/marketplace/requests/': typeof MarketplaceRequestsIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/app'
-    | '/app/deployments/$id'
-    | '/app/deploy'
-    | '/app/requests'
-    | '/app/verify'
+    | '/deployments/$id'
+    | '/create/deploy'
+    | '/create/setup'
+    | '/create/verify'
+    | '/marketplace/requests'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/app'
-    | '/app/deployments/$id'
-    | '/app/deploy'
-    | '/app/requests'
-    | '/app/verify'
+    | '/deployments/$id'
+    | '/create/deploy'
+    | '/create/setup'
+    | '/create/verify'
+    | '/marketplace/requests'
   id:
     | '__root__'
     | '/'
-    | '/app/'
-    | '/app/deployments/$id'
-    | '/app/deploy/'
-    | '/app/requests/'
-    | '/app/verify/'
+    | '/deployments/$id'
+    | '/create/deploy/'
+    | '/create/setup/'
+    | '/create/verify/'
+    | '/marketplace/requests/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AppIndexRoute: typeof AppIndexRoute
-  AppDeploymentsIdRoute: typeof AppDeploymentsIdRoute
-  AppDeployIndexRoute: typeof AppDeployIndexRoute
-  AppRequestsIndexRoute: typeof AppRequestsIndexRoute
-  AppVerifyIndexRoute: typeof AppVerifyIndexRoute
+  DeploymentsIdRoute: typeof DeploymentsIdRoute
+  CreateDeployIndexRoute: typeof CreateDeployIndexRoute
+  CreateSetupIndexRoute: typeof CreateSetupIndexRoute
+  CreateVerifyIndexRoute: typeof CreateVerifyIndexRoute
+  MarketplaceRequestsIndexRoute: typeof MarketplaceRequestsIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AppIndexRoute: AppIndexRoute,
-  AppDeploymentsIdRoute: AppDeploymentsIdRoute,
-  AppDeployIndexRoute: AppDeployIndexRoute,
-  AppRequestsIndexRoute: AppRequestsIndexRoute,
-  AppVerifyIndexRoute: AppVerifyIndexRoute,
+  DeploymentsIdRoute: DeploymentsIdRoute,
+  CreateDeployIndexRoute: CreateDeployIndexRoute,
+  CreateSetupIndexRoute: CreateSetupIndexRoute,
+  CreateVerifyIndexRoute: CreateVerifyIndexRoute,
+  MarketplaceRequestsIndexRoute: MarketplaceRequestsIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -192,30 +192,30 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/app/",
-        "/app/deployments/$id",
-        "/app/deploy/",
-        "/app/requests/",
-        "/app/verify/"
+        "/deployments/$id",
+        "/create/deploy/",
+        "/create/setup/",
+        "/create/verify/",
+        "/marketplace/requests/"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
-    "/app/": {
-      "filePath": "app/index.tsx"
+    "/deployments/$id": {
+      "filePath": "deployments/$id.tsx"
     },
-    "/app/deployments/$id": {
-      "filePath": "app/deployments.$id.tsx"
+    "/create/deploy/": {
+      "filePath": "create/deploy.index.tsx"
     },
-    "/app/deploy/": {
-      "filePath": "app/deploy.index.tsx"
+    "/create/setup/": {
+      "filePath": "create/setup.index.tsx"
     },
-    "/app/requests/": {
-      "filePath": "app/requests.index.tsx"
+    "/create/verify/": {
+      "filePath": "create/verify.index.tsx"
     },
-    "/app/verify/": {
-      "filePath": "app/verify.index.tsx"
+    "/marketplace/requests/": {
+      "filePath": "marketplace/requests.index.tsx"
     }
   }
 }

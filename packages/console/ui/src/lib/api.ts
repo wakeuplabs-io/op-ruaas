@@ -1,5 +1,6 @@
 import axios from "axios";
 import { safeParseJSON } from "./utils";
+import { SIWE_LOCALSTORAGE_KEY } from "@/shared/constants/siwe";
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_SERVER_URL,
@@ -11,7 +12,7 @@ export const api = axios.create({
 
 api.interceptors.request.use(
   async (config) => {
-    const { message, signature } = safeParseJSON(window.localStorage.getItem("siwe-token"));
+    const { message, signature } = safeParseJSON(window.localStorage.getItem(SIWE_LOCALSTORAGE_KEY));
     const token =  btoa(`${message}||${signature}`);
     console.log("token", token)
 

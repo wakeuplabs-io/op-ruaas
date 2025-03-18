@@ -9,7 +9,7 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { DownloadIcon } from "lucide-react";
 import React, { useCallback, useMemo, useState } from "react";
 
-export const Route = createFileRoute("/app/")({
+export const Route = createFileRoute("/create/setup/")({
   component: RouteComponent,
 });
 
@@ -66,7 +66,7 @@ function RouteComponent() {
     if (currentStepIndex < steps.length - 1) {
       setStep(steps[currentStepIndex + 1].step);
     } else {
-      router.navigate({ to: "/app/deploy" });
+      router.navigate({ to: "/create/deploy" });
     }
   }, [currentStepIndex]);
 
