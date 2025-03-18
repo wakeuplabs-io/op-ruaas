@@ -30,7 +30,7 @@ export const UnsubscribeModal: React.FC<
     setSequencerAddress,
   } = useUnsubscribe({ order, offer });
 
-  if (order.terminatedAt !== 0n && step === UnsubscribeStep.Done) return null;
+  if ((order.terminatedAt !== 0n && step === UnsubscribeStep.Done) || order.fulfilledAt === 0n) return null;
 
   return (
     <Dialog>
