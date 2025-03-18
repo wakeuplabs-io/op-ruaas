@@ -6,6 +6,7 @@ import {
   MARKETPLACE_CHAIN_ID,
 } from "@/shared/constants/marketplace";
 import { Offer, OfferMetadata, OfferReturnTuple } from "@/types";
+import { zeroAddress } from "viem";
 
 export function useOffer(offerId?: bigint) {
   const { data, isLoading, error } = useReadContract<
@@ -23,7 +24,7 @@ export function useOffer(offerId?: bigint) {
   });
 
   const isInvalidOffer =
-    !data || data[0] === "0x0000000000000000000000000000000000000000";
+    !data || data[0] === zeroAddress;
 
   const offer: Offer | null = !isInvalidOffer
   ? {

@@ -5,7 +5,7 @@ import { connectorsForWallets } from "@rainbow-me/rainbowkit";
 import { metaMaskWallet } from "@rainbow-me/rainbowkit/wallets";
 import { braveWallet } from "@rainbow-me/rainbowkit/wallets";
 import { NetworkConfig } from "@/types";
-import { optimismSepolia } from "wagmi/chains";
+import { holesky, optimismSepolia } from "wagmi/chains";
 
 export const optimismTestnet: NetworkConfig = {
   ...optimismSepolia,
@@ -23,6 +23,21 @@ export const optimismTestnet: NetworkConfig = {
     },
   },
 };
+
+export const holeskyTestnet: NetworkConfig = {
+  ...holesky,
+  chainId: holesky.id,
+  rpcUrls: {
+    default: {
+      http: [holesky.rpcUrls.default.http[0]],
+    },
+  },
+  explorer: {
+    default: {
+      url: holesky.blockExplorers.default.url,
+    },
+  },
+}
 
 export const gethTestnetL1: NetworkConfig = {
   name: "Geth Network",

@@ -95,7 +95,6 @@ export type OrderData = {
 export type Order = {
   id: bigint;
   client: string;
-  name: string
   offerId: bigint;
   balance: bigint;
   createdAt: bigint;
@@ -104,7 +103,6 @@ export type Order = {
   lastWithdrawal: bigint;
   setupMetadata: OrderSetupMetadata;
   deploymentMetadata: OrderDeploymentMetadata;
-  offer: Offer;
 };
 
 export type OfferReturnTuple = [

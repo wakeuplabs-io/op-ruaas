@@ -11,7 +11,6 @@ import { ScrollArea } from "../ui/scroll-area";
 import { ArrowRight } from "lucide-react";
 import { useTerminate } from "@/lib/hooks/use-terminate";
 import { StepCard } from "../step-card";
-import { UnsubscribeStep } from "@/types";
 
 export const RefundModal: React.FC<
   {

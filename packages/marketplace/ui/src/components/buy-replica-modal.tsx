@@ -125,7 +125,7 @@ export const BuyReplicaModal: React.FC<
                 </div>
 
                 <Button
-                  className="w-full mt-12"
+                  variant="primary"
                   type="submit"
                   size="lg"
                   disabled={!form.formState.isValid || !artifacts || isPending}
@@ -172,8 +172,8 @@ export const BuyReplicaModal: React.FC<
             />
 
             <Button
+              variant="primary"
               size="lg"
-              className="mt-12"
               onClick={() => setShowSetup(true)}
             >
               Select Plan

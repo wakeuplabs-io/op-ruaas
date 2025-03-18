@@ -10,6 +10,7 @@ import { UnsubscribeModal } from "./unsubscribe-modal";
 import { useUnsubscribe } from "@/lib/hooks/use-unsubscribe-modal";
 import { ShieldCheck } from "lucide-react";
 import { RefundModal } from "./refund-modal";
+import { currentUnixTime } from "@/lib/utils";
 
 interface RollupHeaderProps {
   order: Order;
@@ -20,10 +21,8 @@ export function RollupHeader({ order, offer }: RollupHeaderProps) {
   if (!order) return <></>;
   const { fulfilledAt, terminatedAt, id, setupMetadata } = order;
   const { step } = useUnsubscribe({ orderId: id });
-  const currentUnixTime = BigInt(Math.floor(Date.now() / 1000));
   const timeRemainingInSeconds =
     fulfilledAt > 0n ? Number(fulfilledAt + 48n * 3600n - currentUnixTime) : 0;
-  
 
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center">

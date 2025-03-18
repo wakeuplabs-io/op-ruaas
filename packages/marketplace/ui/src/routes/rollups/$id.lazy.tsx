@@ -8,6 +8,7 @@ import { useOrderDetails } from "@/lib/hooks/use-order";
 import { DeploymentValue } from "@/components/rollup-detail/deployment-value";
 import { useCallback } from "react";
 import { pinata } from "@/lib/pinata";
+import { NotFoundPage } from "@/components/not-found";
 
 export const Route = createLazyFileRoute("/rollups/$id")({
   component: RollupDashboard,
@@ -26,8 +27,9 @@ export default function RollupDashboard() {
   }, [data]);
 
   if (!data) {
-    return "Not found";
+    return <NotFoundPage />;
   }
+  console.log({data});
   const { order, offer } = data;
 
   return (

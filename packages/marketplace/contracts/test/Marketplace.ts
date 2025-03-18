@@ -354,6 +354,15 @@ describe("Marketplace", function () {
       );
       expect(orderBalanceAfter).to.equal(0n);
     });
+
+    it("Should allow termination if FULFILLMENT_PERIOD has passed and order is not fulfilled", async function () {
+      const { marketplace, client, vendorCreateOffer, clientCreateOrder } =
+      await loadFixture(deployMarketplaceFixture);
+      const orderId = await clientCreateOrder(await vendorCreateOffer());
+      await time.increase(await marketplace.FULFILLMENT_PERIOD());
+      await expect(marketplace.connect(client).terminateOrder(orderId)).to.not.be.reverted;
+    });
+    
   });
 
   describe("Deposit", function () {

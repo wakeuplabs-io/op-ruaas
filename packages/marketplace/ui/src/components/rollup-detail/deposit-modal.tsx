@@ -106,7 +106,7 @@ export function DepositModal({ orderId, pricePerMonth, isOpen, onClose }: Deposi
           {selectedPlan && (
             <>
               <Button
-                className="w-full mt-8 bg-red-500 hover:bg-red-600 text-white py-6 rounded-full flex items-center justify-center gap-2 text-lg"
+                variant="primary"
                 onClick={handleDeposit}
                 isPending={isPending}
                 disabled={isPending || !isConnected || status ===  ModalStatus.SUCCESS}

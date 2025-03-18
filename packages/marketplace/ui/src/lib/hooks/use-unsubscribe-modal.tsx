@@ -11,23 +11,22 @@ export const useUnsubscribe = ({ orderId }: { orderId: bigint }) => {
     if (!data) return false;
     return data.order.terminatedAt == 0n;
   }, [data]);
-
   const {
     batcher,
     sequencer,
     proposer,
     challenger,
   } = useChainPermissions({
-    l1ChainId: Number(data?.order.deploymentMetadata.network.l1ChainID ?? 0),
+    l1ChainId: Number(data?.order.deploymentMetadata.network?.l1ChainID ?? 0),
     systemConfigProxy:
-      data?.order.deploymentMetadata.addresses.systemConfigProxy ?? zeroAddress,
+      data?.order.deploymentMetadata.addresses?.systemConfigProxy ?? zeroAddress,
     l2OutputOracleProxy:
-      data?.order.deploymentMetadata.addresses.l2OutputOracleProxy ??
+      data?.order.deploymentMetadata.addresses?.l2OutputOracleProxy ??
       zeroAddress,
     systemOwnerSafe:
-      data?.order.deploymentMetadata.addresses.systemOwnerSafe ?? zeroAddress,
+      data?.order.deploymentMetadata.addresses?.systemOwnerSafe ?? zeroAddress,
     proxyAdmin:
-      data?.order.deploymentMetadata.addresses.proxyAdmin ?? zeroAddress,
+      data?.order.deploymentMetadata.addresses?.proxyAdmin ?? zeroAddress,
   });
 
 
