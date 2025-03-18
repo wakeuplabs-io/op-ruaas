@@ -6,9 +6,8 @@ const env = {
   MARKETPLACE_ADDRESS: import.meta.env.VITE_MARKETPLACE_ADDRESS,
   ERC20_TOKEN_ADDRESS: import.meta.env.VITE_ERC20_TOKEN_ADDRESS,
   MARKETPLACE_CHAIN_ID: import.meta.env.VITE_MARKETPLACE_CHAIN_ID,
-  MARKETPLACE_SEQUENCER_OFFERS: import.meta.env.VITE_MARKETPLACE_SEQUENCER_OFFERS,
-  MARKETPLACE_REPLICA_OFFERS: import.meta.env.VITE_MARKETPLACE_REPLICA_OFFERS,
-  PROVIDER_NAME: import.meta.env.VITE_PROVIDER_NAME
+  VITE_PINATA_JWT: import.meta.env.VITE_PINATA_JWT,
+  VITE_GATEWAY_URL: import.meta.env.VITE_GATEWAY_URL,
 };
 
 const envSchema = z
@@ -18,9 +17,8 @@ const envSchema = z
     MARKETPLACE_ADDRESS: z.string(),
     MARKETPLACE_CHAIN_ID: z.string(),
     ERC20_TOKEN_ADDRESS: z.string(),
-    MARKETPLACE_SEQUENCER_OFFERS: z.string(),
-    MARKETPLACE_REPLICA_OFFERS: z.string(),
-    PROVIDER_NAME: z.string(),
+    VITE_PINATA_JWT: z.string(),
+    VITE_GATEWAY_URL: z.string(),
   })
   .required();
 
