@@ -14,7 +14,7 @@ export const Route = createLazyFileRoute("/rollups/$id")({
 
 export default function RollupDashboard() {
   const { id } = Route.useParams();
-  const { data } = useOrderDetails({ id: BigInt(id) });
+  const { data, isLoading } = useOrderDetails({ id: BigInt(id) });
 
   const onDownload = useCallback(async () => {
     const artifactsCid = data?.order.deploymentMetadata.artifacts;
@@ -23,6 +23,10 @@ export default function RollupDashboard() {
     const gatewayUrl = await pinata.gateways.public.convert(artifactsCid);
     window.open(gatewayUrl, "_blank");
   }, [data]);
+
+  if(isLoading && !data) {
+    <></>
+  }
 
   if (!data) {
     return <NotFoundPage />;

@@ -48,7 +48,7 @@ export const useChainPermissions = ({
   const config = useConfig();
 
   // Fetching from proxy directly doesn't quite work locally so we circunvent it
-  const { data: l2OutputOracle } = useReadContract({
+  const { data: l2OutputOracle, error: l2OutputOracleError } = useReadContract({
     address: l2OutputOracleProxy,
     abi: [
       {
@@ -63,7 +63,7 @@ export const useChainPermissions = ({
     chainId: l1ChainId,
   });
 
-  const { data } = useReadContracts({
+  const { data, error } = useReadContracts({
     query: { enabled: l2OutputOracle !== undefined, refetchInterval: 1000 },
     contracts: [
       {
@@ -122,7 +122,6 @@ export const useChainPermissions = ({
       },
     ],
   });
-
   useEffect(() => {
     const [
       batcher,
@@ -296,6 +295,18 @@ export const useChainPermissions = ({
     }
   };
 
+  if(l2OutputOracleError) {
+    return {
+      setSequencerAddress,
+      setBatcherAddress,
+      setOracleAddress,
+      batcher: null,
+      sequencer: null,
+      challenger: null,
+      proposer: null,
+      isPending: pending,
+    };
+  }
   return {
     setSequencerAddress,
     setBatcherAddress,
