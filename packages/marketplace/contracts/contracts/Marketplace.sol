@@ -8,10 +8,10 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 contract Marketplace is IMarketplace, ReentrancyGuard {
     IERC20 public paymentToken;
 
-    uint256 public offerCount;
+    uint256 public offerCount = 1;
     mapping(uint256 => Offer) public offers;
 
-    uint256 public orderCount;
+    uint256 public orderCount = 1;
     mapping(uint256 => Order) public orders;
     mapping(address => uint256[]) private clientOrders;
     mapping(address => uint256[]) private vendorOrders;
