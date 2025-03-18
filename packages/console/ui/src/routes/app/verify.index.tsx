@@ -58,14 +58,6 @@ function RouteComponent() {
       return;
     }
 
-    if (!user) {
-      return toast({
-        variant: "destructive",
-        title: "Failed to create deployment",
-        description: "You must be signed in to create a deployment",
-      });
-    }
-
     try {
       const deployment = await createDeployment(
         JSON.parse(await readFile(deploymentFile)) as Deployment

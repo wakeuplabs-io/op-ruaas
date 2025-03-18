@@ -1,9 +1,11 @@
+import { useAuth } from "@/lib/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { ChevronDown } from "lucide-react";
 import { useAccount } from "wagmi";
 
 export default function CustomConnectButton() {
+  const { user, signIn } = useAuth();
   const { isConnected, address } = useAccount();
 
   return (
@@ -41,6 +43,14 @@ export default function CustomConnectButton() {
                 type="button"
               >
                 Wrong network
+              </button>
+            ) : !user ? (
+              <button
+                onClick={signIn}
+                className="w-full flex items-center justify-center gap-3 bg-secondary text-black py-2 px-4 rounded-md border hover:bg-gray-200"
+                type="button"
+              >
+                Sign In
               </button>
             ) : (
               <button

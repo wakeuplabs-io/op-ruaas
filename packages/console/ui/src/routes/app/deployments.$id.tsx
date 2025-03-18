@@ -10,9 +10,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Card } from '@/components/ui/card'
-import { getCurrentUser } from 'aws-amplify/auth'
 import { useSuspenseQueries } from '@tanstack/react-query'
-import { capitalize } from '@/lib/strings'
+import { capitalize } from '@/lib/utils'
 import { useCallback, useState } from 'react'
 import { UpdateDeploymentNameDialog } from '@/components/update-deployment-name-dialog'
 import {
@@ -29,11 +28,6 @@ import { useAuth } from '@/lib/hooks/use-auth'
 
 export const Route = createFileRoute('/app/deployments/$id')({
   component: RouteComponent,
-  loader: async ({ params: { id }, context: { queryClient } }) => {
-    const user = await getCurrentUser()
-    queryClient.ensureQueryData(deploymentById(user.userId, id))
-    queryClient.ensureQueryData(deploymentArtifactExists(user.userId, id))
-  },
 })
 
 function RouteComponent() {

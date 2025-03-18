@@ -62,6 +62,7 @@ export const WithdrawModal: React.FC<{
         </div>
         <DialogFooter>
           <Button
+            size="lg"
             variant="secondary"
             disabled={isPending}
             onClick={() => setOpen(false)}
@@ -69,6 +70,7 @@ export const WithdrawModal: React.FC<{
             Cancel
           </Button>
           <Button
+            size="lg"
             isPending={isPending}
             disabled={isInGuarantee}
             onClick={() => {

@@ -11,7 +11,6 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as AppImport } from './routes/app'
 import { Route as IndexImport } from './routes/index'
 import { Route as AppIndexImport } from './routes/app/index'
 import { Route as AppVerifyIndexImport } from './routes/app/verify.index'
@@ -21,12 +20,6 @@ import { Route as AppDeploymentsIdImport } from './routes/app/deployments.$id'
 
 // Create/Update Routes
 
-const AppRoute = AppImport.update({
-  id: '/app',
-  path: '/app',
-  getParentRoute: () => rootRoute,
-} as any)
-
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
@@ -34,33 +27,33 @@ const IndexRoute = IndexImport.update({
 } as any)
 
 const AppIndexRoute = AppIndexImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppRoute,
+  id: '/app/',
+  path: '/app/',
+  getParentRoute: () => rootRoute,
 } as any)
 
 const AppVerifyIndexRoute = AppVerifyIndexImport.update({
-  id: '/verify/',
-  path: '/verify/',
-  getParentRoute: () => AppRoute,
+  id: '/app/verify/',
+  path: '/app/verify/',
+  getParentRoute: () => rootRoute,
 } as any)
 
 const AppRequestsIndexRoute = AppRequestsIndexImport.update({
-  id: '/requests/',
-  path: '/requests/',
-  getParentRoute: () => AppRoute,
+  id: '/app/requests/',
+  path: '/app/requests/',
+  getParentRoute: () => rootRoute,
 } as any)
 
 const AppDeployIndexRoute = AppDeployIndexImport.update({
-  id: '/deploy/',
-  path: '/deploy/',
-  getParentRoute: () => AppRoute,
+  id: '/app/deploy/',
+  path: '/app/deploy/',
+  getParentRoute: () => rootRoute,
 } as any)
 
 const AppDeploymentsIdRoute = AppDeploymentsIdImport.update({
-  id: '/deployments/$id',
-  path: '/deployments/$id',
-  getParentRoute: () => AppRoute,
+  id: '/app/deployments/$id',
+  path: '/app/deployments/$id',
+  getParentRoute: () => rootRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -74,75 +67,49 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/app': {
-      id: '/app'
-      path: '/app'
-      fullPath: '/app'
-      preLoaderRoute: typeof AppImport
-      parentRoute: typeof rootRoute
-    }
     '/app/': {
       id: '/app/'
-      path: '/'
-      fullPath: '/app/'
+      path: '/app'
+      fullPath: '/app'
       preLoaderRoute: typeof AppIndexImport
-      parentRoute: typeof AppImport
+      parentRoute: typeof rootRoute
     }
     '/app/deployments/$id': {
       id: '/app/deployments/$id'
-      path: '/deployments/$id'
+      path: '/app/deployments/$id'
       fullPath: '/app/deployments/$id'
       preLoaderRoute: typeof AppDeploymentsIdImport
-      parentRoute: typeof AppImport
+      parentRoute: typeof rootRoute
     }
     '/app/deploy/': {
       id: '/app/deploy/'
-      path: '/deploy'
+      path: '/app/deploy'
       fullPath: '/app/deploy'
       preLoaderRoute: typeof AppDeployIndexImport
-      parentRoute: typeof AppImport
+      parentRoute: typeof rootRoute
     }
     '/app/requests/': {
       id: '/app/requests/'
-      path: '/requests'
+      path: '/app/requests'
       fullPath: '/app/requests'
       preLoaderRoute: typeof AppRequestsIndexImport
-      parentRoute: typeof AppImport
+      parentRoute: typeof rootRoute
     }
     '/app/verify/': {
       id: '/app/verify/'
-      path: '/verify'
+      path: '/app/verify'
       fullPath: '/app/verify'
       preLoaderRoute: typeof AppVerifyIndexImport
-      parentRoute: typeof AppImport
+      parentRoute: typeof rootRoute
     }
   }
 }
 
 // Create and export the route tree
 
-interface AppRouteChildren {
-  AppIndexRoute: typeof AppIndexRoute
-  AppDeploymentsIdRoute: typeof AppDeploymentsIdRoute
-  AppDeployIndexRoute: typeof AppDeployIndexRoute
-  AppRequestsIndexRoute: typeof AppRequestsIndexRoute
-  AppVerifyIndexRoute: typeof AppVerifyIndexRoute
-}
-
-const AppRouteChildren: AppRouteChildren = {
-  AppIndexRoute: AppIndexRoute,
-  AppDeploymentsIdRoute: AppDeploymentsIdRoute,
-  AppDeployIndexRoute: AppDeployIndexRoute,
-  AppRequestsIndexRoute: AppRequestsIndexRoute,
-  AppVerifyIndexRoute: AppVerifyIndexRoute,
-}
-
-const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
-
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/app': typeof AppRouteWithChildren
-  '/app/': typeof AppIndexRoute
+  '/app': typeof AppIndexRoute
   '/app/deployments/$id': typeof AppDeploymentsIdRoute
   '/app/deploy': typeof AppDeployIndexRoute
   '/app/requests': typeof AppRequestsIndexRoute
@@ -161,7 +128,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/app': typeof AppRouteWithChildren
   '/app/': typeof AppIndexRoute
   '/app/deployments/$id': typeof AppDeploymentsIdRoute
   '/app/deploy/': typeof AppDeployIndexRoute
@@ -174,7 +140,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/app'
-    | '/app/'
     | '/app/deployments/$id'
     | '/app/deploy'
     | '/app/requests'
@@ -190,7 +155,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/app'
     | '/app/'
     | '/app/deployments/$id'
     | '/app/deploy/'
@@ -201,12 +165,20 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AppRoute: typeof AppRouteWithChildren
+  AppIndexRoute: typeof AppIndexRoute
+  AppDeploymentsIdRoute: typeof AppDeploymentsIdRoute
+  AppDeployIndexRoute: typeof AppDeployIndexRoute
+  AppRequestsIndexRoute: typeof AppRequestsIndexRoute
+  AppVerifyIndexRoute: typeof AppVerifyIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AppRoute: AppRouteWithChildren,
+  AppIndexRoute: AppIndexRoute,
+  AppDeploymentsIdRoute: AppDeploymentsIdRoute,
+  AppDeployIndexRoute: AppDeployIndexRoute,
+  AppRequestsIndexRoute: AppRequestsIndexRoute,
+  AppVerifyIndexRoute: AppVerifyIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -220,15 +192,6 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/app"
-      ]
-    },
-    "/": {
-      "filePath": "index.tsx"
-    },
-    "/app": {
-      "filePath": "app.tsx",
-      "children": [
         "/app/",
         "/app/deployments/$id",
         "/app/deploy/",
@@ -236,25 +199,23 @@ export const routeTree = rootRoute
         "/app/verify/"
       ]
     },
+    "/": {
+      "filePath": "index.tsx"
+    },
     "/app/": {
-      "filePath": "app/index.tsx",
-      "parent": "/app"
+      "filePath": "app/index.tsx"
     },
     "/app/deployments/$id": {
-      "filePath": "app/deployments.$id.tsx",
-      "parent": "/app"
+      "filePath": "app/deployments.$id.tsx"
     },
     "/app/deploy/": {
-      "filePath": "app/deploy.index.tsx",
-      "parent": "/app"
+      "filePath": "app/deploy.index.tsx"
     },
     "/app/requests/": {
-      "filePath": "app/requests.index.tsx",
-      "parent": "/app"
+      "filePath": "app/requests.index.tsx"
     },
     "/app/verify/": {
-      "filePath": "app/verify.index.tsx",
-      "parent": "/app"
+      "filePath": "app/verify.index.tsx"
     }
   }
 }

@@ -31,6 +31,7 @@ export const TerminateModal: React.FC<{
         </DialogHeader>
         <DialogFooter>
           <Button
+            size="lg"
             disabled={isPending}
             variant="secondary"
             onClick={() => setOpen(false)}
@@ -38,6 +39,7 @@ export const TerminateModal: React.FC<{
             Cancel
           </Button>
           <Button
+            size="lg"
             isPending={isPending}
             onClick={() => {
               terminateOrder(order.id)

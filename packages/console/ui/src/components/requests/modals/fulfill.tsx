@@ -18,12 +18,13 @@ export const FulfillModal: React.FC<{
   order: Order;
   children: React.ReactNode;
 }> = ({ order, children }) => {
-  const { onFullFilRequest } = useFullFilRequest();
+  const { onFullFilRequest, isPending } = useFullFilRequest();
   const [deploymentFile, setDeploymentFile] = useState<File | null>(null);
   const [artifactFile, setArtifactFile] = useState<File | null>(null);
+  const [open, setOpen] = useState(false);
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px] gap-0">
         <DialogHeader className="mb-4">
@@ -106,11 +107,20 @@ export const FulfillModal: React.FC<{
         <DialogFooter>
           <Button
             size="lg"
+            disabled={isPending}
+            variant="secondary"
+            onClick={() => setOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            size="lg"
             type="submit"
+            isPending={isPending}
             onClick={() =>
               onFullFilRequest(order.id, artifactFile!, deploymentFile!)
                 .then(() => window.alert("Order fulfilled"))
-                .then(() => window.location.reload())
+                .then(() => setOpen(false))
                 .catch((e) => window.alert("Something went wrong" + e?.message))
             }
           >

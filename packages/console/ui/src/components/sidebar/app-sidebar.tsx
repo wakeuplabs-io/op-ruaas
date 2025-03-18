@@ -1,12 +1,10 @@
 import * as React from "react";
 import {
-  LogInIcon,
   PackageIcon,
   Rocket,
   SettingsIcon,
   ShieldCheck,
 } from "lucide-react";
-import { useRouter } from "@tanstack/react-router";
 import { NavGroup } from "@/components/sidebar/nav-group";
 import {
   Sidebar,
@@ -15,12 +13,12 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { NavDeployments } from "./nav-deployments";
-import { Button, buttonVariants } from "../ui/button";
-import { useAuth } from "@/lib/hooks/use-auth";
-import { capitalize } from "@/lib/strings";
+import { buttonVariants } from "../ui/button";
+import { capitalize } from "@/lib/utils";
 import { Deployment } from "@/lib/services/deployment";
 import { cn } from "@/lib/utils";
 import CustomConnectButton from "../connect-wallet";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 const navMarketplace = [
   {
