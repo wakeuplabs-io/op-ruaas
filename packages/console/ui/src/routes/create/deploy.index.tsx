@@ -1,6 +1,6 @@
 import { Command } from "@/components/ui/command";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { Pagination } from "@/components/pagination";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 
@@ -41,16 +41,6 @@ function RouteComponent() {
       setStep(steps[currentStepIndex - 1].step);
     }
   };
-
-  const breadcrumb = useMemo(() => {
-    return steps.reduce(
-      (acc, s) => {
-        if (s.step > step) return acc;
-        else return [...acc, { id: s.step, label: s.label }];
-      },
-      [] as { id: number; label: string }[]
-    );
-  }, [step]);
 
   return (
     <>

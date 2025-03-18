@@ -76,16 +76,6 @@ function RouteComponent() {
     }
   }, [currentStepIndex]);
 
-  const breadcrumb = useMemo(() => {
-    return steps.reduce(
-      (acc, s) => {
-        if (s.step > step) return acc;
-        else return [...acc, { id: s.step, label: s.label }];
-      },
-      [] as { id: number; label: string }[]
-    );
-  }, [step]);
-
   return (
     <>
       <main className="p-16">
