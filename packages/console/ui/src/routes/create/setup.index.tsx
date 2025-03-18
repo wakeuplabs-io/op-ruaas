@@ -1,4 +1,3 @@
-import { BreadcrumbHeader } from "@/components/breadcrumb-header";
 import { Pagination } from "@/components/pagination";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -6,11 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/lib/hooks/use-toast";
 import { useCreateProjectMutation } from "@/lib/queries/project";
-import { createLazyFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { DownloadIcon } from "lucide-react";
 import React, { useCallback, useMemo, useState } from "react";
 
-export const Route = createLazyFileRoute("/app/")({
+export const Route = createFileRoute("/create/setup/")({
   component: RouteComponent,
 });
 
@@ -67,7 +66,7 @@ function RouteComponent() {
     if (currentStepIndex < steps.length - 1) {
       setStep(steps[currentStepIndex + 1].step);
     } else {
-      router.navigate({ to: "/app/deploy" });
+      router.navigate({ to: "/create/deploy" });
     }
   }, [currentStepIndex]);
 
@@ -89,13 +88,7 @@ function RouteComponent() {
 
   return (
     <>
-      <BreadcrumbHeader
-        title="Create Project"
-        breadcrumb={breadcrumb}
-        onBreadcrumbClick={(id) => setStep(id)}
-      />
-
-      <main className="p-4 pt-0 pb-20">
+      <main className="p-16">
         {step == SetupStep.L1_CHAIN && (
           <L1ChainStep mainnet={mainnet} setMainnet={setMainnet} />
         )}
@@ -218,7 +211,7 @@ const DownloadStep: React.FC<{
         disabled={isPending}
         size="lg"
         variant="secondary"
-        className="w-full rounded-full mt-4"
+        className="w-full mt-4"
       >
         {isPending ? (
           "Downloading..."

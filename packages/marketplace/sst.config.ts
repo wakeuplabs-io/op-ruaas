@@ -14,7 +14,7 @@ export default $config({
           region: REGION,
           defaultTags: {
             tags: {
-              customer: "op-ruaas",
+              customer: "op-ruaas-marketplace",
             },
           },
         },

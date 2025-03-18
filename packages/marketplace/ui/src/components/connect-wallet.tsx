@@ -1,14 +1,21 @@
+import { cn } from "@/lib/utils";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { ChevronDown } from "lucide-react";
 import { useAccount } from "wagmi";
-import cn from "classnames";
 
 export default function CustomConnectButton() {
-  const { isConnected, address,  } = useAccount();
+  const { isConnected, address } = useAccount();
 
   return (
     <ConnectButton.Custom>
-      {({ account, chain, openChainModal, openConnectModal, mounted, openAccountModal }) => {
+      {({
+        account,
+        chain,
+        openChainModal,
+        openConnectModal,
+        mounted,
+        openAccountModal,
+      }) => {
         const ready = mounted;
         const connected = ready && account && chain && isConnected;
 
@@ -22,7 +29,7 @@ export default function CustomConnectButton() {
             {!connected ? (
               <button
                 onClick={openConnectModal}
-                className="w-full flex items-center justify-center bg-gray-100 text-black py-2 px-4 rounded-full shadow-sm border border-gray-300 hover:bg-gray-200"
+                className="w-full flex items-center justify-center bg-gray-100 text-black py-2 px-4 rounded-md shadow-sm border hover:bg-gray-200"
                 type="button"
               >
                 Connect Wallet
@@ -30,7 +37,7 @@ export default function CustomConnectButton() {
             ) : chain.unsupported ? (
               <button
                 onClick={openChainModal}
-                className="w-full bg-red-600 text-white font-bold py-2 px-4 rounded-full"
+                className="w-full bg-red-600 text-white font-bold py-2 px-4 rounded-md"
                 type="button"
               >
                 Wrong network
@@ -38,13 +45,15 @@ export default function CustomConnectButton() {
             ) : (
               <button
                 onClick={openAccountModal}
-                className="w-full flex items-center gap-3 bg-secondary text-black py-2 px-4 rounded-full border border-gray-300 hover:bg-gray-200"
+                className="w-full flex items-center justify-between gap-3 bg-secondary text-black py-2 px-4 rounded-md border hover:bg-gray-200"
                 type="button"
               >
-                <div className="w-5 h-5 bg-red-500 rounded-full" />
-                <span className="font-medium">
-                  {address?.slice(0, 6)}...{address?.slice(-4)}
-                </span>
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 bg-red-500 rounded-md" />
+                  <span className="font-medium text-gray-800">
+                    {address?.slice(0, 6)}...{address?.slice(-4)}
+                  </span>
+                </div>
                 <ChevronDown size={18} className="text-gray-500" />
               </button>
             )}

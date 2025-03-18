@@ -230,8 +230,9 @@ interface IMarketplace is
         address _user
     ) external view returns (OrderWithOffer[] memory);
 
+
     /// @notice Returns the list of orders where the given address is the vendor.
     function getVendorOrders(
         address _user
-    ) external view returns (uint256[] memory);
+    ) external view returns (OrderWithOffer[] memory);
 }

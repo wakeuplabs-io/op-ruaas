@@ -81,7 +81,7 @@ task("create-order", "Create a new order")
   .setAction(
     async (taskArguments: TaskArguments, hre: HardhatRuntimeEnvironment) => {
       // validate params
-      const offerId = z.number().gt(0).parse(taskArguments.offerId);
+      const offerId = z.number().parse(taskArguments.offerId);
       const initialCommitment = z
         .number()
         .gt(0)
@@ -149,7 +149,7 @@ task("fulfill-order", "Fills an order")
   .setAction(
     async (taskArguments: TaskArguments, hre: HardhatRuntimeEnvironment) => {
       // validate params
-      const orderId = z.number().gt(0).parse(taskArguments.orderId);
+      const orderId = z.number().parse(taskArguments.orderId);
       const metadata = FulfillOrderMetadataSchema.parse(
         JSON.parse(taskArguments.metadata)
       );

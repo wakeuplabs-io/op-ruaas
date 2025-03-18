@@ -10,10 +10,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Card } from '@/components/ui/card'
-import { getCurrentUser } from 'aws-amplify/auth'
 import { useSuspenseQueries } from '@tanstack/react-query'
-import { useAuth } from '@/lib/hooks/use-auth'
-import { capitalize } from '@/lib/strings'
+import { capitalize } from '@/lib/utils'
 import { useCallback, useState } from 'react'
 import { UpdateDeploymentNameDialog } from '@/components/update-deployment-name-dialog'
 import {
@@ -26,27 +24,22 @@ import {
 } from '@/lib/queries/deployment-artifact'
 import { Deployment } from '@/lib/services/deployment'
 import { useToast } from '@/lib/hooks/use-toast'
-import { BreadcrumbHeader } from '@/components/breadcrumb-header'
+import { useAuth } from '@/lib/hooks/use-auth'
 
-export const Route = createFileRoute('/app/deployments/$id')({
+export const Route = createFileRoute('/deployments/$id')({
   component: RouteComponent,
-  loader: async ({ params: { id }, context: { queryClient } }) => {
-    const user = await getCurrentUser()
-    queryClient.ensureQueryData(deploymentById(user.userId, id))
-    queryClient.ensureQueryData(deploymentArtifactExists(user.userId, id))
-  },
 })
 
 function RouteComponent() {
-  const { user } = useAuth()
   const { toast } = useToast()
   const { id } = Route.useParams()
+  const { user } = useAuth()
 
   const [{ data: deployment }, { data: deploymentHasArtifact }] =
     useSuspenseQueries({
       queries: [
-        deploymentById(user?.userId, id),
-        deploymentArtifactExists(user?.userId, id),
+        deploymentById(user?.id, id),
+        deploymentArtifactExists(user?.id, id),
       ],
     })
   const { mutateAsync: downloadArtifact, isPending: isDownloading } =
@@ -70,22 +63,17 @@ function RouteComponent() {
 
   return (
     <>
-      <BreadcrumbHeader
-        title="Deployments"
-        breadcrumb={[{ id: 0, label: capitalize(deployment.name) }]}
-      />
-
-      <main className="p-4 pt-0 pb-20">
-        <Card className="space-y-6">
-          <div className="flex items-center justify-between">
+      <main className="p-16">
+        <Card className="">
+          <div className="flex items-center justify-between mb-10">
             <h1 className="font-bold text-xl">{capitalize(deployment.name)}</h1>
             <OptionsMenu deployment={deployment} />
           </div>
 
           {deployment.infra_base_url && (
-            <div className="space-y-2">
+            <div className="space-y-2 mb-6">
               <h2 className="text-sm">Infrastructure</h2>
-              <ul className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              <ul className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
                 <li>
                   <DeploymentValue
                     value={`${deployment.infra_base_url}`}
@@ -111,7 +99,7 @@ function RouteComponent() {
           {deployment.contracts_addresses && (
             <div className="space-y-2">
               <h2 className="text-sm">Addresses</h2>
-              <ul className="grid gap-3  grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              <ul className="grid gap-y-4 gap-x-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
                 {Object.entries(JSON.parse(deployment.contracts_addresses) as { [key: string]: string }).map(
                   ([key, value]) => (
                     <li>
@@ -160,7 +148,7 @@ const OptionsMenu: React.FC<{ deployment: Deployment }> = ({ deployment }) => {
   const onDelete = useCallback(() => {
     if (window.confirm("Are you sure? There's no way back")) {
       deleteDeployment(deployment.id).then(() => {
-        navigate({ to: '/app' })
+        navigate({ to: '/create/deploy' })
       })
     }
   }, [navigate, deleteDeployment, deployment])

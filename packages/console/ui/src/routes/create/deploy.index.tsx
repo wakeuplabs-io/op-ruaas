@@ -1,11 +1,10 @@
 import { Command } from "@/components/ui/command";
-import { createLazyFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import React, { useMemo, useState } from "react";
 import { Pagination } from "@/components/pagination";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { BreadcrumbHeader } from "@/components/breadcrumb-header";
 
-export const Route = createLazyFileRoute("/app/deploy/")({
+export const Route = createFileRoute("/create/deploy/")({
   component: RouteComponent,
 });
 
@@ -33,7 +32,7 @@ function RouteComponent() {
     if (currentStepIndex < steps.length - 1) {
       setStep(steps[currentStepIndex + 1].step);
     } else {
-      router.navigate({ to: "/app/verify" });
+      router.navigate({ to: "/create/verify" });
     }
   };
 
@@ -55,13 +54,7 @@ function RouteComponent() {
 
   return (
     <>
-      <BreadcrumbHeader
-        title="Deploy"
-        breadcrumb={breadcrumb}
-        onBreadcrumbClick={(id) => setStep(id)}
-      />
-
-      <main className="p-4 pt-0 pb-20">
+      <main className="p-16">
         {step === DeploymentStep.INSTALL_DEPENDENCIES && (
           <InstallDependenciesStep />
         )}
