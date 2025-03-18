@@ -11,7 +11,6 @@ import {
 import { useDeposit } from "@/lib/hooks/use-deposit";
 import { Plan } from "@/types";
 import { formatTokenAmount, sleep } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
 import { useAccount } from "wagmi";
 
 interface DepositModalProps {

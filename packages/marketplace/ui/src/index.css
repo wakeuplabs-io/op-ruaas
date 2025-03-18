@@ -21,9 +21,6 @@
     --dark-low: hsla(0, 0%, 25%, 1);
     --background-brighter: hsla(218, 40%, 98%, 1);
     --background: rgb(255, 255, 255);
-    --gray-600: hsla(0, 0%, 62%, 1);
-    --gray-700: hsla(216, 14%, 54%, 1);
-    --slate-500: hsla(216, 15%, 48%, 1);
     --mi-stone-300: hsla(0, 0%, 97%, 1);
     /* End of new custom colors */
 
@@ -63,6 +60,14 @@
     --tooltip-border: 220, 14%, 83%;
     --tooltip-background: 0, 0%, 100%;
     --tooltip-text: 0, 0%, 0%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
   .dark {
     --background: 224 71.4% 4.1%;
@@ -96,6 +101,14 @@
     --tooltip-border: 220, 14%, 83%;
     --tooltip-background: 0, 0%, 100%;
     --tooltip-text: 0, 0%, 0%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 

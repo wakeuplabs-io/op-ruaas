@@ -4,23 +4,26 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import CustomConnectButton from "./connect-wallet";
-import { buttonVariants } from "./ui/button";
+import CustomConnectButton from "../connect-wallet";
+import { buttonVariants } from "../ui/button";
 import { Link } from "@tanstack/react-router";
-import { RollupList } from "./sidebar/rollup-list";
 import { useAccount } from "wagmi";
 import { useOrders } from "@/lib/hooks/use-orders";
 import { useProviderInfo } from "@/lib/hooks/use-provider-info";
+import { NavRollups } from "./nav-rollups";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { name } = useProviderInfo();
   const { isConnected } = useAccount();
   const { sequencerRollups, replicaRollups } = useOrders();
 
-  const [selectedRollupId, setSelectedRollupId] = React.useState<bigint>();
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -29,34 +32,47 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         </div>
       </SidebarHeader>
 
-      {isConnected && (
+      {isConnected ? (
         <SidebarContent className="px-4 space-y-2">
-          <Link
-            to="/"
-            className="w-full flex items-center gap-2 py-2 px-2 rounded-lg hover:bg-gray-100 transition text-gray-900"
-          >
-            <Plus className="h-4 w-4" />
-            <span className="text-sm">New Rollup</span>
-          </Link>
+          <SidebarGroup>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip={"New Rollup"}
+                  className="h-10 px-2"
+                >
+                  <Link to="/">
+                    <Plus className="h-5 w-5" />
+                    <span>New Rollup</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroup>
 
           <hr />
 
-          <RollupList
-            name="Sequencer"
-            rollups={sequencerRollups}
-            selectedId={selectedRollupId}
-            onSelect={setSelectedRollupId}
+          <NavRollups
+            title="My Sequencers"
+            rollups={sequencerRollups.map((r) => ({
+              id: r.id.toString(),
+              name: r.setupMetadata.name,
+            }))}
           />
 
           <hr />
 
-          <RollupList
-            name="Replica"
-            rollups={replicaRollups}
-            selectedId={selectedRollupId}
-            onSelect={setSelectedRollupId}
+          <NavRollups
+            title="My Replicas"
+            rollups={replicaRollups.map((r) => ({
+              id: r.id.toString(),
+              name: r.setupMetadata.name,
+            }))}
           />
         </SidebarContent>
+      ) : (
+        <div className="h-full"></div>
       )}
 
       <SidebarFooter className="pb-10 px-4 space-y-2">
@@ -64,7 +80,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
         <div className="text-sm text-gray-700 px-2">
           <h4 className="text-gray-500 text-xs mb-1">Provider</h4>
-          <p className="font-medium">{name.charAt(0).toUpperCase() + name.slice(1)}</p>
+          <p className="font-medium">
+            {name.charAt(0).toUpperCase() + name.slice(1)}
+          </p>
         </div>
 
         <hr className="border-muted" />

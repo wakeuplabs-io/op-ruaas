@@ -11,10 +11,12 @@ import { useMemo, useState } from "react";
 import { Sheet, SheetContent } from "../ui/sheet";
 import { Input } from "../ui/input";
 
-export function NavDeployments({
-  deployments,
+export function NavRollups({
+  title,
+  rollups,
 }: {
-  deployments: {
+  title: string;
+  rollups: {
     id: string;
     name: string;
   }[];
@@ -22,34 +24,34 @@ export function NavDeployments({
   const [showAll, setShowAll] = useState(false);
   const [search, setSearch] = useState("");
 
-  const filteredDeployments = useMemo(
+  const filteredRollups = useMemo(
     () =>
-      deployments.filter((item) =>
+      rollups.filter((item) =>
         item.name.toLowerCase().includes(search.toLowerCase())
       ),
-    [search, deployments]
+    [search, rollups]
   );
 
-  if (deployments.length === 0) {
+  if (rollups.length === 0) {
     return null;
   }
 
   return (
     <>
       <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-        <SidebarGroupLabel>My Deployments</SidebarGroupLabel>
+        <SidebarGroupLabel>{title}</SidebarGroupLabel>
         <SidebarMenu>
-          {deployments.slice(0, 2).map((item) => (
+          {rollups.slice(0, 2).map((item) => (
             <SidebarMenuItem key={item.id}>
               <SidebarMenuButton className="h-10 px-2" asChild>
-                <Link to="/deployments/$id" params={{ id: item.id }}>
+                <Link to="/rollups/$id" params={{ id: item.id }}>
                   <ScrollText className="text-sidebar-foreground/70" />
                   <span>{item.name}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
-          {deployments.length > 2 && (
+          {rollups.length > 2 && (
             <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={() => setShowAll(true)}
@@ -75,10 +77,10 @@ export function NavDeployments({
             className="h-10 mb-4"
           />
           <SidebarMenu>
-            {filteredDeployments.map((item) => (
+            {filteredRollups.map((item) => (
               <SidebarMenuItem key={item.id}>
                 <SidebarMenuButton className="h-10 px-2" asChild>
-                  <Link to="/deployments/$id" params={{ id: item.id }}>
+                  <Link to="/rollups/$id" params={{ id: item.id }}>
                     <ScrollText className="text-sidebar-foreground/70" />
                     <span>{item.name}</span>
                   </Link>
@@ -86,10 +88,10 @@ export function NavDeployments({
               </SidebarMenuItem>
             ))}
 
-            {filteredDeployments.length === 0 && (
+            {filteredRollups.length === 0 && (
               <SidebarMenuItem>
                 <SidebarMenuButton className="h-10 px-2" asChild>
-                  <span>No deployments found</span>
+                  <span>No rollups found</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )}
