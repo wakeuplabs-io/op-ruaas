@@ -1,5 +1,5 @@
 import { SiweMessage } from "siwe";
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { useAccount, useSignMessage } from "wagmi";
 import { safeParseJSON } from "../utils";
 
@@ -7,7 +7,17 @@ export type AuthUser = {
   id: string;
 };
 
-export const useAuth = () => {
+type AuthContextType = {
+  user: AuthUser | null;
+  loading: boolean;
+  signIn: () => Promise<void>;
+  signOut: () => void;
+  getToken: () => string;
+};
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { address } = useAccount();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -47,12 +57,14 @@ export const useAuth = () => {
       JSON.stringify({ message, signature })
     );
     setUser({ id: address });
+    setLoading(false);
   };
 
   const signOut = () => {
     setLoading(true);
-
     window.localStorage.removeItem("siwe-token");
+    setUser(null);
+    setLoading(false);
   };
 
   const getToken = () => {
@@ -71,18 +83,34 @@ export const useAuth = () => {
         }
 
         setUser({ id: r.address });
+        setLoading(false);
       });
     } catch (e) {
       window.localStorage.removeItem("siwe-token");
       setUser(null);
+      setLoading(false);
     }
-  }, []);
+  }, [address]);
 
-  return {
-    user,
-    loading,
-    signIn,
-    signOut,
-    getToken,
-  };
-};
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        signIn,
+        signOut,
+        getToken,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+}

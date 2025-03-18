@@ -1,5 +1,5 @@
 import "./index.css";
-import "@rainbow-me/rainbowkit/styles.css"
+import "@rainbow-me/rainbowkit/styles.css";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { Toaster } from "./components/ui/toaster.tsx";
@@ -9,6 +9,7 @@ import { createRouter } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiSetup } from "./lib/hocs/wagmi-provider.tsx";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { AuthProvider } from "./lib/hooks/use-auth.tsx";
 
 export const queryClient = new QueryClient();
 
@@ -32,8 +33,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <WagmiSetup>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider>
-          <RouterProvider router={router} />
-          <Toaster />
+          <AuthProvider>
+            <RouterProvider router={router} />
+            <Toaster />
+          </AuthProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiSetup>

@@ -33,15 +33,18 @@ impl Authorizer {
             return Err(ApiError::AuthError("No token in headers".to_string()));
         }
 
-        let decoded =
-            base64::decode(token.unwrap().to_string()).map_err(|_| ApiError::AuthError("Invalid token. Could not decode token".to_string()))?;
-        let token_str = std::str::from_utf8(&decoded).map_err(|_| ApiError::AuthError("Invalid token. Could not decode token".to_string()))?;
+        let decoded = base64::decode(token.unwrap().to_string())
+            .map_err(|_| ApiError::AuthError("Invalid token. Could not decode token".to_string()))?;
+        let token_str = std::str::from_utf8(&decoded)
+            .map_err(|_| ApiError::AuthError("Invalid token. Could not decode token".to_string()))?;
         let parts: Vec<&str> = token_str.split("||").collect();
         if parts.len() != 2 {
             return Err(ApiError::AuthError("Invalid token".to_string()));
         }
-        let message = Message::from_str(parts[0]).map_err(|_| ApiError::AuthError("Invalid token. Could not recover message.".to_string()))?;
-        let signature = <[u8; 65]>::from_hex(parts[1].strip_prefix("0x").unwrap()).map_err(|e| ApiError::AuthError(e.to_string()))?;
+        let message = Message::from_str(parts[0])
+            .map_err(|_| ApiError::AuthError("Invalid token. Could not recover message.".to_string()))?;
+        let signature = <[u8; 65]>::from_hex(parts[1].strip_prefix("0x").unwrap())
+            .map_err(|e| ApiError::AuthError(e.to_string()))?;
 
         if let Err(e) = message
             .verify(
