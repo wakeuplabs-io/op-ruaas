@@ -71,6 +71,10 @@ export function WagmiSetup({ children }: { children: React.ReactNode }) {
         ...gethTestnetL1,
         id: gethTestnetL1.chainId,
       }),
+      defineChain({
+        ...holeskyTestnet,
+        id: holeskyTestnet.chainId,
+      }),
     ];
     return myChains;
   }, []);

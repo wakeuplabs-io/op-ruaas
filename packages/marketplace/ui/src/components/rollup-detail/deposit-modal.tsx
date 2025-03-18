@@ -8,7 +8,6 @@ import { Plan } from "@/types"
 import { formatTokenAmount, sleep } from "@/lib/utils"
 import { Loader2 } from "lucide-react"
 import { useAccount } from "wagmi";
-import { DAYS_PER_MONTH } from "@/shared/constants/marketplace"
 
 interface DepositModalProps {
   orderId: bigint;
@@ -97,7 +96,7 @@ export function DepositModal({ orderId, pricePerMonth, isOpen, onClose }: Deposi
                   selectedPlan === plan ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"
                 }`}
               >
-                <div className="text-lg text-2xl">{plan.months * DAYS_PER_MONTH} days</div>
+                <div className="text-lg text-2xl">{plan.months * 30} days</div>
                 <div className="text-gray-500 font-medium mt-2 text-base">${formatTokenAmount(calculateTotal(plan), 18n, 0)}</div>
               </button>
             ))}
