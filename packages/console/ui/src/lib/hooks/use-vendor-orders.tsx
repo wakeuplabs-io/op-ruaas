@@ -9,7 +9,7 @@ import { OrderData } from "@/types";
 import { safeParseJSON } from "../utils";
 
 export function useVendorOrders() {
-  //   const { address } = useAccount();
+  const { address } = useAccount();
 
   const {
     data: orders,
@@ -25,7 +25,7 @@ export function useVendorOrders() {
     address: MARKETPLACE_ADDRESS,
     abi: MARKETPLACE_ABI,
     functionName: "getVendorOrders",
-    args: ["0xF754D0f4de0e815b391D997Eeec5cD07E59858F0"],
+    args: [address],
     chainId: MARKETPLACE_CHAIN_ID,
     query: {
       initialData: [],
