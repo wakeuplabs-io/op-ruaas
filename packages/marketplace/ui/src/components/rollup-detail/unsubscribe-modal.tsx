@@ -42,7 +42,7 @@ export const UnsubscribeModal: React.FC<
       order.deploymentMetadata?.addresses?.systemOwnerSafe ?? zeroAddress,
     proxyAdmin: order.deploymentMetadata?.addresses?.proxyAdmin ?? zeroAddress,
   });
-
+  const { fulfilledAt, terminatedAt } = order;
   const isSubscribed = useMemo(() => {
     return order.terminatedAt == 0n;
   }, [order]);
@@ -64,8 +64,7 @@ export const UnsubscribeModal: React.FC<
     if (challenger === provider.challenger) return UnsubscribeStep.SetOracle;
     return UnsubscribeStep.Done;
   }, [provider, isSubscribed, sequencer, batcher, proposer, challenger]);
-
-  if (order.terminatedAt !== 0n && step === UnsubscribeStep.Done) return null;
+  if ((terminatedAt !== 0n && step === UnsubscribeStep.Done) || fulfilledAt === 0n) return null;
 
   return (
     <Dialog>
