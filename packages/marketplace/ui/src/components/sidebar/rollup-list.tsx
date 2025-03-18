@@ -1,8 +1,15 @@
-import { RollupItem } from "@/types"
+import { Order, RollupItem } from "@/types"
 import { SidebarSectionList } from "./sidebar-section-list"
 import { RollupListButton } from "./rollup-list-button"
 
 interface RollupListProps {
+  name: string
+  rollups: Order[]
+  selectedId?: bigint
+  onSelect: (id: bigint) => void
+}
+
+interface ContentProps {
   name: string
   rollups: RollupItem[]
   selectedId?: bigint
@@ -12,12 +19,12 @@ interface RollupListProps {
 export function RollupList({ name, rollups, selectedId, onSelect }: RollupListProps) {
   return (
     <div className="flex flex-col gap-2">
-      <Content name={name} rollups={rollups} selectedId={selectedId} onSelect={onSelect} />
+      <Content name={name} rollups={transformOrdersToRollupItems(rollups)} selectedId={selectedId} onSelect={onSelect} />
     </div>
   )
 }
 
-function Content({ name, rollups, selectedId, onSelect }: RollupListProps) {
+function Content({ name, rollups, selectedId, onSelect }: ContentProps) {
   if (rollups.length === 0) return <EmptyState />
   const title = `${name} rollups`
 
@@ -43,4 +50,11 @@ function Content({ name, rollups, selectedId, onSelect }: RollupListProps) {
 
 function EmptyState() {
   return <p className="text-center text-sm text-gray-700">There are no categories yet.</p>
+}
+
+function transformOrdersToRollupItems(orders: Order[]): RollupItem[] {
+  return orders.map(order => ({
+    id: order.id,
+    name: order.setupMetadata.name,
+  }));
 }
