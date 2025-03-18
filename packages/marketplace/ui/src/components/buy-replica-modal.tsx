@@ -26,6 +26,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateOrder } from "@/lib/hooks/use-create-order";
 import { useRouter } from "@tanstack/react-router";
+import { useAccount } from "wagmi";
 
 const formSchema = z.object({
   name: z.string().min(1, "Rollup name is required"),
@@ -36,6 +37,7 @@ export const BuyReplicaModal: React.FC<
 > = ({ offer, offerId, ...props }) => {
   const router = useRouter();
   const [selectedMonths, setSelectedMonths] = useState("1");
+  const { isConnected } = useAccount();
   const [showSetup, setShowSetup] = useState(false);
   const [artifacts, setArtifacts] = useState<File | null>(null);
 
@@ -175,8 +177,9 @@ export const BuyReplicaModal: React.FC<
               variant="primary"
               size="lg"
               onClick={() => setShowSetup(true)}
+              disabled={!isConnected}
             >
-              Select Plan
+              {isConnected ? "Setup Plan" : "Connect your wallet"}
             </Button>
           </>
         )}

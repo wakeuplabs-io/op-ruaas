@@ -19,7 +19,15 @@ interface ContentProps {
 export function RollupList({ name, rollups, selectedId, onSelect }: RollupListProps) {
   return (
     <div className="flex flex-col gap-2">
-      <Content name={name} rollups={transformOrdersToRollupItems(rollups)} selectedId={selectedId} onSelect={onSelect} />
+      <Content 
+        name={name} 
+        rollups={rollups.map(rollup => ({
+          id: rollup.id,
+          name: rollup.setupMetadata.name,
+        }))} 
+        selectedId={selectedId} 
+        onSelect={onSelect}
+      />
     </div>
   )
 }
@@ -50,11 +58,4 @@ function Content({ name, rollups, selectedId, onSelect }: ContentProps) {
 
 function EmptyState() {
   return <p className="text-center text-sm text-gray-700">There are no categories yet.</p>
-}
-
-function transformOrdersToRollupItems(orders: Order[]): RollupItem[] {
-  return orders.map(order => ({
-    id: order.id,
-    name: order.setupMetadata.name,
-  }));
 }

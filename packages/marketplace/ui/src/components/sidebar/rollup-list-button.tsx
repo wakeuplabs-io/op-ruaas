@@ -15,7 +15,7 @@ export function RollupListButton({ rollup, onClick, isSelected = false }: Rollup
         <Link
           to="/rollups/$id"
           params={{ id: rollup.id.toString(16) }}
-          className="..."
+          className="flex items-center gap-2 text-sm w-full p-2 block text-gray-700"
         >
         <CircleDot size={12} />
         <span className="hover:text-black transition">{rollup.name}</span>
