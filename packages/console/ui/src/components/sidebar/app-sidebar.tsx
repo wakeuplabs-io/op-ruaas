@@ -57,14 +57,24 @@ export function AppSidebar({
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-2">
-        <NavGroup title="Marketplace" items={navMarketplace} />
-        <NavGroup title="Create" items={navCreate} />
+      <SidebarContent className="px-4">
+        <NavGroup items={[...navCreate, ...navMarketplace]} />
+        <hr className="my-2"/>
         <NavDeployments
-          deployments={deployments.map((d) => ({
-            id: d.id,
-            name: capitalize(d.name),
-          }))}
+          deployments={[
+            ...deployments.map((d) => ({
+              id: d.id,
+              name: capitalize(d.name),
+            })),
+            ...deployments.map((d) => ({
+              id: d.id,
+              name: capitalize(d.name),
+            })),
+            ...deployments.map((d) => ({
+              id: d.id,
+              name: capitalize(d.name),
+            }))
+          ]}
         />
       </SidebarContent>
 

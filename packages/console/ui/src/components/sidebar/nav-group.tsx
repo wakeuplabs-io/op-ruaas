@@ -12,7 +12,7 @@ export function NavGroup({
   title,
   items,
 }: {
-  title: string;
+  title?: string;
   items: {
     title: string;
     url: string;
@@ -24,7 +24,7 @@ export function NavGroup({
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>{title}</SidebarGroupLabel>
+      {title && <SidebarGroupLabel>{title}</SidebarGroupLabel>}
       <SidebarMenu>
         {items.map((item, index) => (
           <SidebarMenuItem key={index}>
@@ -32,9 +32,10 @@ export function NavGroup({
               isActive={item.url === currentPath}
               asChild
               tooltip={item.title}
+              className="h-10 px-2"
             >
               <Link to={item.url}>
-                <item.icon />
+                <item.icon className="h-5 w-5"/>
                 <span>{item.title}</span>
               </Link>
             </SidebarMenuButton>
