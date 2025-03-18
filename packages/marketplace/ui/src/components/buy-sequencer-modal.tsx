@@ -30,6 +30,7 @@ import { useCreateOrder } from "@/lib/hooks/use-create-order";
 import { useRouter } from "@tanstack/react-router";
 import { readArtifact } from "@/lib/artifacts";
 import { useOrders } from "@/lib/hooks/use-orders";
+import { useAccount } from "wagmi";
 
 enum SubscribeStep {
   UploadArtifacts,
@@ -54,6 +55,7 @@ export const BuySequencerModal: React.FC<
   const router = useRouter();
   const { refetch: refetchOrders } = useOrders();
   const [selectedMonths, setSelectedMonths] = useState("1");
+  const { isConnected } = useAccount();
   const [sequencerType, setSequencerType] = useState<SequencerType>(
     SequencerType.New
   );
@@ -347,8 +349,9 @@ export const BuySequencerModal: React.FC<
               variant="primary"
               size="lg"
               onClick={() => setShowSetup(true)}
+              disabled={!isConnected}
             >
-              Setup Plan
+              {isConnected ? "Setup Plan" : "Connect your wallet"}
             </Button>
           </>
         )}

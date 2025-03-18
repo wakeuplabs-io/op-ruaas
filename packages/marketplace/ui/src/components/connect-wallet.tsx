@@ -1,6 +1,8 @@
 import { cn } from "@/lib/utils";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useNavigate } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 
 export default function CustomConnectButton() {
@@ -16,9 +18,20 @@ export default function CustomConnectButton() {
         mounted,
         openAccountModal,
       }) => {
+        const navigate = useNavigate()
+        const [wasConnected, setWasConnected] = useState(false);
+
         const ready = mounted;
         const connected = ready && account && chain && isConnected;
 
+        useEffect(() => {
+          if (isConnected) {
+            setWasConnected(true);
+          } else if (wasConnected && !isConnected) {
+            navigate({ to: "/" });
+          }
+        }, [isConnected, wasConnected, navigate]);
+        
         return (
           <div
             className={cn("w-full", {

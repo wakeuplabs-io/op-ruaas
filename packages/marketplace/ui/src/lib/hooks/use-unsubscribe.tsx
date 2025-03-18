@@ -17,14 +17,14 @@ export const useUnsubscribe = ({ order, offer }: { order: Order; offer: Offer })
     setSequencerAddress,
     setOracleAddress,
   } = useChainPermissions({
-    l1ChainId: Number(order.deploymentMetadata.network.l1ChainID ?? 0),
+    l1ChainId: Number(order.deploymentMetadata?.network?.l1ChainID ?? 0),
     systemConfigProxy:
-      order.deploymentMetadata.addresses.systemConfigProxy ?? zeroAddress,
+      order.deploymentMetadata?.addresses?.systemConfigProxy ?? zeroAddress,
     l2OutputOracleProxy:
-      order.deploymentMetadata.addresses.l2OutputOracleProxy ?? zeroAddress,
+      order.deploymentMetadata?.addresses?.l2OutputOracleProxy ?? zeroAddress,
     systemOwnerSafe:
-      order.deploymentMetadata.addresses.systemOwnerSafe ?? zeroAddress,
-    proxyAdmin: order.deploymentMetadata.addresses.proxyAdmin ?? zeroAddress,
+      order.deploymentMetadata?.addresses?.systemOwnerSafe ?? zeroAddress,
+    proxyAdmin: order.deploymentMetadata?.addresses?.proxyAdmin ?? zeroAddress,
   });
 
   const isSubscribed = useMemo(() => {
