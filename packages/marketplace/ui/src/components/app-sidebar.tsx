@@ -30,13 +30,13 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
 
       {isConnected && (
-        <SidebarContent className="px-4 space-y-4">
+        <SidebarContent className="px-4 space-y-2">
           <Link
             to="/"
-            className="w-full flex items-center gap-2 py-2 px-4 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-100 transition"
+            className="w-full flex items-center gap-2 py-2 px-2 rounded-lg hover:bg-gray-100 transition text-gray-900"
           >
-            <Plus size={16} className="text-red-500" />
-            <span className="font-primary">New Rollup</span>
+            <Plus className="h-4 w-4" />
+            <span className="text-sm">New Rollup</span>
           </Link>
 
           <hr />
@@ -62,9 +62,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter className="pb-10 px-4 space-y-2">
         <hr className="border-muted" />
 
-        <div className="text-sm text-gray-700">
+        <div className="text-sm text-gray-700 px-2">
           <h4 className="text-gray-500 text-xs mb-1">Provider</h4>
-          <p className="font-medium">{name}</p>
+          <p className="font-medium">{name.charAt(0).toUpperCase() + name.slice(1)}</p>
         </div>
 
         <hr className="border-muted" />

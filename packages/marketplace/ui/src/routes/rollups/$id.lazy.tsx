@@ -63,7 +63,7 @@ export default function RollupDashboard() {
       ) : (
         <div className="grid grid-cols-2 gap-6">
           <div className="rounded-lg bg-gradient-to-l from-[#FFD813] to-transparent p-px">
-            <div className="border p-12 shadow-sm bg-white rounded-[calc(0.75rem-1px)] border-gray-200 flex flex-col items-center justify-center h-[360px]">
+            <div className="p-12 shadow-sm bg-white rounded-[calc(0.75rem-1px)] border-gray-200 flex flex-col items-center justify-center h-[360px]">
               <div className="h-20 w-20 rounded-full bg-[#FFF1C7] flex items-center justify-center mb-12 mx-auto">
                 <Clock className="text-[#FFD813] h-12 w-12" />
               </div>
@@ -79,7 +79,7 @@ export default function RollupDashboard() {
           </div>
 
           <div className="rounded-lg bg-gradient-to-l from-[#6696AF] to-transparent p-px">
-            <div className="border p-12 shadow-sm bg-white rounded-[calc(0.75rem-1px)] border-gray-200 flex flex-col items-center justify-center h-[360px]">
+            <div className="p-12 shadow-sm bg-white rounded-[calc(0.75rem-1px)] border-gray-200 flex flex-col items-center justify-center h-[360px]">
               <div className="h-20 w-20 rounded-full bg-[#DEF4FF] flex items-center justify-center mb-12 mx-auto">
                 <OctagonAlert className="text-[#6696AF] h-12 w-12" />
               </div>

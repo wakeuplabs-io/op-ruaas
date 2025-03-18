@@ -83,7 +83,7 @@ export function SidebarSectionList({
     <div className={cn("flex flex-col gap-2", className)}>
       {title && <p className="text-xs font-normal text-gray-700">{title}</p>}
 
-      <ul className="flex flex-col pt-2">
+      <ul className="flex flex-col pt-2 gap-2">
         {itemsToShow.map(({ id, item }) => (
           <li key={id}>{item}</li>
         ))}
