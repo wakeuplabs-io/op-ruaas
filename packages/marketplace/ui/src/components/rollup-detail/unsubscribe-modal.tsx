@@ -33,7 +33,7 @@ export const UnsubscribeModal: React.FC<
     setSequencerAddress,
     setOracleAddress,
   } = useChainPermissions({
-    l1ChainId: Number(order.deploymentMetadata.network.l1ChainID ?? 0),
+    l1ChainId: Number(order.deploymentMetadata?.network.l1ChainID ?? 0),
     systemConfigProxy:
       order.deploymentMetadata.addresses.systemConfigProxy ?? zeroAddress,
     l2OutputOracleProxy:
