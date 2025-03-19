@@ -29,11 +29,13 @@ export function DepositModal({
   isOpen,
   onClose,
 }: DepositModalProps) {
-  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const { depositFunds } = useDeposit();
+  const { isConnected } = useAccount();
+
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [status, setStatus] = useState<ModalStatus>(ModalStatus.IDLE);
-  const { isConnected } = useAccount();
+
   const plans = useMemo(
     () => [
       { months: 1, pricePerMonth },
@@ -78,6 +80,7 @@ export function DepositModal({
       setStatus(ModalStatus.SUCCESS);
     } catch (error) {
       console.error(error);
+      window.alert("Failed to deposit funds")
     } finally {
       setIsPending(false);
     }
@@ -120,7 +123,7 @@ export function DepositModal({
             <>
               <Button
                 size="lg"
-                variant="primary"
+                className="mt-8 w-full"
                 onClick={handleDeposit}
                 isPending={isPending}
                 disabled={

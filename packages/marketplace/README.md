@@ -4,14 +4,14 @@ Marketplace is a set of contracts and ui interface that allows for the creation 
 
 ## Contracts
 
-You can find the latest deployment at `contracts/ignition/deployments/chain-{id}/deployed_addresses.json`. But here again for your convinience.
+You can find the latest deployment at `contracts/ignition/deployments/chain-{id}/deployed_addresses.json`. But here again for your convenience.
 
 Optimism Sepolia
 
 ```json
 {
-  "TestToken#TestToken": "0x071BCbC304B0E4eE088FFA46088a33A227c1410b",
-  "MarketplaceModule#Marketplace": "0x59C70870ef0fEF59f71Ad57B2044e8Ebb49BA31D"
+  "TestToken#TestToken": "0x89771d5B1020549F8EC2815eACE52Aa5a0C84dEa",
+  "MarketplaceModule#Marketplace": "0xe99b68EF5459f78cAbb7a352E60CD2D80801B687"
 }
 ```
 

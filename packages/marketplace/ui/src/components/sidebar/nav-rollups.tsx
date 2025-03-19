@@ -80,7 +80,7 @@ export function NavRollups({
             {filteredRollups.map((item) => (
               <SidebarMenuItem key={item.id}>
                 <SidebarMenuButton className="h-10 px-2" asChild>
-                  <Link to="/rollups/$id" params={{ id: item.id }}>
+                  <Link onClick={() => setShowAll(false)} to="/rollups/$id" params={{ id: item.id }}>
                     <ScrollText className="text-sidebar-foreground/70" />
                     <span>{item.name}</span>
                   </Link>
