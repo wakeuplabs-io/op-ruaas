@@ -78,24 +78,25 @@ impl InitCommand {
         );
 
         // iterate over the artifacts and download
-        join_threads(artifacts
-            .iter()
-            .map(|artifact| {
-                let artifact = Arc::new(artifact.clone());
-                let artifact_initializer = Arc::clone(&self.artifact_initializer);
+        join_threads(
+            artifacts
+                .iter()
+                .map(|artifact| {
+                    let artifact = Arc::new(artifact.clone());
+                    let artifact_initializer = Arc::clone(&self.artifact_initializer);
 
-                thread::spawn(move || {
-                    match artifact_initializer.initialize(&artifact) {
-                        Ok(_) => {}
-                        Err(e) => {
-                            print_error(&format!("❌ Error initializing {}", artifact));
-                            return Err(e.to_string());
+                    thread::spawn(move || {
+                        match artifact_initializer.initialize(&artifact) {
+                            Ok(_) => {}
+                            Err(e) => {
+                                print_error(&format!("❌ Error initializing {}", artifact));
+                                return Err(e.to_string());
+                            }
                         }
-                    }
-                    Ok(())
+                        Ok(())
+                    })
                 })
-            })
-            .collect(),
+                .collect(),
         )?;
 
         init_spinner.finish_with_message(format!("Done in {}", HumanDuration(started.elapsed())));

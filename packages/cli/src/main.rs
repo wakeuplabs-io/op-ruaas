@@ -52,7 +52,9 @@ enum Commands {
 
         #[arg(long, default_value_t = false)]
         default: bool,
-        // TODO: values file
+
+        #[arg(long, help = "Path to a custom helm values file")]
+        values: Option<String>,
     },
     /// Deploy your blockchain. Target must be one of: contracts, infra, all
     Deploy {
@@ -78,9 +80,12 @@ enum Commands {
 
         #[arg(long, default_value = "opruaas")]
         deployment_release_tag: String,
-        
+
         #[arg(long, default_value = "opruaas")]
-        deployment_release_namespace: String
+        deployment_release_namespace: String,
+
+        #[arg(long, help = "Path to a custom helm values file")]
+        values: Option<String>,
     },
     /// Get details about the current deployment. Target must be one of: contracts, infra
     Inspect {
@@ -155,9 +160,10 @@ async fn main() {
             default,
             kind,
             sequencer_url,
+            values,
         } => {
             StartCommand::new()
-                .run(&ctx, kind, &sequencer_url, default)
+                .run(&ctx, kind, &sequencer_url, default, values)
                 .await
         }
         Commands::Deploy {
@@ -170,6 +176,7 @@ async fn main() {
             kind,
             sequencer_url,
             storage_class_name,
+            values,
         } => {
             DeployCommand::new()
                 .run(
@@ -183,6 +190,7 @@ async fn main() {
                     kind,
                     &sequencer_url,
                     &storage_class_name,
+                    values,
                 )
                 .await
         }

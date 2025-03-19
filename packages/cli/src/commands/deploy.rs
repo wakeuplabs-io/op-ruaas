@@ -38,15 +38,14 @@ pub enum DeployDeploymentKind {
     Replica,
 }
 
-impl Into<DeploymentKind> for DeployDeploymentKind {
-    fn into(self) -> DeploymentKind {
-        match self {
+impl From<DeployDeploymentKind> for DeploymentKind {
+    fn from(kind: DeployDeploymentKind) -> Self {
+        match kind {
             DeployDeploymentKind::Sequencer => DeploymentKind::Sequencer,
             DeployDeploymentKind::Replica => DeploymentKind::Replica,
         }
     }
 }
-
 pub struct DeployCommand {
     dialoguer: Dialoguer,
     contracts_deployer: ContractsDeployerService<
@@ -101,7 +100,7 @@ impl DeployCommand {
         kind: DeployDeploymentKind,
         sequencer_url: &str,
         storage_class_name: &str,
-        
+        values: Option<String>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         self.system_requirement_checker.check(vec![
             DOCKER_REQUIREMENT,
@@ -119,7 +118,7 @@ impl DeployCommand {
             return Err("Deployment id cannot be 'dev'".into());
         } else if deployment_id.contains(" ") {
             return Err("Deployment id cannot contain spaces".into());
-        } else if deployment_id.trim().len() == 0 {
+        } else if deployment_id.trim().is_empty() {
             return Err("Deployment id cannot be empty".into());
         }
 
@@ -205,6 +204,7 @@ impl DeployCommand {
                         release_namespace: deployment_release_namespace.to_string(),
                         sequencer_url: Some(sequencer_url.to_string()),
                         kind: kind.into(),
+                        values_path: values.map(std::path::PathBuf::from),
                     },
                 )
                 .await?;

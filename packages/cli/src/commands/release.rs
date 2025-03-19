@@ -13,12 +13,7 @@ use opraas_core::{
     domain::{ArtifactFactory, ArtifactKind, Project},
     infrastructure::{project::GitVersionControl, release::DockerReleaseRepository},
 };
-use std::{
-    io::{Error, ErrorKind},
-    sync::Arc,
-    thread,
-    time::Instant,
-};
+use std::{sync::Arc, thread, time::Instant};
 
 pub struct ReleaseCommand {
     dialoguer: Dialoguer,
@@ -108,7 +103,7 @@ impl ReleaseCommand {
             ),
         );
 
-        // 
+        //
         join_threads(
             artifacts
                 .iter()

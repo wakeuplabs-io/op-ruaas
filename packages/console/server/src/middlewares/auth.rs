@@ -33,7 +33,7 @@ impl Authorizer {
             return Err(ApiError::AuthError("No token in headers".to_string()));
         }
 
-        let decoded = base64::decode(token.unwrap().to_string())
+        let decoded = base64::decode(token.unwrap())
             .map_err(|_| ApiError::AuthError("Invalid token. Could not decode token".to_string()))?;
         let token_str = std::str::from_utf8(&decoded)
             .map_err(|_| ApiError::AuthError("Invalid token. Could not decode token".to_string()))?;
@@ -60,7 +60,7 @@ impl Authorizer {
         }
 
         let current_user = AuthCurrentUser {
-            id: format!("{}", hex::encode(message.address)),
+            id: hex::encode(message.address).to_string(),
         };
 
         req.extensions_mut().insert(current_user);

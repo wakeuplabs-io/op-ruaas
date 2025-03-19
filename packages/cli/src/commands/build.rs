@@ -12,11 +12,7 @@ use opraas_core::{
     domain::{ArtifactFactory, ArtifactKind, Project},
     infrastructure::artifact::{DockerArtifactRepository, GitArtifactSourceRepository},
 };
-use std::{
-    sync::Arc,
-    thread,
-    time::Instant,
-};
+use std::{sync::Arc, thread, time::Instant};
 
 #[derive(Debug, Clone, clap::ValueEnum)]
 pub enum BuildTargets {

@@ -38,10 +38,9 @@ pub enum StartDeploymentKind {
     Sequencer,
     Replica,
 }
-
-impl Into<DeploymentKind> for StartDeploymentKind {
-    fn into(self) -> DeploymentKind {
-        match self {
+impl From<StartDeploymentKind> for DeploymentKind {
+    fn from(kind: StartDeploymentKind) -> Self {
+        match kind {
             StartDeploymentKind::Sequencer => DeploymentKind::Sequencer,
             StartDeploymentKind::Replica => DeploymentKind::Replica,
         }
@@ -105,6 +104,7 @@ impl StartCommand {
         kind: StartDeploymentKind,
         sequencer_url: &str,
         default: bool,
+        values: Option<String>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         self.system_requirement_checker
             .check(vec![DOCKER_REQUIREMENT, K8S_REQUIREMENT, HELM_REQUIREMENT])?;
@@ -258,6 +258,7 @@ impl StartCommand {
                     release_tag: self.release_tag.clone().unwrap(),
                     sequencer_url: Some(sequencer_url.to_string()),
                     storage_class_name: "".to_string(),
+                    values_path: values.map(std::path::PathBuf::from),
                 },
             )
             .await?;
