@@ -61,7 +61,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             }))}
           />
 
-          <hr />
+          {[...sequencerRollups, ...replicaRollups].length ? <hr /> : null}
 
           <NavRollups
             title="My Replicas"

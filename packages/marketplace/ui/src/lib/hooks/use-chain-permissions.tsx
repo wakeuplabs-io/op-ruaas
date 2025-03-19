@@ -63,7 +63,7 @@ export const useChainPermissions = ({
     chainId: l1ChainId,
   });
 
-  const { data, error } = useReadContracts({
+  const { data } = useReadContracts({
     query: { enabled: l2OutputOracle !== undefined, refetchInterval: 1000 },
     contracts: [
       {

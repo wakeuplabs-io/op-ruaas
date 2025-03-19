@@ -5,7 +5,7 @@ import { useTerminate } from "./use-terminate";
 import { zeroAddress } from "viem";
 
 export const useUnsubscribe = ({ order, offer }: { order: Order; offer: Offer }) => {
-  const { terminate, isPending: isTerminatePending } = useTerminate({
+  const { terminate, isSubscribed, isPending: isTerminatePending } = useTerminate({
     orderId: order.id,
   });
   const {
@@ -26,10 +26,6 @@ export const useUnsubscribe = ({ order, offer }: { order: Order; offer: Offer })
       order.deploymentMetadata?.addresses?.systemOwnerSafe ?? zeroAddress,
     proxyAdmin: order.deploymentMetadata?.addresses?.proxyAdmin ?? zeroAddress,
   });
-
-  const isSubscribed = useMemo(() => {
-    return order.terminatedAt == 0n;
-  }, [order]);
 
   const provider = useMemo(() => {
     return {
