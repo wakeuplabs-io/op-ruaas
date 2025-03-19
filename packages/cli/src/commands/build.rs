@@ -92,13 +92,11 @@ impl BuildCommand {
                     let builder_service = Arc::clone(&self.artifacts_builder);
 
                     thread::spawn(move || -> Result<(), String> {
-                        match builder_service.build(&artifact) {
-                            Ok(_) => {}
-                            Err(e) => {
-                                print_error(&format!("❌ Error building {}", artifact));
-                                return Err(e.to_string());
-                            }
-                        }
+                        builder_service.build(&artifact).map_err(|e| {
+                            print_error(&format!("❌ Error building {}", artifact));
+                            e.to_string()
+                        })?;
+
                         Ok(())
                     })
                 })

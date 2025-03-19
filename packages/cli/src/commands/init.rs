@@ -86,13 +86,11 @@ impl InitCommand {
                     let artifact_initializer = Arc::clone(&self.artifact_initializer);
 
                     thread::spawn(move || {
-                        match artifact_initializer.initialize(&artifact) {
-                            Ok(_) => {}
-                            Err(e) => {
-                                print_error(&format!("❌ Error initializing {}", artifact));
-                                return Err(e.to_string());
-                            }
-                        }
+                        artifact_initializer.initialize(&artifact).map_err(|e| {
+                            print_error(&format!("❌ Error initializing {}", artifact));
+                            e.to_string()
+                        })?;
+
                         Ok(())
                     })
                 })

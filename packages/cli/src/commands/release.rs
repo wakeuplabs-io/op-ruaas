@@ -114,13 +114,12 @@ impl ReleaseCommand {
                     let artifacts_releaser = Arc::clone(&self.artifacts_releaser);
 
                     thread::spawn(move || -> Result<(), String> {
-                        match artifacts_releaser.release(&artifact, &release_name, &registry_url) {
-                            Ok(_) => {}
-                            Err(e) => {
+                        artifacts_releaser
+                            .release(&artifact, &release_name, &registry_url)
+                            .map_err(|e| {
                                 print_error(&format!("❌ Error releasing {}", artifact));
-                                return Err(e.to_string());
-                            }
-                        }
+                                e.to_string()
+                            })?;
                         Ok(())
                     })
                 })
