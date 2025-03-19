@@ -346,8 +346,8 @@ export const BuySequencerModal: React.FC<
             />
 
             <Button
-              variant="primary"
               size="lg"
+              className="mt-8"
               onClick={() => setShowSetup(true)}
               disabled={!isConnected}
             >
