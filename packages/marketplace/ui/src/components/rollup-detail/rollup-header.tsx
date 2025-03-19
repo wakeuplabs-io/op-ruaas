@@ -20,18 +20,20 @@ import { BookDown, TriangleAlert } from "lucide-react";
 import { DeploymentValue } from "./deployment-value";
 import { DepositModal } from "./deposit-modal";
 import { useUnsubscribe } from "@/lib/hooks/use-unsubscribe";
+import { useNavigate } from "@tanstack/react-router";
 
 interface RollupHeaderProps {
   order: Order;
   offer: Offer;
+  refetch: () => void;
 }
 
-export function RollupHeader({ order, offer }: RollupHeaderProps) {
+export function RollupHeader({ order, offer, refetch}: RollupHeaderProps) {
   const timeRemainingInSeconds =
     order.fulfilledAt > 0n
       ? Number(order.fulfilledAt + 48n * 3600n - currentUnixTime)
       : 0;
-
+  const navigate = useNavigate()
   const { step } = useUnsubscribe({ order, offer });
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
 
@@ -185,7 +187,11 @@ export function RollupHeader({ order, offer }: RollupHeaderProps) {
               orderId={order.id}
               pricePerMonth={offer.pricePerMonth}
               isOpen={isDepositModalOpen}
-              onClose={() => setIsDepositModalOpen(false)}
+              onClose={() => {
+                setIsDepositModalOpen(false)
+                refetch();
+              }}
+              refetch={refetch}
             />
           </div>
         )}

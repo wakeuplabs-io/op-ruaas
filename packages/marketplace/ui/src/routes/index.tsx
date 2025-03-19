@@ -8,6 +8,7 @@ import { useOffer } from "@/lib/hooks/use-offer";
 import { BuySequencerModal } from "@/components/buy-sequencer-modal";
 import { BuyReplicaModal } from "@/components/buy-replica-modal";
 import React from "react";
+import { SkeletonCard } from "@/components/skeleton-card";
 
 export const Route = createFileRoute("/")({
   component: SubscriptionPlans,
@@ -51,13 +52,7 @@ const PlanCard: React.FC<{
   const { offer, isLoading } = useOffer(BigInt(offerId));
   
   if (isLoading) {
-    return (
-      <div className="border rounded-lg p-12 shadow-sm flex flex-col justify-between h-[550px]">
-        <div>
-          <h2 className="text-md font-medium">Loading...</h2>
-        </div>
-      </div>
-    );
+    return <SkeletonCard />;
   }
   if(!offer) return;
   return (
