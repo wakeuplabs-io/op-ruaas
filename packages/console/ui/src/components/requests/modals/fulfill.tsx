@@ -88,6 +88,7 @@ export const FulfillModal: React.FC<{
           <input
             id="deployment"
             type="file"
+            accept=".json"
             className="hidden"
             onChange={(e) =>
               e.target.files && setDeploymentFile(e.target.files[0])
@@ -97,6 +98,7 @@ export const FulfillModal: React.FC<{
           <input
             id="artifact"
             type="file"
+            accept=".zip"
             className="hidden"
             onChange={(e) =>
               e.target.files && setArtifactFile(e.target.files[0])
