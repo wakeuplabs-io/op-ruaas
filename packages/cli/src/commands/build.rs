@@ -1,6 +1,7 @@
 use crate::{
     config::{SystemRequirementsChecker, TSystemRequirementsChecker, DOCKER_REQUIREMENT, GIT_REQUIREMENT},
     infrastructure::console::{print_error, style_spinner},
+    lib::join_threads,
     AppContext,
 };
 use colored::*;
@@ -11,7 +12,11 @@ use opraas_core::{
     domain::{ArtifactFactory, ArtifactKind, Project},
     infrastructure::artifact::{DockerArtifactRepository, GitArtifactSourceRepository},
 };
-use std::{sync::Arc, thread, time::Instant};
+use std::{
+    sync::Arc,
+    thread,
+    time::Instant,
+};
 
 #[derive(Debug, Clone, clap::ValueEnum)]
 pub enum BuildTargets {
@@ -83,38 +88,26 @@ impl BuildCommand {
         );
 
         // Iterate over the artifacts and build
-        let handles: Vec<_> = artifacts
-            .iter()
-            .map(|artifact| {
-                let artifact = Arc::clone(artifact); // Clone the Arc for thread ownership
-                let builder_service = Arc::clone(&self.artifacts_builder);
+        join_threads(
+            artifacts
+                .iter()
+                .map(|artifact| {
+                    let artifact = Arc::clone(artifact); // Clone the Arc for thread ownership
+                    let builder_service = Arc::clone(&self.artifacts_builder);
 
-                thread::spawn(move || -> Result<(), String> {
-                    match builder_service.build(&artifact) {
-                        Ok(_) => {}
-                        Err(e) => {
-                            print_error(&format!("❌ Error building {}", artifact));
-                            return Err(e.to_string());
+                    thread::spawn(move || -> Result<(), String> {
+                        match builder_service.build(&artifact) {
+                            Ok(_) => {}
+                            Err(e) => {
+                                print_error(&format!("❌ Error building {}", artifact));
+                                return Err(e.to_string());
+                            }
                         }
-                    }
-                    Ok(())
+                        Ok(())
+                    })
                 })
-            })
-            .collect();
-
-        // Wait for all threads to complete
-        for handle in handles {
-            match handle.join() {
-                Ok(Ok(_)) => {}
-                Ok(Err(e)) => return Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, e))),
-                Err(_) => {
-                    return Err(Box::new(std::io::Error::new(
-                        std::io::ErrorKind::Other,
-                        "Thread panicked",
-                    )))
-                }
-            }
-        }
+                .collect(),
+        )?;
 
         build_spinner.finish_with_message(format!("✔️ Built in {}", HumanDuration(started.elapsed())));
 

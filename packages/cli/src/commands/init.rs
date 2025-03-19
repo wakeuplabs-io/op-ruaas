@@ -1,5 +1,6 @@
 use crate::config::{SystemRequirementsChecker, TSystemRequirementsChecker, GIT_REQUIREMENT};
 use crate::infrastructure::console::{print_error, style_spinner};
+use crate::lib::join_threads;
 use crate::AppContext;
 use clap::ValueEnum;
 use colored::*;
@@ -77,7 +78,7 @@ impl InitCommand {
         );
 
         // iterate over the artifacts and download
-        let handles: Vec<_> = artifacts
+        join_threads(artifacts
             .iter()
             .map(|artifact| {
                 let artifact = Arc::new(artifact.clone());
@@ -94,21 +95,8 @@ impl InitCommand {
                     Ok(())
                 })
             })
-            .collect();
-
-        // wait for all threads to complete
-        for handle in handles {
-            match handle.join() {
-                Ok(Ok(_)) => {}
-                Ok(Err(e)) => return Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, e))),
-                Err(_) => {
-                    return Err(Box::new(std::io::Error::new(
-                        std::io::ErrorKind::Other,
-                        "Thread panicked",
-                    )))
-                }
-            }
-        }
+            .collect(),
+        )?;
 
         init_spinner.finish_with_message(format!("Done in {}", HumanDuration(started.elapsed())));
 
