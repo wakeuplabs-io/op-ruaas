@@ -127,9 +127,9 @@ export const BuyReplicaModal: React.FC<
                 </div>
 
                 <Button
-                  variant="primary"
-                  type="submit"
                   size="lg"
+                  type="submit"
+                  className="mt-8 w-full"
                   disabled={!form.formState.isValid || !artifacts || isPending}
                 >
                   Complete Order
@@ -174,8 +174,8 @@ export const BuyReplicaModal: React.FC<
             />
 
             <Button
-              variant="primary"
               size="lg"
+              className="mt-8"
               onClick={() => setShowSetup(true)}
               disabled={!isConnected}
             >

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -6,31 +6,11 @@
 
 @layer base {
   :root {
-    /* Start of custom font */
-    --inter: 'Inter';
-    /* End of custom font */
+    --inter: "Inter";
 
-    /* Start of new custom colors */
     --primary: hsla(353, 100%, 51%, 1);
     --secondary: hsl(0, 0%, 97%);
-    --white-high: hsla(0, 0%, 100%, 1);
-    --white-medium: hsla(0, 0%, 95%, 1);
-    --white-low: hsla(0, 0%, 80%, 1);
-    --dark-high: hsla(234, 24%, 8%, 1);
-    --dark-medium: hsla(0, 0%, 11%, 1);
-    --dark-low: hsla(0, 0%, 25%, 1);
-    --background-brighter: hsla(218, 40%, 98%, 1);
     --background: rgb(255, 255, 255);
-    --mi-stone-300: hsla(0, 0%, 97%, 1);
-    /* End of new custom colors */
-
-    /* Start of Card tag colors */
-    --simplicity: hsla(278, 32%, 90%, 1);
-    --familiarity: hsla(30, 7%, 94%, 1);
-    --extencibility: hsla(26, 83%, 88%, 1);
-    --awareness: hsla(202, 53%, 89%, 1);
-    --understanding: hsla(113, 40%, 90%, 1);
-    /* End of Card tag colors */
 
     --foreground: 224 71.4% 4.1%;
     --card-foreground: 224 71.4% 4.1%;
@@ -118,7 +98,6 @@
   }
 
   body {
-    font-family: 'Inter', sans-serif;
+    font-family: "Inter", sans-serif;
   }
-  
 }
