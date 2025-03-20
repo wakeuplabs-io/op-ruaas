@@ -30,7 +30,7 @@ where
         self.project_infra_repository.pull(project)?;
 
         self.deployment_runner
-            .run(project, deployment, &opts)
+            .run(project, deployment, opts)
             .await?;
 
         Ok(())
