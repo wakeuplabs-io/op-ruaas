@@ -21,7 +21,7 @@ use log::{Level, LevelFilter};
 
 #[derive(Parser)]
 #[clap(name = "opruaas")]
-#[clap(version = "0.1.6")]
+#[clap(version = "0.1.7")]
 #[clap(about = "Easily deploy and manage rollups with the Optimism stack.", long_about = None)]
 struct Args {
     #[command(subcommand)]
@@ -62,6 +62,7 @@ enum Commands {
             help = "Weather to use default releases or not"
         )]
         default: bool,
+        // TODO: values file
     },
     /// Deploy your blockchain. Target must be one of: contracts, infra, all
     Deploy {
