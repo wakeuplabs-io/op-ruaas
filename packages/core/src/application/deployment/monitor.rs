@@ -24,7 +24,7 @@ where
         opts: &DeploymentMonitorOptions,
     ) -> Result<(), Box<dyn std::error::Error>> {
         self.deployment_monitor_runner
-            .run(project, deployment, &opts)
+            .run(project, deployment, opts)
             .await?;
 
         Ok(())

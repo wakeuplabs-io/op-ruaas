@@ -23,11 +23,8 @@ contract Marketplace is IMarketplace, ReentrancyGuard {
     uint256 public constant VERIFICATION_PERIOD = 2 * 24 * 60 * 60;
 
     /// @notice Only vendor
-    modifier onlyVendor(uint256 _offerId, uint256 _orderId) {
-        if (
-            offers[_offerId].vendor != msg.sender &&
-            offers[orders[_orderId].offerId].vendor != msg.sender
-        ) {
+    modifier onlyVendor(uint256 _offerId) {
+        if (offers[_offerId].vendor != msg.sender) {
             revert Unauthorized("Only vendor");
         }
         _;
@@ -72,7 +69,7 @@ contract Marketplace is IMarketplace, ReentrancyGuard {
     function setOfferRemainingUnits(
         uint256 _offerId,
         uint256 _remainingUnits
-    ) public onlyVendor(_offerId, 0) {
+    ) public onlyVendor(_offerId) {
         offers[_offerId].remainingUnits = _remainingUnits;
     }
 
@@ -86,7 +83,7 @@ contract Marketplace is IMarketplace, ReentrancyGuard {
 
         // verify offer still available
         if (offer.remainingUnits == 0) {
-            revert OfferNotFound();
+            revert NoRemainingUnits();
         }
         offer.remainingUnits -= 1;
 
@@ -111,7 +108,7 @@ contract Marketplace is IMarketplace, ReentrancyGuard {
     function fulfillOrder(
         uint256 _orderId,
         string calldata _deploymentMetadata
-    ) public onlyVendor(0, _orderId) {
+    ) public onlyVendor(orders[_orderId].offerId) {
         Order storage order = orders[_orderId];
         Offer memory offer = offers[order.offerId];
 
@@ -189,7 +186,7 @@ contract Marketplace is IMarketplace, ReentrancyGuard {
     function withdraw(
         uint256 _orderId,
         uint256 _amount
-    ) public onlyVendor(0, _orderId) nonReentrant {
+    ) public onlyVendor(orders[_orderId].offerId) nonReentrant {
         Order storage order = orders[_orderId];
 
         // revert if already terminated
