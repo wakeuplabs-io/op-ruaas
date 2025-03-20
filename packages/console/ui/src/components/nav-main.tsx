@@ -8,9 +8,11 @@ import {
 } from "@/components/ui/sidebar";
 import { Link, useRouterState } from "@tanstack/react-router";
 
-export function NavMain({
+export function NavGroup({
+  title,
   items,
 }: {
+  title?: string;
   items: {
     title: string;
     url: string;
@@ -22,7 +24,7 @@ export function NavMain({
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Create</SidebarGroupLabel>
+      {title && <SidebarGroupLabel>{title}</SidebarGroupLabel>}
       <SidebarMenu>
         {items.map((item, index) => (
           <SidebarMenuItem key={index}>
@@ -30,9 +32,10 @@ export function NavMain({
               isActive={item.url === currentPath}
               asChild
               tooltip={item.title}
+              className="h-10 px-2"
             >
               <Link to={item.url}>
-                <item.icon />
+                <item.icon className="h-5 w-5"/>
                 <span>{item.title}</span>
               </Link>
             </SidebarMenuButton>

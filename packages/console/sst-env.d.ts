@@ -2,43 +2,40 @@
 /* tslint:disable */
 /* eslint-disable */
 /* deno-fmt-ignore-file */
-import "sst"
-export {}
+
 declare module "sst" {
   export interface Resource {
-    "Web": {
-      "id": string
-      "secret": string
-      "type": "sst.aws.CognitoUserPoolClient"
-    }
-    "opruaas-api": {
+    "opruaas-console-api": {
       "name": string
       "type": "sst.aws.Function"
       "url": string
     }
-    "opruaas-artifacts": {
+    "opruaas-console-artifacts": {
       "name": string
       "type": "sst.aws.Bucket"
     }
-    "opruaas-db": {
+    "opruaas-console-db": {
+      "clusterArn": string
       "database": string
       "host": string
       "password": string
       "port": number
+      "reader": string
+      "secretArn": string
       "type": "sst.aws.Aurora"
       "username": string
     }
-    "opruaas-ui": {
+    "opruaas-console-ui": {
       "type": "sst.aws.StaticSite"
       "url": string
     }
-    "opruaas-user-pool": {
-      "id": string
-      "type": "sst.aws.CognitoUserPool"
-    }
-    "opruaas-vpc": {
+    "opruaas-console-vpc": {
       "bastion": string
       "type": "sst.aws.Vpc"
     }
   }
 }
+/// <reference path="sst-env.d.ts" />
+
+import "sst"
+export {}

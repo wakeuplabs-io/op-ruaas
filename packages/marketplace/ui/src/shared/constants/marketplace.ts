@@ -1,14 +1,13 @@
 import { Address } from "viem";
 import envParsed from "@/envParsed";
 
-export const DAYS_PER_MONTH = 30n;
-
 export const SEQUENCER_IDS = envParsed().MARKETPLACE_SEQUENCER_OFFERS.split(",");
 export const REPLICA_IDS = envParsed().MARKETPLACE_REPLICA_OFFERS.split(",");
 
 export const MARKETPLACE_CHAIN_ID = Number(envParsed().MARKETPLACE_CHAIN_ID);
 export const MARKETPLACE_ADDRESS = envParsed().MARKETPLACE_ADDRESS as Address;
 export const MARKETPLACE_TOKEN = envParsed().ERC20_TOKEN_ADDRESS as Address;
+export const MARKETPLACE_TOKEN_SYMBOL = envParsed().ERC20_TOKEN_SYMBOL;
 
 export const ERC20_TOKEN_ABI = [
   {

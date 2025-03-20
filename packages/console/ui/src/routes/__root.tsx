@@ -1,23 +1,27 @@
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
-import type { QueryClient } from "@tanstack/react-query";
-
-const TanStackRouterDevtools =
-  process.env.NODE_ENV === "production"
-    ? () => null // Render nothing in production
-    : () => null; // Render nothing in production
-// React.lazy(() =>
-//     import("@tanstack/router-devtools").then((res) => ({
-//       default: res.TanStackRouterDevtools,
-//     }))
-//   );
+import { useQuery, type QueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/lib/hooks/use-auth";
+import { deploymentsByOwner } from "@/lib/queries/deployment";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
 }>()({
-  component: () => (
-    <>
-      <Outlet />
-      <TanStackRouterDevtools />
-    </>
-  ),
+  component: RouteComponent
 });
+
+
+function RouteComponent() {
+  const { user } = useAuth();
+  const { data: deployments } = useQuery(deploymentsByOwner(user?.id));
+
+  return (
+    <SidebarProvider>
+      <AppSidebar deployments={deployments} />
+      <SidebarInset className="bg-gray-50 min-h-screen w-full">
+        <Outlet />
+      </SidebarInset>
+    </SidebarProvider>
+  );
+}

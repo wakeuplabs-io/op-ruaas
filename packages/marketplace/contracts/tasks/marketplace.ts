@@ -1,4 +1,4 @@
-import { task } from "hardhat/config";
+import { task, types } from "hardhat/config";
 import { HardhatRuntimeEnvironment, TaskArguments } from "hardhat/types";
 import { z } from "zod";
 
@@ -36,8 +36,8 @@ export const FulfillOrderMetadataSchema = z.object({
 });
 
 task("create-offer", "Create a new offer")
-  .addParam("price", "Price per month in tokens")
-  .addParam("metadata", "Offer metadata")
+  .addParam("price", "Price per month in tokens", undefined, types.int)
+  .addParam("metadata", "Offer metadata", undefined, types.string)
   .setAction(
     async (taskArguments: TaskArguments, hre: HardhatRuntimeEnvironment) => {
       // validate params
@@ -75,13 +75,13 @@ task("create-offer", "Create a new offer")
   );
 
 task("create-order", "Create a new order")
-  .addParam("offerId", "Offer ID for which to create order")
-  .addParam("initialCommitment", "Initial commitment for order")
-  .addParam("metadata", "Request metadata")
+  .addParam("offerId", "Offer ID for which to create order", undefined, types.int)
+  .addParam("initialCommitment", "Initial commitment for order", 1, types.int)
+  .addParam("metadata", "Request metadata", undefined, types.string)
   .setAction(
     async (taskArguments: TaskArguments, hre: HardhatRuntimeEnvironment) => {
       // validate params
-      const offerId = z.number().gt(0).parse(taskArguments.offerId);
+      const offerId = z.number().parse(taskArguments.offerId);
       const initialCommitment = z
         .number()
         .gt(0)
@@ -144,15 +144,16 @@ task("create-order", "Create a new order")
   );
 
 task("fulfill-order", "Fills an order")
-  .addParam("orderId", "Offer ID for which to create order")
-  .addParam("metadata", "Chain artifacts if existing chain", "")
+  .addParam("orderId", "Offer ID for which to create order", undefined, types.int)
+  .addParam("metadata", "Chain artifacts if existing chain", "", types.string)
   .setAction(
     async (taskArguments: TaskArguments, hre: HardhatRuntimeEnvironment) => {
       // validate params
-      const orderId = z.number().gt(0).parse(taskArguments.orderId);
+      const orderId = z.number().parse(taskArguments.orderId);
       const metadata = FulfillOrderMetadataSchema.parse(
         JSON.parse(taskArguments.metadata)
       );
+      
 
       // recover deployment
       const chain = await hre.ethers.provider.getNetwork();
@@ -177,8 +178,8 @@ task("fulfill-order", "Fills an order")
   );
 
 task("withdraw", "Withdraws from order")
-  .addParam("orderId", "Offer ID for which to create order")
-  .addParam("amount", "Tokens to withdraw")
+  .addParam("orderId", "Offer ID for which to create order", undefined, types.int)
+  .addParam("amount", "Tokens to withdraw", undefined, types.float)
   .setAction(
     async (taskArguments: TaskArguments, hre: HardhatRuntimeEnvironment) => {
       // validate params
@@ -211,8 +212,8 @@ task("withdraw", "Withdraws from order")
   );
 
 task("balance", "Balance of actor in a order")
-  .addParam("of", "Address")
-  .addParam("orderId", "OrderId")
+  .addParam("of", "Address", undefined, types.string)
+  .addParam("orderId", "OrderId", undefined, types.int)
   .setAction(
     async (taskArguments: TaskArguments, hre: HardhatRuntimeEnvironment) => {
       // validate params

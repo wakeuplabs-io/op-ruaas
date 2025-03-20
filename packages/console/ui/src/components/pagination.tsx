@@ -12,7 +12,7 @@ export const Pagination: React.FC<{
       <Button
         size="lg"
         variant="secondary"
-        className="rounded-full justify-start md:w-full"
+        className="justify-start md:w-full"
         {...prev}
       >
         <ChevronLeftIcon className="md:ml-2" />
@@ -20,7 +20,7 @@ export const Pagination: React.FC<{
       </Button>
       <Button
         size="lg"
-        className="rounded-full justify-end w-full"
+        className=" justify-end w-full"
         {...next}
       >
         <span>Next</span>

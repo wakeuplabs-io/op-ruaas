@@ -16,7 +16,7 @@ task("mint", "Mints test tokens to a specified address")
 
       console.log(`Minting ${taskArguments.amount} to ${taskArguments.to}`);
 
-      const tx = await token.mint(taskArguments.to, taskArguments.amount * 10n ** tokenDecimals);
+      const tx = await token.mint(taskArguments.to, BigInt(taskArguments.amount) * 10n ** tokenDecimals);
 
       console.log(`Token minted with tx: ${tx.hash}`);
     }

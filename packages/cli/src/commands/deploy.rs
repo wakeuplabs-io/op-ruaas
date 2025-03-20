@@ -38,15 +38,14 @@ pub enum DeployDeploymentKind {
     Replica,
 }
 
-impl Into<DeploymentKind> for DeployDeploymentKind {
-    fn into(self) -> DeploymentKind {
-        match self {
+impl From<DeployDeploymentKind> for DeploymentKind {
+    fn from(kind: DeployDeploymentKind) -> Self {
+        match kind {
             DeployDeploymentKind::Sequencer => DeploymentKind::Sequencer,
             DeployDeploymentKind::Replica => DeploymentKind::Replica,
         }
     }
 }
-
 pub struct DeployCommand {
     dialoguer: Dialoguer,
     contracts_deployer: ContractsDeployerService<
@@ -95,9 +94,13 @@ impl DeployCommand {
         target: &DeployTarget,
         deployment_id: &str,
         deployment_name: &str,
+        deployment_release_tag: &str,
+        deployment_release_namespace: &str,
         deploy_deterministic_deployer: bool,
         kind: DeployDeploymentKind,
         sequencer_url: &str,
+        storage_class_name: &str,
+        values: Option<String>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         self.system_requirement_checker.check(vec![
             DOCKER_REQUIREMENT,
@@ -115,6 +118,8 @@ impl DeployCommand {
             return Err("Deployment id cannot be 'dev'".into());
         } else if deployment_id.contains(" ") {
             return Err("Deployment id cannot contain spaces".into());
+        } else if deployment_id.trim().is_empty() {
+            return Err("Deployment id cannot be empty".into());
         }
 
         let release_registry: String = self
@@ -194,11 +199,12 @@ impl DeployCommand {
                         host: domain,
                         monitoring: enable_monitoring,
                         explorer: enable_explorer,
-                        storage_class_name: "gp2".to_string(),
-                        release_tag: "opruaas".to_string(),
-                        release_namespace: "opruaas".to_string(),
+                        storage_class_name: storage_class_name.to_string(),
+                        release_tag: deployment_release_tag.to_string(),
+                        release_namespace: deployment_release_namespace.to_string(),
                         sequencer_url: Some(sequencer_url.to_string()),
                         kind: kind.into(),
+                        values_path: values.map(std::path::PathBuf::from),
                     },
                 )
                 .await?;

@@ -15,15 +15,14 @@ export const Route = createFileRoute("/")({
 
 export function SubscriptionPlans() {
   const [selected, setSelected] = React.useState<string>(SEQUENCER_IDS[0]);
-
   return (
-    <Tabs className="p-10" defaultValue="sequencer" onValueChange={(value) => {
+    <Tabs className="p-6" defaultValue="sequencer" onValueChange={(value) => {
       setSelected(value === "sequencer" ? SEQUENCER_IDS[0] : REPLICA_IDS[0]);
     }}>
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-md font-medium">Choose your plan</h2>
 
-        <TabsList className="grid grid-cols-2 h-12">
+        <TabsList className="grid grid-cols-2 h-12 px-2">
           <TabsTrigger className="h-9" value="sequencer">Sequencer</TabsTrigger>
           <TabsTrigger className="h-9" value="replica">Replica</TabsTrigger>
         </TabsList>
@@ -50,7 +49,7 @@ const PlanCard: React.FC<{
   sequencer?: boolean;
 }> = ({ offerId, selected, sequencer }) => {
   const { offer, isLoading } = useOffer(BigInt(offerId));
-
+  
   if (isLoading) {
     return (
       <div className="border rounded-lg p-12 shadow-sm flex flex-col justify-between h-[550px]">
@@ -60,7 +59,7 @@ const PlanCard: React.FC<{
       </div>
     );
   }
-
+  if(!offer) return;
   return (
     <div
       className={cn(
@@ -72,8 +71,8 @@ const PlanCard: React.FC<{
         className={cn(
           "border p-12 shadow-sm flex flex-col justify-between h-[550px] bg-white",
           selected
-            ? "rounded-[calc(0.75rem-2px)] "
-            : "rounded-[calc(0.75rem-1px)] "
+            ? "rounded-[calc(0.6rem-2px)] "
+            : "rounded-[calc(0.6rem-1px)] "
         )}
       >
         <div>

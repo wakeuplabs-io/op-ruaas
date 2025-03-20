@@ -1,12 +1,15 @@
 import "./index.css";
+import "@rainbow-me/rainbowkit/styles.css";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { Amplify } from "aws-amplify";
 import { Toaster } from "./components/ui/toaster.tsx";
 import { RouterProvider } from "@tanstack/react-router";
 import { routeTree } from "@/routeTree.gen";
 import { createRouter } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { WagmiSetup } from "./lib/hocs/wagmi-provider.tsx";
+import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { AuthProvider } from "./lib/hooks/use-auth.tsx";
 
 export const queryClient = new QueryClient();
 
@@ -25,20 +28,17 @@ declare module "@tanstack/react-router" {
   }
 }
 
-Amplify.configure({
-  Auth: {
-    Cognito: {
-      userPoolId: import.meta.env.VITE_USER_POOL_ID,
-      userPoolClientId: import.meta.env.VITE_USER_POOL_CLIENT_ID,
-    },
-  },
-});
-
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-      <Toaster />
-    </QueryClientProvider>
+    <WagmiSetup>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider>
+          <AuthProvider>
+            <RouterProvider router={router} />
+            <Toaster />
+          </AuthProvider>
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiSetup>
   </React.StrictMode>
 );

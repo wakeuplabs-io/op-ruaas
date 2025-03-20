@@ -29,6 +29,9 @@ import {
 import { useCreateOrder } from "@/lib/hooks/use-create-order";
 import { useRouter } from "@tanstack/react-router";
 import { readArtifact } from "@/lib/artifacts";
+import { useOrders } from "@/lib/hooks/use-orders";
+import { useAccount } from "wagmi";
+import { MARKETPLACE_TOKEN_SYMBOL } from "@/shared/constants/marketplace";
 
 enum SubscribeStep {
   UploadArtifacts,
@@ -51,7 +54,9 @@ export const BuySequencerModal: React.FC<
   { offerId: string; offer: Offer } & ButtonProps
 > = ({ offer, offerId, ...props }) => {
   const router = useRouter();
+  const { refetch: refetchOrders } = useOrders();
   const [selectedMonths, setSelectedMonths] = useState("1");
+  const { isConnected } = useAccount();
   const [sequencerType, setSequencerType] = useState<SequencerType>(
     SequencerType.New
   );
@@ -99,7 +104,7 @@ export const BuySequencerModal: React.FC<
           data.name,
           artifacts
         );
-
+        await refetchOrders();
         router.navigate({
           to: `/rollups/$id`,
           params: { id: orderId.toString() },
@@ -144,7 +149,7 @@ export const BuySequencerModal: React.FC<
       <DialogTrigger>
         <Button {...props} />
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[550px]">
+      <DialogContent className="sm:max-w-[550px] p-12">
         {showSetup ? (
           <>
             <Form {...form}>
@@ -295,22 +300,22 @@ export const BuySequencerModal: React.FC<
               options={[
                 {
                   label: "1 month",
-                  description: `${formatUnits(offer.pricePerMonth, 18)} ETH`,
+                  description: `${formatUnits(offer.pricePerMonth, 18)} ${MARKETPLACE_TOKEN_SYMBOL}`,
                   value: "1",
                 },
                 {
                   label: "3 months",
-                  description: `${formatUnits(offer.pricePerMonth * 3n, 18)} ETH`,
+                  description: `${formatUnits(offer.pricePerMonth * 3n, 18)} ${MARKETPLACE_TOKEN_SYMBOL}`,
                   value: "3",
                 },
                 {
                   label: "6 months",
-                  description: `${formatUnits(offer.pricePerMonth * 6n, 18)} ETH`,
+                  description: `${formatUnits(offer.pricePerMonth * 6n, 18)} ${MARKETPLACE_TOKEN_SYMBOL}`,
                   value: "6",
                 },
                 {
                   label: "12 months",
-                  description: `${formatUnits(offer.pricePerMonth * 12n, 18)} ETH`,
+                  description: `${formatUnits(offer.pricePerMonth * 12n, 18)} ${MARKETPLACE_TOKEN_SYMBOL}`,
                   value: "12",
                 },
               ]}
@@ -342,11 +347,12 @@ export const BuySequencerModal: React.FC<
             />
 
             <Button
-              className="mt-12 text-white"
               size="lg"
+              className="mt-8"
               onClick={() => setShowSetup(true)}
+              disabled={!isConnected}
             >
-              Setup Plan
+              {isConnected ? "Setup Plan" : "Connect your wallet"}
             </Button>
           </>
         )}

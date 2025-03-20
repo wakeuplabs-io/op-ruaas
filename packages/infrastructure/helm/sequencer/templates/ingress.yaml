@@ -3,26 +3,45 @@ kind: Ingress
 metadata:
   name: ingress
   annotations:
-    {{- if ne .Values.global.host "localhost" }}
+    # Iterate over the host array to determine if any host is not "localhost" for cert-manager
+    {{- $needsCert := false }}
+    {{- range .Values.global.hosts }}
+    {{- if ne . "localhost" }}
+    {{- $needsCert = true }}
+    {{- end }}
+    {{- end }}
+    {{- if $needsCert }}
     cert-manager.io/issuer: "letsencrypt"  # TLS requirement - enables cert-manager
     {{- end }}
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   ingressClassName: nginx
-  {{- if ne .Values.global.host "localhost" }}
+  # TLS configuration for all non-localhost hosts
+  {{- $tlsHosts := list }}
+  {{- range .Values.global.hosts }}
+  {{- if ne . "localhost" }}
+  {{- $tlsHosts = append $tlsHosts . }}
+  {{- end }}
+  {{- end }}
+  {{- if $tlsHosts }}
   tls:
+    {{- range $tlsHosts }}
     - hosts:
-        - {{ .Values.global.host }}
-      secretName: {{ .Values.global.host | replace "." "-" }}-tls  # TLS requirement - certificate stored here
+        - {{ . }}
+      secretName: {{ . | replace "." "-" }}-tls  # TLS requirement - certificate stored here
+    {{- end }}
   {{- end }}
   rules:
-    - host: {{ .Values.global.host }}
+    # Generate a rule for each host in the array
+    {{- range .Values.global.hosts }}
+    - host: {{ . }}
       http:
         paths:
-          - path: {{ .Values.proxyd.ingress.nodePath }}
+          - path: {{ $.Values.proxyd.ingress.nodePath }}
             pathType: Prefix
             backend:
               service:
-                name: {{ .Values.proxyd.name }}-service
+                name: {{ $.Values.proxyd.name }}-service
                 port:
-                  number: {{ .Values.proxyd.port }}
+                  number: {{ $.Values.proxyd.port }}
+    {{- end }}

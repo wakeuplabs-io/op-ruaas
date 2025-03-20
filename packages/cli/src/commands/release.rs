@@ -1,6 +1,7 @@
 use crate::{
     config::{SystemRequirementsChecker, TSystemRequirementsChecker, DOCKER_REQUIREMENT, GIT_REQUIREMENT},
     infrastructure::console::{print_error, print_info, print_warning, style_spinner, Dialoguer, TDialoguer},
+    lib::join_threads,
     AppContext,
 };
 use clap::ValueEnum;
@@ -102,40 +103,28 @@ impl ReleaseCommand {
             ),
         );
 
-        let handles: Vec<_> = artifacts
-            .iter()
-            .map(|artifact| {
-                let release_name = release_name.clone();
-                let registry_url = registry_url.clone();
-                let artifact = Arc::clone(artifact);
-                let artifacts_releaser = Arc::clone(&self.artifacts_releaser);
+        //
+        join_threads(
+            artifacts
+                .iter()
+                .map(|artifact| {
+                    let release_name = release_name.clone();
+                    let registry_url = registry_url.clone();
+                    let artifact = Arc::clone(artifact);
+                    let artifacts_releaser = Arc::clone(&self.artifacts_releaser);
 
-                thread::spawn(move || -> Result<(), String> {
-                    match artifacts_releaser.release(&artifact, &release_name, &registry_url) {
-                        Ok(_) => {}
-                        Err(e) => {
-                            print_error(&format!("❌ Error releasing {}", artifact));
-                            return Err(e.to_string());
-                        }
-                    }
-                    Ok(())
+                    thread::spawn(move || -> Result<(), String> {
+                        artifacts_releaser
+                            .release(&artifact, &release_name, &registry_url)
+                            .map_err(|e| {
+                                print_error(&format!("❌ Error releasing {}", artifact));
+                                e.to_string()
+                            })?;
+                        Ok(())
+                    })
                 })
-            })
-            .collect();
-
-        // wait for all threads to complete
-        for handle in handles {
-            match handle.join() {
-                Ok(Ok(_)) => {}
-                Ok(Err(e)) => return Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, e))),
-                Err(_) => {
-                    return Err(Box::new(std::io::Error::new(
-                        std::io::ErrorKind::Other,
-                        "Thread panicked",
-                    )))
-                }
-            }
-        }
+                .collect(),
+        )?;
 
         release_spinner.finish_with_message(format!(
             "✔️ Released in {}",

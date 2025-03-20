@@ -9,46 +9,41 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "../ui/scroll-area";
 import { ArrowRight } from "lucide-react";
-import { UnsubscribeStep, useUnsubscribe } from "@/lib/hooks/use-unsubscribe";
-import { useChainPermissions } from "@/lib/hooks/use-chain-permissions";
 import { zeroAddress } from "viem";
-import { useOrderDetails } from "@/lib/hooks/use-order";
 import { StepCard } from "../step-card";
+import { Offer, Order, UnsubscribeStep } from "@/types";
+import { useUnsubscribe } from "@/lib/hooks/use-unsubscribe";
 
 export const UnsubscribeModal: React.FC<
   {
-    orderId: bigint;
+    order: Order;
+    offer: Offer;
     disabled?: boolean;
-    step: UnsubscribeStep;
   } & ButtonProps
-> = ({ orderId, disabled, step, ...props }) => {
-  const { data } = useOrderDetails({ id: orderId });
-  const { unsubscribe } = useUnsubscribe({ orderId });
+> = ({ order, offer, disabled, ...props }) => {
   const {
+    step,
+    isTerminatePending,
+    terminate,
     setBatcherAddress,
-    setSequencerAddress,
     setOracleAddress,
-  } = useChainPermissions({
-    l1ChainId: Number(data?.order.deploymentMetadata.network.l1ChainID ?? 0),
-    systemConfigProxy:
-      data?.order.deploymentMetadata.addresses.systemConfigProxy ?? zeroAddress,
-    l2OutputOracleProxy:
-      data?.order.deploymentMetadata.addresses.l2OutputOracleProxy ??
-      zeroAddress,
-    systemOwnerSafe:
-      data?.order.deploymentMetadata.addresses.systemOwnerSafe ?? zeroAddress,
-    proxyAdmin:
-      data?.order.deploymentMetadata.addresses.proxyAdmin ?? zeroAddress,
-  });
+    setSequencerAddress,
+  } = useUnsubscribe({ order, offer });
+
+  if ((order.terminatedAt !== 0n && step === UnsubscribeStep.Done) || order.fulfilledAt === 0n) return null;
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button {...props} />
+        <Button {...props}>
+          {step === UnsubscribeStep.Unsubscribe
+            ? "Unsubscribe"
+            : "Complete unsubscribe"}
+        </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[700px]">
+      <DialogContent className="sm:max-w-[700px] p-12">
         <ScrollArea className="max-h-[600px]">
-          <DialogHeader>
+          <DialogHeader className="space-y-4">
             <DialogTitle>Unsubscribe</DialogTitle>
             <DialogDescription>
               Terminate payments and revoke provider permissions. This is
@@ -56,7 +51,7 @@ export const UnsubscribeModal: React.FC<
             </DialogDescription>
           </DialogHeader>
 
-          <div className="bg-red-100 text-red-800 py-2 px-4 rounded-md mt-8">
+          <div className="bg-[#FFF4F4] text-[#911A27] py-2 px-4 rounded-md mt-8 text-sm">
             All unsubscribe actions are permanent and cannot be undone.
           </div>
 
@@ -67,7 +62,11 @@ export const UnsubscribeModal: React.FC<
             isComplete={step > UnsubscribeStep.Unsubscribe}
             isActive={step === UnsubscribeStep.Unsubscribe}
           >
-            <Button className="mt-6" onClick={() => unsubscribe()}>
+            <Button
+              isPending={isTerminatePending}
+              className="mt-6"
+              onClick={() => terminate()}
+            >
               Terminate payments <ArrowRight />
             </Button>
           </StepCard>

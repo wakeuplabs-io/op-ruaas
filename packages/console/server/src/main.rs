@@ -36,8 +36,6 @@ async fn main() -> Result<(), Error> {
 
     let aws_region = std::env::var("AWS_REGION").expect("AWS_REGION not set");
     let artifacts_bucket = std::env::var("ARTIFACTS_BUCKET").expect("ARTIFACTS_BUCKET not set");
-    let cognito_pool_id = std::env::var("COGNITO_POOL_ID").expect("COGNITO_POOL_ID not set");
-    let cognito_client_ids = std::env::var("COGNITO_CLIENT_IDS").expect("COGNITO_CLIENT_IDS not set");
 
     // s3 bucket
     let cfg = aws_config::from_env()
@@ -51,13 +49,14 @@ async fn main() -> Result<(), Error> {
         .await
         .expect("Unable to connect to the database");
 
+    // Run database migrations
+    sqlx::migrate!()
+        .run(&db_pool)
+        .await
+        .expect("Failed to run database migrations");
+
     // authorizer
-    let authorizer = middlewares::auth::Authorizer::new(
-        &aws_region,
-        &cognito_pool_id,
-        &cognito_client_ids.split(',').collect::<Vec<&str>>(),
-    )
-    .unwrap();
+    let authorizer = middlewares::auth::Authorizer::new().unwrap();
     let authorizer_layer = middleware::from_fn(move |req, next| {
         let authorizer = authorizer.clone();
         async move { authorizer.authorize(req, next).await }

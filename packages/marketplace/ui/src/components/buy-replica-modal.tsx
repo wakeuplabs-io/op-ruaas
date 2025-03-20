@@ -26,6 +26,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateOrder } from "@/lib/hooks/use-create-order";
 import { useRouter } from "@tanstack/react-router";
+import { useAccount } from "wagmi";
+import { MARKETPLACE_TOKEN_SYMBOL } from "@/shared/constants/marketplace";
 
 const formSchema = z.object({
   name: z.string().min(1, "Rollup name is required"),
@@ -36,6 +38,7 @@ export const BuyReplicaModal: React.FC<
 > = ({ offer, offerId, ...props }) => {
   const router = useRouter();
   const [selectedMonths, setSelectedMonths] = useState("1");
+  const { isConnected } = useAccount();
   const [showSetup, setShowSetup] = useState(false);
   const [artifacts, setArtifacts] = useState<File | null>(null);
 
@@ -74,7 +77,7 @@ export const BuyReplicaModal: React.FC<
       <DialogTrigger>
         <Button {...props} />
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[550px]">
+      <DialogContent className="sm:max-w-[550px] p-12">
         {showSetup ? (
           <>
             <Form {...form}>
@@ -125,9 +128,9 @@ export const BuyReplicaModal: React.FC<
                 </div>
 
                 <Button
-                  className="w-full mt-12"
-                  type="submit"
                   size="lg"
+                  type="submit"
+                  className="mt-8 w-full"
                   disabled={!form.formState.isValid || !artifacts || isPending}
                 >
                   Complete Order
@@ -148,22 +151,22 @@ export const BuyReplicaModal: React.FC<
               options={[
                 {
                   label: "1 month",
-                  description: `${formatUnits(offer.pricePerMonth, 18)} ETH`,
+                  description: `${formatUnits(offer.pricePerMonth, 18)} ${MARKETPLACE_TOKEN_SYMBOL}`,
                   value: "1",
                 },
                 {
                   label: "3 months",
-                  description: `${formatUnits(offer.pricePerMonth * 3n, 18)} ETH`,
+                  description: `${formatUnits(offer.pricePerMonth * 3n, 18)} ${MARKETPLACE_TOKEN_SYMBOL}`,
                   value: "3",
                 },
                 {
                   label: "6 months",
-                  description: `${formatUnits(offer.pricePerMonth * 6n, 18)} ETH`,
+                  description: `${formatUnits(offer.pricePerMonth * 6n, 18)} ${MARKETPLACE_TOKEN_SYMBOL}`,
                   value: "6",
                 },
                 {
                   label: "12 months",
-                  description: `${formatUnits(offer.pricePerMonth * 12n, 18)} ETH`,
+                  description: `${formatUnits(offer.pricePerMonth * 12n, 18)} ${MARKETPLACE_TOKEN_SYMBOL}`,
                   value: "12",
                 },
               ]}
@@ -173,10 +176,11 @@ export const BuyReplicaModal: React.FC<
 
             <Button
               size="lg"
-              className="mt-12"
+              className="mt-8"
               onClick={() => setShowSetup(true)}
+              disabled={!isConnected}
             >
-              Select Plan
+              {isConnected ? "Setup Plan" : "Connect your wallet"}
             </Button>
           </>
         )}

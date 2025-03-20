@@ -1,26 +1,20 @@
 use crate::error::ApiError;
 use axum::{body::Body, extract::Request, http, http::Response, middleware::Next};
-use jsonwebtokens::Verifier;
-use jsonwebtokens_cognito::KeySet;
+use hex::FromHex;
+use siwe::{Message, VerificationOpts};
+use std::str::FromStr;
 
 #[derive(Clone)]
 pub struct AuthCurrentUser {
     pub id: String,
-    pub email: String,
 }
 
 #[derive(Clone)]
-pub struct Authorizer {
-    keyset: KeySet,
-    verifier: Verifier,
-}
+pub struct Authorizer {}
 
 impl Authorizer {
-    pub fn new(region: &str, user_pool_id: &str, client_ids: &[&str]) -> Result<Self, Box<dyn std::error::Error>> {
-        let keyset = KeySet::new(region, user_pool_id)?;
-        let verifier = keyset.new_id_token_verifier(client_ids).build()?;
-
-        Ok(Self { keyset, verifier })
+    pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
+        Ok(Self {})
     }
 
     pub async fn authorize(&self, mut req: Request, next: Next) -> Result<Response<Body>, ApiError> {
@@ -36,29 +30,40 @@ impl Authorizer {
         let mut header = auth_header.split_whitespace();
         let (bearer, token) = (header.next(), header.next());
         if bearer != Some("Bearer") || token.is_none() {
+            return Err(ApiError::AuthError("No token in headers".to_string()));
+        }
+
+        let decoded = base64::decode(token.unwrap())
+            .map_err(|_| ApiError::AuthError("Invalid token. Could not decode token".to_string()))?;
+        let token_str = std::str::from_utf8(&decoded)
+            .map_err(|_| ApiError::AuthError("Invalid token. Could not decode token".to_string()))?;
+        let parts: Vec<&str> = token_str.split("||").collect();
+        if parts.len() != 2 {
             return Err(ApiError::AuthError("Invalid token".to_string()));
         }
+        let message = Message::from_str(parts[0])
+            .map_err(|_| ApiError::AuthError("Invalid token. Could not recover message.".to_string()))?;
+        let signature = <[u8; 65]>::from_hex(parts[1].strip_prefix("0x").unwrap())
+            .map_err(|e| ApiError::AuthError(e.to_string()))?;
 
-        let token_str = token.unwrap().to_string();
-        let res = self
-            .keyset
-            .verify(&token_str, &self.verifier)
+        if let Err(e) = message
+            .verify(
+                &signature,
+                &VerificationOpts {
+                    ..Default::default()
+                },
+            )
             .await
-            .map_err(|_| ApiError::AuthError("Invalid token".to_string()))?;
-
-        if let (Some(sub), Some(email)) = (
-            res.get("sub").and_then(|v| v.as_str()),
-            res.get("email").and_then(|v| v.as_str()),
-        ) {
-            let current_user = AuthCurrentUser {
-                id: sub.to_string(),
-                email: email.to_string(),
-            };
-
-            req.extensions_mut().insert(current_user);
-            Ok(next.run(req).await)
-        } else {
-            Err(ApiError::AuthError("Invalid token".to_string()))
+        {
+            // message cannot be correctly authenticated at this time
+            return Err(ApiError::AuthError(e.to_string()));
         }
+
+        let current_user = AuthCurrentUser {
+            id: hex::encode(message.address).to_string(),
+        };
+
+        req.extensions_mut().insert(current_user);
+        Ok(next.run(req).await)
     }
 }

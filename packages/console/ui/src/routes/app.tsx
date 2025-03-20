@@ -1,17 +1,20 @@
-import { AppSidebar } from "@/components/app-sidebar";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
+import { useQuery, type QueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { deploymentsByOwner } from "@/lib/queries/deployment";
-import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
 
-export const Route = createFileRoute("/app")({
-  component: RouteComponent,
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient;
+}>()({
+  component: RouteComponent
 });
+
 
 function RouteComponent() {
   const { user } = useAuth();
-  const { data: deployments } = useQuery(deploymentsByOwner(user?.userId));
+  const { data: deployments } = useQuery(deploymentsByOwner(user?.id));
 
   return (
     <SidebarProvider>

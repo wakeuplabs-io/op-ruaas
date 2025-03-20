@@ -38,11 +38,6 @@ export function formatRemainingTime(balance: bigint, pricePerMonth: bigint): str
   const pricePerSecond = pricePerMonth / SECONDS_PER_MONTH;
   const remainingSeconds = balance / pricePerSecond;
 
-  if (remainingSeconds >= SECONDS_PER_MONTH) {
-    const months = remainingSeconds / SECONDS_PER_MONTH;
-    return `${months.toString()} months remaining`;
-  }
-
   if (remainingSeconds >= SECONDS_PER_DAY) {
     const days = remainingSeconds / SECONDS_PER_DAY;
     return `${days.toString()} days remaining`;
@@ -72,3 +67,5 @@ export function safeParseJSON (value: string | null | undefined) {
     return {};
   }
 };
+
+export const currentUnixTime = BigInt(Math.floor(Date.now() / 1000));

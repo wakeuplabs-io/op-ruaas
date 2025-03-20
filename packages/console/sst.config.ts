@@ -1,5 +1,7 @@
 /// <reference path="./.sst/platform/config.d.ts" />
 
+import "dotenv/config";
+
 const PROJECT_NAME = "opruaas-console";
 const REGION = "us-east-1";
 
@@ -22,12 +24,6 @@ export default $config({
     };
   },
   async run() {
-    // auth
-    const userPool = new sst.aws.CognitoUserPool(`${PROJECT_NAME}-user-pool`, {
-      usernames: ["email"],
-    });
-    const userPoolClient = userPool.addClient("Web");
-
     // api bucket for deployment artifacts
     const bucket = new sst.aws.Bucket(`${PROJECT_NAME}-artifacts`);
 
@@ -51,7 +47,7 @@ export default $config({
     const api = new sst.aws.Function(`${PROJECT_NAME}-api`, {
       vpc,
       handler: "bootstrap",
-      bundle: "target/lambda/opraas_server",
+      bundle: "../../target/lambda/opraas_server",
       architecture: "arm64", // or x86_64
       runtime: "provided.al2023",
       url: true,
@@ -61,8 +57,6 @@ export default $config({
         ENV: "prod",
         DATABASE_URL,
         ARTIFACTS_BUCKET: bucket.name,
-        COGNITO_POOL_ID: userPool.id,
-        COGNITO_CLIENT_IDS: userPoolClient.id,
       },
     });
 
@@ -75,21 +69,28 @@ export default $config({
 
     // static website
     const ui = new sst.aws.StaticSite(`${PROJECT_NAME}-ui`, {
-      path: "packages/ui",
+      path: "ui",
       build: {
         command: "npm run build",
         output: "dist",
       },
       dev: {
         command: "npm run dev",
-        directory: "packages/ui",
+        directory: "ui",
       },
       environment: {
         VITE_SERVER_URL: api.url,
         VITE_APP_REGION: REGION,
-        VITE_USER_POOL_ID: userPool.id,
-        VITE_USER_POOL_CLIENT_ID: userPoolClient.id,
+        VITE_IS_TESTNET: "true",
+        VITE_ERC20_TOKEN_DECIMALS: "18",
+        VITE_ERC20_TOKEN_SYMBOL: "TEST",
+        VITE_MARKETPLACE_ADDRESS: "0xe99b68EF5459f78cAbb7a352E60CD2D80801B687",
+        VITE_ERC20_TOKEN_ADDRESS: "0x89771d5B1020549F8EC2815eACE52Aa5a0C84dEa",
+        VITE_MARKETPLACE_CHAIN_ID: "11155420",
+        VITE_PINATA_JWT: process.env.VITE_PINATA_JWT,
+        VITE_GATEWAY_URL: process.env.VITE_GATEWAY_URL,
       },
+      domain: `${PROJECT_NAME}.wakeuplabs.link`,
       indexPage: "index.html",
       errorPage: "index.html",
       invalidation: {

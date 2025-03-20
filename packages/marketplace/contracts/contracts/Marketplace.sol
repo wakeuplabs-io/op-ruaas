@@ -5,14 +5,13 @@ import {IMarketplace} from "./interfaces/IMarketplace.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-
 contract Marketplace is IMarketplace, ReentrancyGuard {
     IERC20 public paymentToken;
 
-    uint256 public offerCount;
+    uint256 public offerCount = 1;
     mapping(uint256 => Offer) public offers;
 
-    uint256 public orderCount;
+    uint256 public orderCount = 1;
     mapping(uint256 => Order) public orders;
     mapping(address => uint256[]) private clientOrders;
     mapping(address => uint256[]) private vendorOrders;
@@ -24,11 +23,8 @@ contract Marketplace is IMarketplace, ReentrancyGuard {
     uint256 public constant VERIFICATION_PERIOD = 2 * 24 * 60 * 60;
 
     /// @notice Only vendor
-    modifier onlyVendor(uint256 _offerId, uint256 _orderId) {
-        if (
-            offers[_offerId].vendor != msg.sender &&
-            offers[orders[_orderId].offerId].vendor != msg.sender
-        ) {
+    modifier onlyVendor(uint256 _offerId) {
+        if (offers[_offerId].vendor != msg.sender) {
             revert Unauthorized("Only vendor");
         }
         _;
@@ -73,7 +69,7 @@ contract Marketplace is IMarketplace, ReentrancyGuard {
     function setOfferRemainingUnits(
         uint256 _offerId,
         uint256 _remainingUnits
-    ) public onlyVendor(_offerId, 0) {
+    ) public onlyVendor(_offerId) {
         offers[_offerId].remainingUnits = _remainingUnits;
     }
 
@@ -87,7 +83,7 @@ contract Marketplace is IMarketplace, ReentrancyGuard {
 
         // verify offer still available
         if (offer.remainingUnits == 0) {
-            revert OfferNotFound();
+            revert NoRemainingUnits();
         }
         offer.remainingUnits -= 1;
 
@@ -112,7 +108,7 @@ contract Marketplace is IMarketplace, ReentrancyGuard {
     function fulfillOrder(
         uint256 _orderId,
         string calldata _deploymentMetadata
-    ) public onlyVendor(0, _orderId) {
+    ) public onlyVendor(orders[_orderId].offerId) {
         Order storage order = orders[_orderId];
         Offer memory offer = offers[order.offerId];
 
@@ -138,10 +134,11 @@ contract Marketplace is IMarketplace, ReentrancyGuard {
         Order storage order = orders[_orderId];
         Offer memory offer = offers[order.offerId];
 
+        uint256 timeSinceCreated = block.timestamp - order.createdAt;
         uint256 timeSinceFulfilled = block.timestamp - order.fulfilledAt;
 
         // cannot terminate if not fulfilled and within fulfillment time.
-        if (order.fulfilledAt == 0 && timeSinceFulfilled > FULFILLMENT_PERIOD) {
+        if (order.fulfilledAt == 0 && timeSinceCreated < FULFILLMENT_PERIOD) {
             revert OrderNotFulfilled();
         }
 
@@ -189,7 +186,7 @@ contract Marketplace is IMarketplace, ReentrancyGuard {
     function withdraw(
         uint256 _orderId,
         uint256 _amount
-    ) public onlyVendor(0, _orderId) nonReentrant {
+    ) public onlyVendor(orders[_orderId].offerId) nonReentrant {
         Order storage order = orders[_orderId];
 
         // revert if already terminated
@@ -251,19 +248,20 @@ contract Marketplace is IMarketplace, ReentrancyGuard {
     function getOrder(
         uint256 _orderId
     ) public view returns (OrderWithOffer memory) {
-        return OrderWithOffer({
-            id: _orderId,
-            client: orders[_orderId].client,
-            offerId: orders[_orderId].offerId,
-            createdAt: orders[_orderId].createdAt,
-            fulfilledAt: orders[_orderId].fulfilledAt,
-            terminatedAt: orders[_orderId].terminatedAt,
-            lastWithdrawal: orders[_orderId].lastWithdrawal,
-            balance: orders[_orderId].balance,
-            setupMetadata: orders[_orderId].setupMetadata,
-            deploymentMetadata: orders[_orderId].deploymentMetadata,
-            offer: offers[orders[_orderId].offerId]
-        });
+        return
+            OrderWithOffer({
+                id: _orderId,
+                client: orders[_orderId].client,
+                offerId: orders[_orderId].offerId,
+                createdAt: orders[_orderId].createdAt,
+                fulfilledAt: orders[_orderId].fulfilledAt,
+                terminatedAt: orders[_orderId].terminatedAt,
+                lastWithdrawal: orders[_orderId].lastWithdrawal,
+                balance: orders[_orderId].balance,
+                setupMetadata: orders[_orderId].setupMetadata,
+                deploymentMetadata: orders[_orderId].deploymentMetadata,
+                offer: offers[orders[_orderId].offerId]
+            });
     }
 
     /// @inheritdoc IMarketplace
@@ -299,8 +297,31 @@ contract Marketplace is IMarketplace, ReentrancyGuard {
     /// @inheritdoc IMarketplace
     function getVendorOrders(
         address _user
-    ) external view returns (uint256[] memory) {
-        return vendorOrders[_user];
+    ) external view returns (OrderWithOffer[] memory) {
+        uint256[] memory orderIds = vendorOrders[_user];
+        OrderWithOffer[] memory result = new OrderWithOffer[](orderIds.length);
+
+        for (uint256 i = 0; i < orderIds.length; i++) {
+            uint256 orderId = orderIds[i];
+            Order memory order = orders[orderId];
+            Offer memory offer = offers[order.offerId];
+
+            result[i] = OrderWithOffer({
+                id: orderId,
+                client: order.client,
+                offerId: order.offerId,
+                createdAt: order.createdAt,
+                fulfilledAt: order.fulfilledAt,
+                terminatedAt: order.terminatedAt,
+                lastWithdrawal: order.lastWithdrawal,
+                balance: order.balance,
+                setupMetadata: order.setupMetadata,
+                deploymentMetadata: order.deploymentMetadata,
+                offer: offer
+            });
+        }
+
+        return result;
     }
 
     /// @notice Creates a new order

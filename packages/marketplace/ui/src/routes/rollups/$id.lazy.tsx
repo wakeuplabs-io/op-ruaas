@@ -1,6 +1,4 @@
-import { RollupActions } from "@/components/rollup-detail/rollup-actions";
 import { RollupHeader } from "@/components/rollup-detail/rollup-header";
-import { Card } from "@/components/ui/card";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Clock, Download, OctagonAlert } from "lucide-react";
@@ -8,6 +6,7 @@ import { useOrderDetails } from "@/lib/hooks/use-order";
 import { DeploymentValue } from "@/components/rollup-detail/deployment-value";
 import { useCallback } from "react";
 import { pinata } from "@/lib/pinata";
+import { NotFoundPage } from "@/components/not-found";
 
 export const Route = createLazyFileRoute("/rollups/$id")({
   component: RollupDashboard,
@@ -15,7 +14,7 @@ export const Route = createLazyFileRoute("/rollups/$id")({
 
 export default function RollupDashboard() {
   const { id } = Route.useParams();
-  const { data } = useOrderDetails({ id: BigInt(id) });
+  const { data, isLoading } = useOrderDetails({ id: BigInt(id) });
 
   const onDownload = useCallback(async () => {
     const artifactsCid = data?.order.deploymentMetadata.artifacts;
@@ -25,46 +24,36 @@ export default function RollupDashboard() {
     window.open(gatewayUrl, "_blank");
   }, [data]);
 
+  if(isLoading && !data) {
+    <></>
+  }
+
   if (!data) {
-    return "Not found";
+    return <NotFoundPage />;
   }
 
   const { order, offer } = data;
   return (
     <div className="md:p-6 space-y-6">
-      <div className="rounded-lg bg-gradient-to-l from-gray-300 to-transparent p-px">
-        <div className="border px-8 py-6 shadow-sm bg-white rounded-[calc(0.75rem-1px)]">
-          <RollupHeader
-            order={data.order}
-            offer={data.offer}
-          />
-
-          {order.fulfilledAt > 0 && (
-            <RollupActions
-              l2ChainId={order.deploymentMetadata.network.l2ChainID}
-              rpcUrl={order.deploymentMetadata.urls.rpc}
-              pricePerMonth={BigInt(offer.pricePerMonth)}
-              balance={BigInt(order.balance)}
-            />
-          )}
-        </div>
-      </div>
+      <RollupHeader order={{ ...order, id: BigInt(id) }} offer={offer} />
 
       {order.fulfilledAt > 0 ? (
         <div>
-          <Card className="p-6 border rounded-lg">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-9">
-              {Object.entries(order.deploymentMetadata.addresses).map(
-                ([key, value], index) => (
-                  <DeploymentValue
-                    key={index}
-                    value={value as string}
-                    description={key as string}
-                  />
-                )
-              )}
+          <div className="rounded-lg bg-gradient-to-l from-gray-300 to-transparent p-px">
+            <div className="px-8 py-6 bg-white rounded-[calc(0.6rem-1px)]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-9">
+                {Object.entries(order.deploymentMetadata.addresses).map(
+                  ([key, value], index) => (
+                    <DeploymentValue
+                      key={index}
+                      value={value as string}
+                      description={key as string}
+                    />
+                  )
+                )}
+              </div>
             </div>
-          </Card>
+          </div>
 
           <Button
             variant="secondary"
@@ -78,7 +67,7 @@ export default function RollupDashboard() {
       ) : (
         <div className="grid grid-cols-2 gap-6">
           <div className="rounded-lg bg-gradient-to-l from-[#FFD813] to-transparent p-px">
-            <div className="border p-12 shadow-sm bg-white rounded-[calc(0.75rem-1px)] border-gray-200 flex flex-col items-center justify-center h-[360px]">
+            <div className="p-12 shadow-sm bg-white rounded-[calc(0.6rem-1px)] border-gray-200 flex flex-col items-center justify-center h-[360px]">
               <div className="h-20 w-20 rounded-full bg-[#FFF1C7] flex items-center justify-center mb-12 mx-auto">
                 <Clock className="text-[#FFD813] h-12 w-12" />
               </div>
@@ -94,7 +83,7 @@ export default function RollupDashboard() {
           </div>
 
           <div className="rounded-lg bg-gradient-to-l from-[#6696AF] to-transparent p-px">
-            <div className="border p-12 shadow-sm bg-white rounded-[calc(0.75rem-1px)] border-gray-200 flex flex-col items-center justify-center h-[360px]">
+            <div className="p-12 shadow-sm bg-white rounded-[calc(0.6rem-1px)] border-gray-200 flex flex-col items-center justify-center h-[360px]">
               <div className="h-20 w-20 rounded-full bg-[#DEF4FF] flex items-center justify-center mb-12 mx-auto">
                 <OctagonAlert className="text-[#6696AF] h-12 w-12" />
               </div>
