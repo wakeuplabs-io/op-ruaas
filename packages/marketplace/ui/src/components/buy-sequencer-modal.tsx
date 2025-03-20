@@ -31,6 +31,7 @@ import { useRouter } from "@tanstack/react-router";
 import { readArtifact } from "@/lib/artifacts";
 import { useOrders } from "@/lib/hooks/use-orders";
 import { useAccount } from "wagmi";
+import { MARKETPLACE_TOKEN_SYMBOL } from "@/shared/constants/marketplace";
 
 enum SubscribeStep {
   UploadArtifacts,
@@ -299,22 +300,22 @@ export const BuySequencerModal: React.FC<
               options={[
                 {
                   label: "1 month",
-                  description: `${formatUnits(offer.pricePerMonth, 18)} ETH`,
+                  description: `${formatUnits(offer.pricePerMonth, 18)} ${MARKETPLACE_TOKEN_SYMBOL}`,
                   value: "1",
                 },
                 {
                   label: "3 months",
-                  description: `${formatUnits(offer.pricePerMonth * 3n, 18)} ETH`,
+                  description: `${formatUnits(offer.pricePerMonth * 3n, 18)} ${MARKETPLACE_TOKEN_SYMBOL}`,
                   value: "3",
                 },
                 {
                   label: "6 months",
-                  description: `${formatUnits(offer.pricePerMonth * 6n, 18)} ETH`,
+                  description: `${formatUnits(offer.pricePerMonth * 6n, 18)} ${MARKETPLACE_TOKEN_SYMBOL}`,
                   value: "6",
                 },
                 {
                   label: "12 months",
-                  description: `${formatUnits(offer.pricePerMonth * 12n, 18)} ETH`,
+                  description: `${formatUnits(offer.pricePerMonth * 12n, 18)} ${MARKETPLACE_TOKEN_SYMBOL}`,
                   value: "12",
                 },
               ]}

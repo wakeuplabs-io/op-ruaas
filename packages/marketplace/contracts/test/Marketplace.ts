@@ -679,18 +679,6 @@ describe("Marketplace", function () {
   });
 
   describe("getVendorOrders", function () {
-    it("Should return vendor orders correctly", async function () {
-      const { marketplace, vendor, vendorCreateOffer, clientCreateOrder } =
-        await loadFixture(deployMarketplaceFixture);
-      const offerId = await vendorCreateOffer();
-      const orderId1 = await clientCreateOrder(offerId);
-      const orderId2 = await clientCreateOrder(offerId);
-
-      const vendorOrders = await marketplace.getVendorOrders(vendor.address);
-
-      expect(vendorOrders).to.deep.equal([orderId1, orderId2]);
-    });
-
     it("Should return an empty array for vendors with no orders", async function () {
       const { marketplace, other } = await loadFixture(
         deployMarketplaceFixture

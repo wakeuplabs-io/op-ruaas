@@ -50,11 +50,18 @@ enum Commands {
         #[arg(value_enum, default_value = "http://host.docker.internal:80/rpc")]
         sequencer_url: String,
 
-        #[arg(long, default_value_t = false)]
-        default: bool,
-
         #[arg(long, help = "Path to a custom helm values file")]
         values: Option<String>,
+
+        #[arg(long, help = "Run infra for a particular contracts deployment")]
+        contracts_deployment_id: Option<String>,
+
+        #[arg(
+            long,
+            default_value_t = false,
+            help = "Weather to use default releases or not"
+        )]
+        default: bool,
     },
     /// Deploy your blockchain. Target must be one of: contracts, infra, all
     Deploy {
@@ -159,11 +166,19 @@ async fn main() {
         Commands::Start {
             default,
             kind,
+            contracts_deployment_id,
             sequencer_url,
             values,
         } => {
             StartCommand::new()
-                .run(&ctx, kind, &sequencer_url, default, values)
+                .run(
+                    &ctx,
+                    kind,
+                    contracts_deployment_id,
+                    &sequencer_url,
+                    default,
+                    values,
+                )
                 .await
         }
         Commands::Deploy {
