@@ -85,7 +85,7 @@ proxyd:
     port: 6379
     image:
       repository: redis
-      tag: ""
+      tag: "7.4.2"
 
 # monitoring ===============================================================
 
