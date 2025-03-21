@@ -73,7 +73,7 @@ impl NewCommand {
             build_cmd = "-v build [contracts|node|etc...]".blue(),
             release_cmd = "-v release [contracts|node|etc...]".blue(),
             dev_cmd = "-v start --default".blue(),
-            deploy_cmd = "-v deploy [contracts|infra|all] --name <deployment_name>".blue(),
+            deploy_cmd = "-v deploy [contracts|infra] --deployment-id <deployment-id>".blue(),
             cd_cmd = "cd".blue(),
             name = name.blue()
         );

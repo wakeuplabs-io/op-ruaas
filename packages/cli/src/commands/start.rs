@@ -178,6 +178,8 @@ impl StartCommand {
                 .await?
                 .ok_or("Deployment not found")?;
 
+            deployment.id = contracts_depl.id;
+            deployment.name = contracts_depl.name;
             deployment.contracts_addresses = contracts_depl.contracts_addresses;
 
             print_warning("Using existing contracts deployment, costs may incur. Rpc and wallets should be available.");
@@ -242,6 +244,16 @@ impl StartCommand {
         let infra_spinner = style_spinner(
             ProgressBar::new_spinner(),
             "⏳ Installing infra in local kubernetes...",
+        );
+
+        println!(
+            "{} {}",
+            deployment.network_config.l1_chain_id.clone(),
+            deployment
+                .network_config
+                .l1_rpc_url
+                .clone()
+                .unwrap_or_default()
         );
 
         // assemble namespace and tag for release

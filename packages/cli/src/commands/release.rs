@@ -142,7 +142,7 @@ impl ReleaseCommand {
             title = "What's Next?".bright_white().bold(),
             bin = env!("CARGO_BIN_NAME").blue(),
             dev_cmd = "dev".blue(),
-            deploy_cmd = "deploy [contracts|infra|all] --name <deployment_name>".blue()
+            deploy_cmd = "deploy [contracts|infra] --deployment-id <deployment-id>".blue()
         );
 
         Ok(())

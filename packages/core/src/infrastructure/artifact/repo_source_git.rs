@@ -30,7 +30,7 @@ impl domain::artifact::TArtifactSourceRepository for GitArtifactSourceRepository
                 git::download_release_asset(
                     INFRA_SOURCE_REPO,
                     INFRA_SOURCE_REPO_VERSION,
-                    "infra/docker/batcher.dockerfile",
+                    "packages/infrastructure/docker/batcher.dockerfile",
                     artifact.dockerfile(),
                 )?;
             }
@@ -38,7 +38,7 @@ impl domain::artifact::TArtifactSourceRepository for GitArtifactSourceRepository
                 git::download_release_asset(
                     INFRA_SOURCE_REPO,
                     INFRA_SOURCE_REPO_VERSION,
-                    "infra/docker/contracts.dockerfile",
+                    "packages/infrastructure/docker/contracts.dockerfile",
                     artifact.dockerfile(),
                 )?;
             }
@@ -46,7 +46,7 @@ impl domain::artifact::TArtifactSourceRepository for GitArtifactSourceRepository
                 git::download_release_asset(
                     INFRA_SOURCE_REPO,
                     INFRA_SOURCE_REPO_VERSION,
-                    "infra/docker/proposer.dockerfile",
+                    "packages/infrastructure/docker/proposer.dockerfile",
                     artifact.dockerfile(),
                 )?;
             }
@@ -54,7 +54,7 @@ impl domain::artifact::TArtifactSourceRepository for GitArtifactSourceRepository
                 git::download_release_asset(
                     INFRA_SOURCE_REPO,
                     INFRA_SOURCE_REPO_VERSION,
-                    "infra/docker/geth.dockerfile",
+                    "packages/infrastructure/docker/geth.dockerfile",
                     artifact.dockerfile(),
                 )?;
             }
@@ -62,7 +62,7 @@ impl domain::artifact::TArtifactSourceRepository for GitArtifactSourceRepository
                 git::download_release_asset(
                     INFRA_SOURCE_REPO,
                     INFRA_SOURCE_REPO_VERSION,
-                    "infra/docker/node.dockerfile",
+                    "packages/infrastructure/docker/node.dockerfile",
                     artifact.dockerfile(),
                 )?;
             }

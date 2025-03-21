@@ -303,8 +303,8 @@ wallets:
 geth:
   name: op-geth
   image:
-    repository: wakeuplabs/op-geth
-    tag: v0.0.4
+    repository: {release_registry}/op-geth
+    tag: {release_tag}
   ports:
     rpcHttp: 8545 
     rpcWs: 8546
@@ -319,8 +319,8 @@ geth:
 node:
   name: op-node
   image:
-    repository: wakeuplabs/op-node
-    tag: v0.0.4
+    repository: {release_registry}/op-node
+    tag: {release_tag}
   ports:
     rpc: 7545
     p2p: 9222
@@ -329,8 +329,8 @@ node:
 batcher:
   name: op-batcher
   image:
-    repository: wakeuplabs/op-batcher
-    tag: v0.0.4
+    repository: {release_registry}/op-batcher
+    tag: {release_tag}
   ports:
     rpc: 6545 
     metrics: 7300
@@ -338,8 +338,8 @@ batcher:
 proposer:
   name: op-proposer
   image:
-    repository: wakeuplabs/op-proposer
-    tag: v0.0.4
+    repository: {release_registry}/op-proposer
+    tag: {release_tag}
   ports:
     rpc: 5545 
     metrics: 7300
@@ -450,6 +450,7 @@ blockscout-stack:
       ETHEREUM_JSONRPC_VARIANT: "geth"
       ETHEREUM_JSONRPC_HTTP_URL: http://proxyd-service:8080
       ETHEREUM_JSONRPC_WS_URL: ws://proxyd-service:8080
+      CHECK_ORIGIN: "false"
     extraEnv:
       - name: DATABASE_URL
         valueFrom:
@@ -473,6 +474,8 @@ blockscout-stack:
             monitoring_enabled = opts.monitoring,
             explorer_enabled = opts.explorer,
             host = opts.host,
+            release_registry = self.release_registry,
+            release_tag = self.release_tag,
         );
 
         Ok(yaml)
@@ -510,8 +513,8 @@ sequencer_host: {sequencer_host}
 geth:
   name: op-geth
   image:
-    repository: wakeuplabs/op-geth
-    tag: v0.0.4
+    repository: {release_registry}/op-geth
+    tag: {release_tag}
   ports:
     rpcHttp: 8545 
     rpcWs: 8546
@@ -526,8 +529,8 @@ geth:
 node:
   name: op-node
   image:
-    repository: wakeuplabs/op-node
-    tag: v0.0.4
+    repository: {release_registry}/op-node
+    tag: {release_tag}
   ports:
     rpc: 7545
     p2p: 9222
@@ -536,8 +539,8 @@ node:
 batcher:
   name: op-batcher
   image:
-    repository: wakeuplabs/op-batcher
-    tag: v0.0.4
+    repository: {release_registry}/op-batcher
+    tag: {release_tag}
   ports:
     rpc: 6545 
     metrics: 7300
@@ -545,8 +548,8 @@ batcher:
 proposer:
   name: op-proposer
   image:
-    repository: wakeuplabs/op-proposer
-    tag: v0.0.4
+    repository: {release_registry}/op-proposer
+    tag: {release_tag}
   ports:
     rpc: 5545 
     metrics: 7300
@@ -678,6 +681,8 @@ blockscout-stack:
             storage_class_name = opts.storage_class_name,
             monitoring_enabled = opts.monitoring,
             explorer_enabled = opts.explorer,
+            release_registry = self.release_registry,
+            release_tag = self.release_tag,
             sequencer_url = opts.sequencer_url.as_ref().unwrap(),
             sequencer_host = Url::parse(opts.sequencer_url.as_ref().unwrap())
                 .unwrap()
