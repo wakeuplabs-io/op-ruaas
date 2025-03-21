@@ -35,6 +35,7 @@ export function useDeposit() {
       args: [orderId, amount],
       chainId: MARKETPLACE_CHAIN_ID,
     });
+    console.log(tx)
 
     return tx;
   };

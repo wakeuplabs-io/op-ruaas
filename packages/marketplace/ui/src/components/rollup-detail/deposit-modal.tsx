@@ -10,12 +10,14 @@ import { useDeposit } from "@/lib/hooks/use-deposit";
 import { Plan } from "@/types";
 import { formatTokenAmount, sleep } from "@/lib/utils";
 import { useAccount } from "wagmi";
+import { useNavigate } from "@tanstack/react-router";
 
 interface DepositModalProps {
   orderId: bigint;
   pricePerMonth: bigint;
   isOpen: boolean;
   onClose: () => void;
+  refetch: () => void;
 }
 
 enum ModalStatus {
@@ -28,7 +30,10 @@ export function DepositModal({
   pricePerMonth,
   isOpen,
   onClose,
+  refetch,
 }: DepositModalProps) {
+  const navigate = useNavigate()
+
   const { depositFunds } = useDeposit();
   const { isConnected } = useAccount();
 
@@ -58,7 +63,6 @@ export function DepositModal({
         onClose();
 
         await sleep(1000);
-
         setStatus(ModalStatus.IDLE);
       }, 1000);
 
@@ -71,6 +75,7 @@ export function DepositModal({
   };
 
   const handleDeposit = async () => {
+    navigate({ to: `/rollups/${orderId.toString()}` });
     if (!selectedPlan) return;
     setIsPending(true);
     setStatus(ModalStatus.IDLE);
@@ -78,6 +83,12 @@ export function DepositModal({
     try {
       await depositFunds(BigInt(orderId), calculateTotal(selectedPlan));
       setStatus(ModalStatus.SUCCESS);
+      await sleep(2000);
+      refetch();
+      navigate({
+        to: `/rollups/$id`,
+        params: { id: orderId.toString() },
+      });
     } catch (error) {
       console.error(error);
       window.alert("Failed to deposit funds")

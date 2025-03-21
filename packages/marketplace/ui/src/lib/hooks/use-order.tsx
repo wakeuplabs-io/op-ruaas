@@ -14,7 +14,7 @@ import { safeParseJSON } from "../utils";
 import { zeroAddress } from "viem";
 
 export const useOrderDetails = ({ id }: { id: bigint }) => {
-  const { data: order, isLoading } = useReadContract({
+  const { data: order, isLoading, refetch } = useReadContract({
     address: MARKETPLACE_ADDRESS,
     chainId: MARKETPLACE_CHAIN_ID,
     abi: MARKETPLACE_ABI,
@@ -36,7 +36,6 @@ export const useOrderDetails = ({ id }: { id: bigint }) => {
     (order as any).balance > secondsElapsed * pricePerSecond
       ? (order as any).balance - secondsElapsed * pricePerSecond
       : 0n;
-
   return {
     data: {
       order: {
@@ -60,6 +59,7 @@ export const useOrderDetails = ({ id }: { id: bigint }) => {
         metadata: safeParseJSON((order as any).offer.metadata) as OfferMetadata,
       },
     },
-    isLoading
+    isLoading,
+    refetch
   };
 };

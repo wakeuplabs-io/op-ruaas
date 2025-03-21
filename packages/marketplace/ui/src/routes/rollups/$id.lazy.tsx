@@ -14,7 +14,7 @@ export const Route = createLazyFileRoute("/rollups/$id")({
 
 export default function RollupDashboard() {
   const { id } = Route.useParams();
-  const { data, isLoading } = useOrderDetails({ id: BigInt(id) });
+  const { data, isLoading, refetch } = useOrderDetails({ id: BigInt(id) });
 
   const onDownload = useCallback(async () => {
     const artifactsCid = data?.order.deploymentMetadata.artifacts;
@@ -35,7 +35,7 @@ export default function RollupDashboard() {
   const { order, offer } = data;
   return (
     <div className="md:p-6 space-y-6">
-      <RollupHeader order={{ ...order, id: BigInt(id) }} offer={offer} />
+      <RollupHeader order={{ ...order, id: BigInt(id) }} offer={offer} refetch={refetch} />
 
       {order.fulfilledAt > 0 ? (
         <div>
