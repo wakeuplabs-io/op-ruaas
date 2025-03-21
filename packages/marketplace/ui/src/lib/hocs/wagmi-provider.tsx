@@ -5,11 +5,27 @@ import { connectorsForWallets } from "@rainbow-me/rainbowkit";
 import { metaMaskWallet } from "@rainbow-me/rainbowkit/wallets";
 import { braveWallet } from "@rainbow-me/rainbowkit/wallets";
 import { NetworkConfig } from "@/types";
-import { holesky, optimismSepolia } from "wagmi/chains";
+import { holesky, optimismSepolia, optimism, mainnet } from "wagmi/chains";
+
+export const optimismMainnet: NetworkConfig = {
+  ...optimism,
+  logoURI: new URL("@/assets/ethereum-icon.svg", import.meta.url).href,
+  chainId: optimism.id,
+  rpcUrls: {
+    default: {
+      http: [optimism.rpcUrls.default.http[0]],
+    },
+  },
+  explorer: {
+    default: {
+      url: optimism.blockExplorers.default.url,
+    },
+  },
+};
 
 export const optimismTestnet: NetworkConfig = {
   ...optimismSepolia,
-  logoURI: new URL("@/assets/ethereum-icon.svg", import.meta.url).href, 
+  logoURI: new URL("@/assets/ethereum-icon.svg", import.meta.url).href,
   isTestnet: true,
   chainId: optimismSepolia.id,
   rpcUrls: {
@@ -20,6 +36,23 @@ export const optimismTestnet: NetworkConfig = {
   explorer: {
     default: {
       url: optimismSepolia.blockExplorers.default.url,
+    },
+  },
+};
+
+export const ethereumMainnet: NetworkConfig = {
+  ...mainnet,
+  logoURI: new URL("@/assets/ethereum-icon.svg", import.meta.url).href,
+  isTestnet: true,
+  chainId: mainnet.id,
+  rpcUrls: {
+    default: {
+      http: [mainnet.rpcUrls.default.http[0]],
+    },
+  },
+  explorer: {
+    default: {
+      url: mainnet.blockExplorers.default.url,
     },
   },
 };
@@ -37,7 +70,7 @@ export const holeskyTestnet: NetworkConfig = {
       url: holesky.blockExplorers.default.url,
     },
   },
-}
+};
 
 export const gethTestnetL1: NetworkConfig = {
   name: "Geth Network",
@@ -54,26 +87,34 @@ export const gethTestnetL1: NetworkConfig = {
   },
   explorer: {
     default: {
-      url: "http://localhost:8545", 
+      url: "http://localhost:8545",
     },
   },
-  isTestnet: true, 
+  isTestnet: true,
 };
 
 export function WagmiSetup({ children }: { children: React.ReactNode }) {
   const definedChains: [Chain, ...Chain[]] = useMemo(() => {
     let myChains: [Chain, ...Chain[]] = [
       defineChain({
+        ...optimismMainnet,
+        id: optimismMainnet.chainId,
+      }),
+      defineChain({
         ...optimismTestnet,
         id: optimismTestnet.chainId,
       }),
       defineChain({
-        ...gethTestnetL1,
-        id: gethTestnetL1.chainId,
+        ...ethereumMainnet,
+        id: ethereumMainnet.chainId,
       }),
       defineChain({
         ...holeskyTestnet,
         id: holeskyTestnet.chainId,
+      }),
+      defineChain({
+        ...gethTestnetL1,
+        id: gethTestnetL1.chainId,
       }),
     ];
     return myChains;

@@ -28,7 +28,7 @@ helm install cert-manager jetstack/cert-manager --namespace cert-manager --creat
 5. Deploy chart for sequencer or replica
 
 ```bash
-helm install opruaas ./helm --namespace opruaas --create-namespace -f ./helm/values.yaml
+helm install opruaas ./helm/seqeuncer --namespace opruaas --create-namespace -f ./helm/sequencer/values.yaml
 ```
 
 ## SSL certificate

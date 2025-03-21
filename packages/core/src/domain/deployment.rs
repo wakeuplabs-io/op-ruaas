@@ -1,7 +1,7 @@
 use super::Project;
 use crate::config::{AccountsConfig, NetworkConfig};
 use serde::{Deserialize, Serialize};
-use std::error::Error;
+use std::{error::Error, path::PathBuf};
 use url::Url;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -27,6 +27,7 @@ pub struct DeploymentOptions {
     pub release_namespace: String,
     pub storage_class_name: String,
     pub sequencer_url: Option<String>,
+    pub values_path: Option<PathBuf>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

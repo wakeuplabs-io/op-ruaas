@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   MARKETPLACE_ABI,
   MARKETPLACE_ADDRESS,
@@ -9,16 +9,15 @@ import { useEnsureChain } from "./use-ensure-chain";
 import { useOrderDetails } from "./use-order";
 
 export const useTerminate = ({ orderId }: { orderId: bigint }) => {
+  const { data } = useOrderDetails({ id: orderId });
+  
+  const { ensureChainId } = useEnsureChain();
   const { data: walletClient } = useWalletClient();
   const { writeContractAsync } = useWriteContract();
-  const { data } = useOrderDetails({ id: orderId });
-  const { ensureChainId } = useEnsureChain();
+  
   const [isPending, setIsPending] = useState(false)
+  const [isSubscribed, setIsSubscribed] = useState(data?.order.terminatedAt == 0n)
 
-  const isSubscribed = useMemo(() => {
-    if (!data) return false;
-    return data.order.terminatedAt == 0n;
-  }, [data]);
 
   const terminate = async (): Promise<string> => {
     if (!walletClient) {
@@ -40,6 +39,8 @@ export const useTerminate = ({ orderId }: { orderId: bigint }) => {
         functionName: "terminateOrder",
         args: [orderId],
       });
+      setIsSubscribed(false);
+
       return terminateTx;
     } catch (e) {
       throw e;

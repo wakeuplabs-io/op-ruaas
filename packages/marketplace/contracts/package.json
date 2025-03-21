@@ -4,6 +4,7 @@
     "test": "hardhat test",
     "lint": "solhint 'contracts/**/*.sol'",
     "deploy:op-sepolia": "hardhat ignition deploy ignition/modules/Marketplace.ts --network op-sepolia --parameters ignition/parameters/op-sepolia.json",
+    "deploy:op-mainnet": "hardhat ignition deploy ignition/modules/Marketplace.ts --network op-sepolia --parameters ignition/parameters/op-mainnet.json --verify",
     "deploy-test-token:op-sepolia": "hardhat ignition deploy ignition/modules/TestToken.ts --network op-sepolia"
   },
   "devDependencies": {

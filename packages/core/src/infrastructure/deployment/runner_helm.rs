@@ -28,7 +28,7 @@ impl TDeploymentRunner for HelmDeploymentRunner {
         };
 
         // add repos, install pre-requisites and build dependencies
-        self.build_dependencies(&chart_root)?;
+        self.build_dependencies(chart_root)?;
 
         // create .tmp folder
         let helm_tmp_folder = chart_root.join(".tmp");
@@ -36,12 +36,18 @@ impl TDeploymentRunner for HelmDeploymentRunner {
         fs::create_dir_all(&helm_tmp_folder)?;
 
         // create values file from stack.
-        let values_file = helm_tmp_folder.join("values.yaml");
-        let values_yaml = match opts.kind {
-            DeploymentKind::Replica => deployment.build_replica_values_yaml(opts),
-            DeploymentKind::Sequencer => deployment.build_sequencer_values_yaml(opts),
-        }?;
-        fs::write(&values_file, values_yaml)?;
+        let values_file = match opts.values_path.as_ref() {
+            Some(path) => path.clone(),
+            None => {
+                let values_file = helm_tmp_folder.join("values.yaml");
+                let values_yaml = match opts.kind {
+                    DeploymentKind::Replica => deployment.build_replica_values_yaml(opts),
+                    DeploymentKind::Sequencer => deployment.build_sequencer_values_yaml(opts),
+                }?;
+                fs::write(&values_file, values_yaml)?;
+                values_file
+            }
+        };
 
         // create artifacts.zip and addresses.json in helm so it can be loaded by it
         let deployment_artifacts = self
@@ -182,7 +188,7 @@ impl HelmDeploymentRunner {
             Command::new("helm")
                 .arg("dependency")
                 .arg("update")
-                .current_dir(&root),
+                .current_dir(root),
             false,
         )?;
 
@@ -190,7 +196,7 @@ impl HelmDeploymentRunner {
             Command::new("helm")
                 .arg("dependency")
                 .arg("build")
-                .current_dir(&root),
+                .current_dir(root),
             false,
         )?;
 

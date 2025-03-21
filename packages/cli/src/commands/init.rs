@@ -1,5 +1,6 @@
 use crate::config::{SystemRequirementsChecker, TSystemRequirementsChecker, GIT_REQUIREMENT};
 use crate::infrastructure::console::{print_error, style_spinner};
+use crate::lib::join_threads;
 use crate::AppContext;
 use clap::ValueEnum;
 use colored::*;
@@ -77,38 +78,24 @@ impl InitCommand {
         );
 
         // iterate over the artifacts and download
-        let handles: Vec<_> = artifacts
-            .iter()
-            .map(|artifact| {
-                let artifact = Arc::new(artifact.clone());
-                let artifact_initializer = Arc::clone(&self.artifact_initializer);
+        join_threads(
+            artifacts
+                .iter()
+                .map(|artifact| {
+                    let artifact = Arc::new(artifact.clone());
+                    let artifact_initializer = Arc::clone(&self.artifact_initializer);
 
-                thread::spawn(move || {
-                    match artifact_initializer.initialize(&artifact) {
-                        Ok(_) => {}
-                        Err(e) => {
+                    thread::spawn(move || {
+                        artifact_initializer.initialize(&artifact).map_err(|e| {
                             print_error(&format!("❌ Error initializing {}", artifact));
-                            return Err(e.to_string());
-                        }
-                    }
-                    Ok(())
-                })
-            })
-            .collect();
+                            e.to_string()
+                        })?;
 
-        // wait for all threads to complete
-        for handle in handles {
-            match handle.join() {
-                Ok(Ok(_)) => {}
-                Ok(Err(e)) => return Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, e))),
-                Err(_) => {
-                    return Err(Box::new(std::io::Error::new(
-                        std::io::ErrorKind::Other,
-                        "Thread panicked",
-                    )))
-                }
-            }
-        }
+                        Ok(())
+                    })
+                })
+                .collect(),
+        )?;
 
         init_spinner.finish_with_message(format!("Done in {}", HumanDuration(started.elapsed())));
 

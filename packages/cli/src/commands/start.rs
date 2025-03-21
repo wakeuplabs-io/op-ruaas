@@ -38,10 +38,9 @@ pub enum StartDeploymentKind {
     Sequencer,
     Replica,
 }
-
-impl Into<DeploymentKind> for StartDeploymentKind {
-    fn into(self) -> DeploymentKind {
-        match self {
+impl From<StartDeploymentKind> for DeploymentKind {
+    fn from(kind: StartDeploymentKind) -> Self {
+        match kind {
             StartDeploymentKind::Sequencer => DeploymentKind::Sequencer,
             StartDeploymentKind::Replica => DeploymentKind::Replica,
         }
@@ -103,14 +102,16 @@ impl StartCommand {
         &mut self,
         ctx: &AppContext,
         kind: StartDeploymentKind,
+        contracts_deployment_id: Option<String>,
         sequencer_url: &str,
         default: bool,
+        values: Option<String>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         self.system_requirement_checker
             .check(vec![DOCKER_REQUIREMENT, K8S_REQUIREMENT, HELM_REQUIREMENT])?;
 
         let project = Project::try_from(std::env::current_dir()?)?;
-        let mut config = CoreConfig::new_from_toml(&project.config)?;
+        let config = CoreConfig::new_from_toml(&project.config)?;
         let owner_id = ctx.user_id.clone().ok_or("User not found")?;
 
         print_info(
@@ -157,67 +158,83 @@ impl StartCommand {
         let enable_monitoring = self.dialoguer.confirm("Do you want to enable monitoring?");
         let enable_explorer = self.dialoguer.confirm("Do you want to enable explorer?");
 
-        // update config for devnet mode
+        // retrieve deployment addresses or use an existing deployment
 
-        let wallet_address = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
-        let wallet_private_key = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
-        config.network.l1_chain_id = 1337;
-        config.accounts.admin_address = wallet_address.into();
-        config.accounts.admin_private_key = Some(wallet_private_key.into());
-        config.accounts.batcher_address = wallet_address.into();
-        config.accounts.batcher_private_key = Some(wallet_private_key.into());
-        config.accounts.proposer_address = wallet_address.into();
-        config.accounts.proposer_private_key = Some(wallet_private_key.into());
-        config.accounts.sequencer_address = wallet_address.into();
-        config.accounts.sequencer_private_key = Some(wallet_private_key.into());
-        config.accounts.deployer_address = wallet_address.into();
-        config.accounts.deployer_private_key = Some(wallet_private_key.into());
-        config.accounts.challenger_address = wallet_address.into();
-        config.accounts.challenger_private_key = Some(wallet_private_key.into());
-        config.network.l1_rpc_url = Some("http://host.docker.internal:8545".into());
-        config.network.fund_dev_accounts = true;
-
-        // start local network ===========================
-
-        if let StartDeploymentKind::Sequencer = kind {
-            let l1_spinner = style_spinner(ProgressBar::new_spinner(), "⏳ Starting l1 node...");
-
-            self.l1_node.start(config.network.l1_chain_id, 8545)?;
-
-            l1_spinner.finish_with_message("✔️ L1 node ready...");
-        }
-
-        // Deploy contracts ===========================
-
-        let mut deployment = Deployment::new(
+        let mut deployment: Deployment = Deployment::new(
             "dev",
             "Development",
             &owner_id,
             &release_tag,
             &release_registry,
-            config.network,
-            config.accounts,
+            config.network.clone(),
+            config.accounts.clone(),
         )?;
 
-        if let StartDeploymentKind::Sequencer = kind {
-            let contracts_spinner = style_spinner(
-                ProgressBar::new_spinner(),
-                "⏳ Deploying contracts to local network...",
-            );
-
-            self.contracts_deployer
-                .deploy(&project, &mut deployment, true, false)
-                .await?;
-
-            contracts_spinner.finish_with_message("✔️ Contracts deployed...");
-        } else {
+        if let Some(contracts_deployment_id) = contracts_deployment_id {
+            // use existing deployment
             let contracts_depl = self
                 .deployments_manager
-                .find_by_id(&deployment.id)
+                .find_by_id(&contracts_deployment_id)
                 .await?
                 .ok_or("Deployment not found")?;
 
             deployment.contracts_addresses = contracts_depl.contracts_addresses;
+
+            print_warning("Using existing contracts deployment, costs may incur. Rpc and wallets should be available.");
+        } else {
+            // update config for devnet mode
+
+            let wallet_address = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+            let wallet_private_key = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+            deployment.network_config.l1_chain_id = 1337;
+            deployment.network_config.l1_rpc_url = Some("http://host.docker.internal:8545".into());
+            deployment.network_config.fund_dev_accounts = true;
+            deployment.accounts_config.admin_address = wallet_address.into();
+            deployment.accounts_config.admin_private_key = Some(wallet_private_key.into());
+            deployment.accounts_config.batcher_address = wallet_address.into();
+            deployment.accounts_config.batcher_private_key = Some(wallet_private_key.into());
+            deployment.accounts_config.proposer_address = wallet_address.into();
+            deployment.accounts_config.proposer_private_key = Some(wallet_private_key.into());
+            deployment.accounts_config.sequencer_address = wallet_address.into();
+            deployment.accounts_config.sequencer_private_key = Some(wallet_private_key.into());
+            deployment.accounts_config.deployer_address = wallet_address.into();
+            deployment.accounts_config.deployer_private_key = Some(wallet_private_key.into());
+            deployment.accounts_config.challenger_address = wallet_address.into();
+            deployment.accounts_config.challenger_private_key = Some(wallet_private_key.into());
+
+            // start local network ===========================
+
+            if let StartDeploymentKind::Sequencer = kind {
+                let l1_spinner = style_spinner(ProgressBar::new_spinner(), "⏳ Starting l1 node...");
+
+                self.l1_node
+                    .start(deployment.network_config.l1_chain_id, 8545)?;
+
+                l1_spinner.finish_with_message("✔️ L1 node ready...");
+            }
+
+            // deploy contracts ===========================
+
+            if let StartDeploymentKind::Sequencer = kind {
+                let contracts_spinner = style_spinner(
+                    ProgressBar::new_spinner(),
+                    "⏳ Deploying contracts to local network...",
+                );
+
+                self.contracts_deployer
+                    .deploy(&project, &mut deployment, true, false)
+                    .await?;
+
+                contracts_spinner.finish_with_message("✔️ Contracts deployed...");
+            } else {
+                let contracts_depl = self
+                    .deployments_manager
+                    .find_by_id(&deployment.id)
+                    .await?
+                    .ok_or("Deployment not found")?;
+
+                deployment.contracts_addresses = contracts_depl.contracts_addresses;
+            }
         }
 
         // start stack ===========================
@@ -258,6 +275,7 @@ impl StartCommand {
                     release_tag: self.release_tag.clone().unwrap(),
                     sequencer_url: Some(sequencer_url.to_string()),
                     storage_class_name: "".to_string(),
+                    values_path: values.map(std::path::PathBuf::from),
                 },
             )
             .await?;

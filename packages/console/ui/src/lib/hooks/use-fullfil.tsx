@@ -80,6 +80,7 @@ export const useFullFilRequest = () => {
         });
         return tx;
       } catch (e) {
+        console.error(e);
         throw e;
       } finally {
         setIsPending(false);

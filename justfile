@@ -1,5 +1,5 @@
 
-VERSION := "0.1.6"
+VERSION := "0.1.7"
 APPLE_TARGET := "x86_64-apple-darwin"
 WINDOWS_TARGET := "x86_64-pc-windows-gnu"
 LINUX_TARGET := "x86_64-unknown-linux-musl"
@@ -54,13 +54,19 @@ console-predeploy:
 console-deploy stage: console-predeploy
   cd packages/console && npx sst deploy --stage {{stage}}
 
-console-tunnel stage:
-	cd packages/console && sudo npx sst tunnel install --stage {{stage}}
-	cd packages/console && npx sst tunnel --stage {{stage}}
+# marketplace
 
-console-migrate stage:
-	echo "Ensure tunnel is installed 'sudo npx sst tunnel install --stage {{stage}}' and running 'npx sst tunnel --stage {{stage}}' or 'just console-tunnel {{stage}}'"
-	cd packages/console && npx sst shell --target db --stage {{stage}} -- sqlx migrate run --source server/migrations
+marketplace-ui-run:
+	npm run dev --workspace=marketplace-ui
+
+marketplace-deploy stage:
+	cd packages/marketplace && npx sst deploy --stage {{stage}}
+  
+marketplace-contracts-test:
+	npm test --workspace=marketplace-contracts
+
+marketplace-contracts-lint:
+	npm run lint --workspace=marketplace-contracts
 
 # marketplace
 

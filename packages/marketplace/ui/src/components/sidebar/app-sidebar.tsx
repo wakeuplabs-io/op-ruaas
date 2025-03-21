@@ -40,8 +40,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           </div>
         </div>
       )}
-      
-      <Sidebar collapsible="icon" className="bg-white h-full min-h-screen" {...props}>
+
+      <Sidebar
+        collapsible="icon"
+        className="bg-white h-full min-h-screen"
+        {...props}
+      >
         <SidebarHeader className="bg-white">
           <div className="py-6 px-4">
             <img className="h-8" src="/opruaas.png" alt="logo" />
@@ -77,7 +81,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               }))}
             />
 
-            <hr />
+            {[...sequencerRollups, ...replicaRollups].length ? <hr /> : null}
 
             <NavRollups
               title="My Replicas"

@@ -30,18 +30,18 @@ pub enum MonitorKind {
     Dispute,
 }
 
-impl Into<opraas_core::domain::MonitorKind> for MonitorKind {
-    fn into(self) -> opraas_core::domain::MonitorKind {
-        match self {
-            MonitorKind::Multisig => opraas_core::domain::MonitorKind::Multisig,
-            MonitorKind::Fault => opraas_core::domain::MonitorKind::Fault,
-            MonitorKind::Withdrawals => opraas_core::domain::MonitorKind::Withdrawals,
-            MonitorKind::Drippie => opraas_core::domain::MonitorKind::Drippie,
-            MonitorKind::Secrets => opraas_core::domain::MonitorKind::Secrets,
-            MonitorKind::GlobalEvents => opraas_core::domain::MonitorKind::GlobalEvents,
-            MonitorKind::LivenessExpiration => opraas_core::domain::MonitorKind::LivenessExpiration,
-            MonitorKind::Balances => opraas_core::domain::MonitorKind::Balances,
-            MonitorKind::Dispute => opraas_core::domain::MonitorKind::Dispute,
+impl From<MonitorKind> for opraas_core::domain::MonitorKind {
+    fn from(kind: MonitorKind) -> Self {
+        match kind {
+            MonitorKind::Multisig => Self::Multisig,
+            MonitorKind::Fault => Self::Fault,
+            MonitorKind::Withdrawals => Self::Withdrawals,
+            MonitorKind::Drippie => Self::Drippie,
+            MonitorKind::Secrets => Self::Secrets,
+            MonitorKind::GlobalEvents => Self::GlobalEvents,
+            MonitorKind::LivenessExpiration => Self::LivenessExpiration,
+            MonitorKind::Balances => Self::Balances,
+            MonitorKind::Dispute => Self::Dispute,
         }
     }
 }
@@ -92,7 +92,7 @@ impl MonitorCommand {
                         &project,
                         &deployment,
                         &DeploymentMonitorOptions {
-                            args: args.unwrap_or(vec![]),
+                            args: args.unwrap_or_default(),
                             kind: kind.unwrap().into(),
                         },
                     )
