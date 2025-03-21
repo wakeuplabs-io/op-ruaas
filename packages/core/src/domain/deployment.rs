@@ -438,9 +438,14 @@ blockscout-stack:
     prometheus:
       enabled: false
   blockscout:
+    image:
+      repository: blockscout/blockscout
+      pullPolicy: IfNotPresent
+      tag: "6.10.0"
+
     ingress:
       enabled: true
-      className: nginx
+      className: "nginx"
       hostname: {host}
 
     env:
@@ -461,7 +466,7 @@ blockscout-stack:
   frontend:
     ingress:
       enabled: true
-      className: nginx
+      className: "nginx"
       hostname: {host}
     env:
       NEXT_PUBLIC_API_PROTOCOL: http
@@ -648,9 +653,14 @@ blockscout-stack:
     prometheus:
       enabled: false
   blockscout:
+    image:
+      repository: blockscout/blockscout
+      pullPolicy: IfNotPresent
+      tag: "6.10.0"
+
     ingress:
       enabled: true
-      className: nginx
+      className: "nginx"
       hostname: {host}
 
     env:
@@ -670,7 +680,7 @@ blockscout-stack:
   frontend:
     ingress:
       enabled: true
-      className: nginx
+      className: "nginx"
       hostname: {host}
     env:
       NEXT_PUBLIC_API_PROTOCOL: http
