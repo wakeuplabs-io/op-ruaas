@@ -64,7 +64,7 @@ pub struct StartCommand {
 }
 
 const DEFAULT_REGISTRY: &str = "wakeuplabs";
-const DEFAULT_RELEASE_TAG: &str = "v0.0.4";
+const DEFAULT_RELEASE_TAG: &str = "v1.0.0";
 
 impl StartCommand {
     pub fn new() -> Self {
@@ -244,16 +244,6 @@ impl StartCommand {
         let infra_spinner = style_spinner(
             ProgressBar::new_spinner(),
             "⏳ Installing infra in local kubernetes...",
-        );
-
-        println!(
-            "{} {}",
-            deployment.network_config.l1_chain_id.clone(),
-            deployment
-                .network_config
-                .l1_rpc_url
-                .clone()
-                .unwrap_or_default()
         );
 
         // assemble namespace and tag for release

@@ -24,7 +24,7 @@ geth:
   name: op-geth
   image:
     repository: wakeuplabs/op-geth
-    tag: v0.0.4
+    tag: v1.0.0
   ports:
     rpcHttp: 8545 
     rpcWs: 8546
@@ -39,7 +39,7 @@ node:
   name: op-node
   image:
     repository: wakeuplabs/op-node
-    tag: v0.0.4
+    tag: v1.0.0
   ports:
     rpc: 7545
     p2p: 9222
@@ -48,8 +48,8 @@ node:
 proxyd:
   name: proxyd
   image:
-    repository: us-docker.pkg.dev/oplabs-tools-artifacts/images/proxyd
-    tag: latest
+    repository: wakeuplabs/op-proxyd
+    tag: "v1.0.0"
   port: 8080
   urls:
     http: http://proxyd-service:8080
@@ -61,7 +61,7 @@ proxyd:
     port: 6379
     image:
       repository: redis
-      tag: latest
+      tag: "7.4.2"
 
 # monitoring ===============================================================
 
@@ -131,7 +131,7 @@ blockscout:
     password: password
     image:
       repository: postgres
-      tag: latest
+      tag: "17.4"
     storage: 5Gi
 
 blockscout-stack:

@@ -170,7 +170,7 @@ The dev command simplifies the setup for local testing. It performs the followin
 
 **Prerequisites**
 - You need to provide the `container registry` and the release `name` for your deployment.
-- For reference, you can use the example configuration at `wakeuplabs` with the release name `v0.0.4`.
+- For reference, you can use the example configuration at `wakeuplabs` with the release name `v1.0.0`.
 
 **Usage**
 Run the following command to execute the setup:

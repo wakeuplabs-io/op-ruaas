@@ -75,7 +75,7 @@ The `start` command simplifies the setup for local testing. It performs the foll
 **Prerequisites**
 
 - You need to provide the `container registry` and the release `name` for your deployment.
-- For reference, you can use the example configuration at `wakeuplabs` with the release name `v0.0.4`.
+- For reference, you can use the example configuration at `wakeuplabs` with the release name `v1.0.0`.
 
 **Usage**
 Run the following command to execute the setup:
@@ -98,6 +98,7 @@ If you have cast installed, the following commands can help you test the deploym
 cast chain-id --rpc-url http://localhost:80/rpc
 
 cast balance 0x3fAB184622Dc19b6109349B94811493BF2a45362 --rpc-url http://localhost:80/rpc
+cast balance 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --rpc-url http://localhost:80/rpc
 
 cast send \
   --from 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 \

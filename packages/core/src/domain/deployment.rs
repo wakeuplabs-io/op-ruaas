@@ -347,8 +347,8 @@ proposer:
 proxyd:
   name: proxyd
   image:
-    repository: us-docker.pkg.dev/oplabs-tools-artifacts/images/proxyd
-    tag: latest
+    repository: wakeuplabs/op-proxyd
+    tag: "v1.0.0"
   port: 8080
   urls:
     http: http://proxyd-service:8080
@@ -360,7 +360,7 @@ proxyd:
     port: 6379
     image:
       repository: redis
-      tag: latest
+      tag: "7.4.2"
 
 # monitoring ===============================================================
 
@@ -430,7 +430,7 @@ blockscout:
     password: password
     image:
       repository: postgres
-      tag: latest
+      tag: "17.4"
     storage: 5Gi
 
 blockscout-stack:
@@ -562,8 +562,8 @@ proposer:
 proxyd:
   name: proxyd
   image:
-    repository: us-docker.pkg.dev/oplabs-tools-artifacts/images/proxyd
-    tag: latest
+    repository: wakeuplabs/op-proxyd
+    tag: "v1.0.0"
   port: 8080
   urls:
     http: http://proxyd-service:8080
@@ -575,7 +575,7 @@ proxyd:
     port: 6379
     image:
       repository: redis
-      tag: latest
+      tag: "7.4.2"
 
 # monitoring ===============================================================
 
@@ -645,7 +645,7 @@ blockscout:
     password: password
     image:
       repository: postgres
-      tag: latest
+      tag: "17.4"
     storage: 5Gi
 
 blockscout-stack:
