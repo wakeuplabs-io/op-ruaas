@@ -28,12 +28,12 @@ interface RollupHeaderProps {
   refetch: () => void;
 }
 
-export function RollupHeader({ order, offer, refetch}: RollupHeaderProps) {
+export function RollupHeader({ order, offer, refetch }: RollupHeaderProps) {
   const timeRemainingInSeconds =
     order.fulfilledAt > 0n
       ? Number(order.fulfilledAt + 48n * 3600n - currentUnixTime)
       : 0;
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const { step } = useUnsubscribe({ order, offer });
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
 
@@ -114,7 +114,9 @@ export function RollupHeader({ order, offer, refetch}: RollupHeaderProps) {
               offer={offer}
               order={order}
               className="h-10 px-6 text-white"
-              onClose={() => navigate({ to: `/rollups/${order.id.toString()}` })}
+              onClose={() =>
+                navigate({ to: `/rollups/${order.id.toString()}` })
+              }
             />
           </div>
         </div>
@@ -136,13 +138,13 @@ export function RollupHeader({ order, offer, refetch}: RollupHeaderProps) {
               </div>
             )}
 
-            <div className="flex justify-between items-end gap-4  mt-5">
+            <div className="flex flex-col md:flex-row justify-between items-end gap-4 mt-5">
               {order.terminatedAt > 0n ? (
                 step == UnsubscribeStep.Done ? (
                   <div></div>
                 ) : (
                   <div className="mt-4">
-                    <div className=" p-4 bg-alert-background rounded-lg flex items-start gap-3">
+                    <div className="p-4 bg-alert-background rounded-lg flex items-start gap-3">
                       <TriangleAlert className="h-11 w-11 text-alert-border stroke-[1.5] flex-shrink-0" />
                       <p className="text-sm text-alert-border">
                         You're unsubscribed, but provider permissions are still
@@ -154,7 +156,7 @@ export function RollupHeader({ order, offer, refetch}: RollupHeaderProps) {
               ) : (
                 <Button
                   variant="outline"
-                  className="w-32 h-12 flex items-center justify-center gap-2"
+                  className="w-full md:w-32 h-12 flex items-center justify-center gap-2"
                   onClick={() => setIsDepositModalOpen(true)}
                 >
                   <BookDown className="h-5 w-5" />
@@ -162,7 +164,7 @@ export function RollupHeader({ order, offer, refetch}: RollupHeaderProps) {
                 </Button>
               )}
 
-              <div className="flex gap-4">
+              <div className="flex flex-col md:flex-row gap-4 w-full">
                 {[
                   {
                     label: "Chain ID",
@@ -178,7 +180,7 @@ export function RollupHeader({ order, offer, refetch}: RollupHeaderProps) {
                     key={index}
                     value={item.value}
                     description={item.label}
-                    className="min-w-[250px]"
+                    className="w-full md:min-w-[250px]"
                   />
                 ))}
               </div>
@@ -189,7 +191,7 @@ export function RollupHeader({ order, offer, refetch}: RollupHeaderProps) {
               pricePerMonth={offer.pricePerMonth}
               isOpen={isDepositModalOpen}
               onClose={() => {
-                setIsDepositModalOpen(false)
+                setIsDepositModalOpen(false);
                 refetch();
               }}
               refetch={refetch}
