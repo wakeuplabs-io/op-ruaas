@@ -114,6 +114,7 @@ export function RollupHeader({ order, offer, refetch}: RollupHeaderProps) {
               offer={offer}
               order={order}
               className="h-10 px-6 text-white"
+              onClose={() => navigate({ to: `/rollups/${order.id.toString()}` })}
             />
           </div>
         </div>

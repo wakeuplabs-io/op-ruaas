@@ -36,7 +36,6 @@ export const useOrderDetails = ({ id }: { id: bigint }) => {
     (order as any).balance > secondsElapsed * pricePerSecond
       ? (order as any).balance - secondsElapsed * pricePerSecond
       : 0n;
-  console.log(order)
   return {
     data: {
       order: {
