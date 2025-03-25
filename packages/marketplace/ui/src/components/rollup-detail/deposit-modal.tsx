@@ -83,7 +83,6 @@ export function DepositModal({
     try {
       await depositFunds(BigInt(orderId), calculateTotal(selectedPlan));
       setStatus(ModalStatus.SUCCESS);
-      await sleep(2000);
       refetch();
       navigate({
         to: `/rollups/$id`,
