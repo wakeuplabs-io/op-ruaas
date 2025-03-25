@@ -10,6 +10,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import CustomConnectButton from "../connect-wallet";
@@ -19,17 +20,17 @@ import { useAccount } from "wagmi";
 import { useOrders } from "@/lib/hooks/use-orders";
 import { useProviderInfo } from "@/lib/hooks/use-provider-info";
 import { NavRollups } from "./nav-rollups";
-import { useIsMobile } from "@/lib/hooks/use-mobile";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { name } = useProviderInfo();
   const { isConnected } = useAccount();
   const { sequencerRollups, replicaRollups } = useOrders();
-  const isMobile = useIsMobile();
-  const [sidebarOpen, setSidebarOpen] = React.useState(true);
-
+  const { isMobile, setOpenMobile } = useSidebar();
+  
   const handleCloseSidebar = () => {
-    if (isMobile) setSidebarOpen(false);
+    if (isMobile) {
+      setOpenMobile(false);
+    }
   };
 
   return (
