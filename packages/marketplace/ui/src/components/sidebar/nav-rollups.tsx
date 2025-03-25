@@ -14,12 +14,11 @@ import { Input } from "../ui/input";
 export function NavRollups({
   title,
   rollups,
+  closeSidebar,
 }: {
   title: string;
-  rollups: {
-    id: string;
-    name: string;
-  }[];
+  rollups: { id: string; name: string }[];
+  closeSidebar: () => void;
 }) {
   const [showAll, setShowAll] = useState(false);
   const [search, setSearch] = useState("");
@@ -44,7 +43,14 @@ export function NavRollups({
           {rollups.slice(0, 2).map((item) => (
             <SidebarMenuItem key={item.id}>
               <SidebarMenuButton className="h-10 px-2" asChild>
-                <Link to="/rollups/$id" params={{ id: item.id }}>
+                <Link
+                  to="/rollups/$id"
+                  params={{ id: item.id }}
+                  onClick={() => {
+                    closeSidebar();
+                    setShowAll(false);
+                  }}
+                >
                   <ScrollText className="text-sidebar-foreground/70" />
                   <span>{item.name}</span>
                 </Link>
@@ -80,7 +86,14 @@ export function NavRollups({
             {filteredRollups.map((item) => (
               <SidebarMenuItem key={item.id}>
                 <SidebarMenuButton className="h-10 px-2" asChild>
-                  <Link onClick={() => setShowAll(false)} to="/rollups/$id" params={{ id: item.id }}>
+                  <Link
+                    to="/rollups/$id"
+                    params={{ id: item.id }}
+                    onClick={() => {
+                      closeSidebar();
+                      setShowAll(false);
+                    }}
+                  >
                     <ScrollText className="text-sidebar-foreground/70" />
                     <span>{item.name}</span>
                   </Link>
@@ -101,3 +114,4 @@ export function NavRollups({
     </>
   );
 }
+

@@ -26,6 +26,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { isConnected } = useAccount();
   const { sequencerRollups, replicaRollups } = useOrders();
   const isMobile = useIsMobile();
+  const [sidebarOpen, setSidebarOpen] = React.useState(true);
+
+  const handleCloseSidebar = () => {
+    if (isMobile) setSidebarOpen(false);
+  };
 
   return (
     <>
@@ -62,7 +67,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                     tooltip={"New Rollup"}
                     className="h-10 px-2"
                   >
-                    <Link to="/">
+                    <Link to="/" onClick={handleCloseSidebar}>
                       <Plus className="h-5 w-5" />
                       <span>New Rollup</span>
                     </Link>
@@ -79,6 +84,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 id: r.id.toString(),
                 name: r.setupMetadata.name,
               }))}
+              closeSidebar={handleCloseSidebar}
             />
 
             {[...sequencerRollups, ...replicaRollups].length ? <hr /> : null}
@@ -89,6 +95,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 id: r.id.toString(),
                 name: r.setupMetadata.name,
               }))}
+              closeSidebar={handleCloseSidebar}
             />
           </SidebarContent>
         ) : (

@@ -32,7 +32,7 @@ export function DepositModal({
   onClose,
   refetch,
 }: DepositModalProps) {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const { depositFunds } = useDeposit();
   const { isConnected } = useAccount();
@@ -91,7 +91,7 @@ export function DepositModal({
       });
     } catch (error) {
       console.error(error);
-      window.alert("Failed to deposit funds")
+      window.alert("Failed to deposit funds");
     } finally {
       setIsPending(false);
     }
@@ -99,8 +99,8 @@ export function DepositModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[547px] h-[517px] p-4 sm:p-4 overflow-hidden rounded-2xl">
-        <div className="p-6">
+      <DialogContent className="sm:max-w-[95%] md:max-w-[547px] p-4 sm:p-6 md:p-8 overflow-hidden rounded-2xl">
+        <div>
           <DialogHeader className="flex flex-row items-start justify-between">
             <DialogTitle className="text-xl font-semibold">
               Deposit Funds
@@ -111,7 +111,7 @@ export function DepositModal({
             Add funds for your subscription. Select a subscription period:
           </p>
 
-          <div className="mt-8 pb-8 grid grid-cols-2 gap-3">
+          <div className="mt-6 sm:mt-8 pb-6 sm:pb-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
             {plans?.map((plan) => (
               <button
                 key={plan.months}
@@ -122,7 +122,7 @@ export function DepositModal({
                     : "border-gray-200 hover:border-gray-300"
                 }`}
               >
-                <div className="text-lg ">{plan.months * 30} days</div>
+                <div className="text-lg">{plan.months * 30} days</div>
                 <div className="text-gray-500 font-medium mt-2 text-base">
                   ${formatTokenAmount(calculateTotal(plan), 18n, 0)}
                 </div>
@@ -134,7 +134,7 @@ export function DepositModal({
             <>
               <Button
                 size="lg"
-                className="mt-8 w-full"
+                className="w-full mt-6 sm:mt-8"
                 onClick={handleDeposit}
                 isPending={isPending}
                 disabled={
@@ -147,6 +147,7 @@ export function DepositModal({
                   "Complete Deposit"}
                 {isConnected && status === ModalStatus.SUCCESS && <>Success</>}
               </Button>
+
               {!isConnected && (
                 <p className="mt-2 text-center text-sm text-red-500">
                   You must connect your wallet to proceed with the deposit.
