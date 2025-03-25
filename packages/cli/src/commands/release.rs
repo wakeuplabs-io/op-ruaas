@@ -56,7 +56,7 @@ impl ReleaseCommand {
         let registry_url: String = self
             .dialoguer
             .prompt("Input Docker registry url (e.g. dockerhub.io/wakeuplabs) ");
-        let release_name: String = self.dialoguer.prompt("Input release name (e.g. v0.1.0)");
+        let release_name: String = self.dialoguer.prompt("Input release name (e.g. v1.0.0)");
 
         // Offer option to tag release in git
         if self

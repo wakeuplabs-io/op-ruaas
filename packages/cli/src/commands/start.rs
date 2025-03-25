@@ -150,7 +150,7 @@ impl StartCommand {
 
         let release_tag: String = match default {
             true => DEFAULT_RELEASE_TAG.into(),
-            false => self.dialoguer.prompt("Input release tag (e.g. v0.1.0)"),
+            false => self.dialoguer.prompt("Input release tag (e.g. v1.0.0)"),
         };
 
         // deploy monitoring and explorer?

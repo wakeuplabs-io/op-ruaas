@@ -185,7 +185,7 @@ impl DeployCommand {
                 .await?
                 .expect("Contracts deployment not found");
 
-            if sequencer_url.is_empty() && kind == DeployDeploymentKind::Sequencer {
+            if sequencer_url.is_empty() && kind == DeployDeploymentKind::Replica {
                 return Err("Sequencer url is empty".into());
             }
 
@@ -265,6 +265,8 @@ impl DeployCommand {
 
         if matches!(target, DeployTarget::Infra) {
             println!("\n{}\n", "Make sure to create an A record pointing to `elb_dnsname` as specified here: https://github.com/amcginlay/venafi-demos/tree/main/demos/01-eks-ingress-nginx-cert-manager#configure-route53".yellow());
+        } else if matches!(target, DeployTarget::Contracts) {
+            println!("\n{}\n", "Ideally wait ~256 blocks, ~1 hour (in ethereum) for full finalization before moving forward with infra deployment".yellow());
         }
 
         Ok(())
