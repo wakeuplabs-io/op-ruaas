@@ -19,8 +19,9 @@ export const UnsubscribeModal: React.FC<
     order: Order;
     offer: Offer;
     disabled?: boolean;
+    onClose: () => void;
   } & ButtonProps
-> = ({ order, offer, disabled, ...props }) => {
+> = ({ order, offer, disabled, onClose, ...props }) => {
   const {
     step,
     isTerminatePending,
@@ -65,7 +66,9 @@ export const UnsubscribeModal: React.FC<
             <Button
               isPending={isTerminatePending}
               className="mt-6"
-              onClick={() => terminate()}
+              onClick={() => {
+                terminate()
+              }}
             >
               Terminate payments <ArrowRight />
             </Button>
