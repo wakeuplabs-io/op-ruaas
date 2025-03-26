@@ -68,20 +68,6 @@ marketplace-contracts-test:
 marketplace-contracts-lint:
 	npm run lint --workspace=marketplace-contracts
 
-# marketplace
-
-marketplace-ui-run:
-	npm run dev --workspace=marketplace-ui
-
-marketplace-deploy stage:
-	cd packages/marketplace && npx sst deploy --stage {{stage}}
-  
-marketplace-contracts-test:
-	npm test --workspace=marketplace-contracts
-
-marketplace-contracts-lint:
-	npm run lint --workspace=marketplace-contracts
-
 # utils
 
 clean-apple:
