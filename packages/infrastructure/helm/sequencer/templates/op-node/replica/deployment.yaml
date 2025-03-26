@@ -14,6 +14,43 @@ spec:
       labels:
         app: {{ .Values.node.name }}-replica
     spec:
+      initContainers:
+        - name: genesis
+          image: {{ .Values.node.image.repository }}:{{ .Values.node.image.tag }}
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          command:
+            - sh
+            - "-c"
+            - |
+              echo 'Generating l2 genesis and rollup configs'
+              rm /app/data/configurations/rollup-config.json
+              /usr/local/bin/op-node genesis l2 \
+                  --l1-rpc {{ .Values.chain.l1Rpc }} \
+                  --deploy-config /app/data/configurations/deploy-config.json \
+                  --l2-allocs /app/data/configurations/allocs-l2.json \
+                  --l1-deployments /app/data/configurations/addresses.json \
+                  --outfile.l2 /app/data/configurations/genesis.json \
+                  --outfile.rollup /app/data/configurations/rollup-config.json 
+          volumeMounts:
+            - name: configurations
+              mountPath: /app/data/configurations
+        - name: set-l1-genesis
+          image: wakeuplabs/op-contracts:v1.0.0
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          command:
+            - sh
+            - "-c"
+            - |
+              echo 'Processing JSON configurations with jq' 
+              jq 'del(.config.optimism)' /app/data/configurations/genesis.json > temp.json && mv temp.json /app/data/configurations/genesis.json 
+              jq 'del(.channel_timeout_granite)' /app/data/configurations/rollup-config.json > temp.json && mv temp.json /app/data/configurations/rollup-config.json 
+              
+              l1GenesisBlockNumber=$(jq '.genesis.l1.number' /app/data/configurations/rollup-config.json) 
+              l1GenesisBlockHash=$(cast block $l1GenesisBlockNumber --rpc-url {{ .Values.chain.l1Rpc }} --json | jq -r ".hash") 
+              jq --arg ts "$l1GenesisBlockHash" '.genesis.l1.hash = $ts' /app/data/configurations/rollup-config.json > tmp.json && mv tmp.json /app/data/configurations/rollup-config.json 
+          volumeMounts:
+            - name: configurations
+              mountPath: /app/data/configurations
       containers:
         - name: {{ .Values.node.name }}-replica
           image: {{ .Values.node.image.repository }}:{{ .Values.node.image.tag }}

@@ -70,10 +70,10 @@ CMD if [ "$DEPLOY_DETERMINISTIC_DEPLOYER" = "true" ]; then \
     echo "Deploying L2 contracts to L1..." && \
     cp ${IN_DEPLOY_CONFIG} ${DEPLOY_CONFIG_PATH} && \
     l1GenesisBlockTimestamp=$(printf '0x%x' $(date +%s)) && jq --arg ts "$l1GenesisBlockTimestamp" '.l1GenesisBlockTimestamp = $ts' ${DEPLOY_CONFIG_PATH} > tmp.json && mv tmp.json ${DEPLOY_CONFIG_PATH} && \
-    l1StartingBlockTag=$(cast block latest --rpc-url "$ETH_RPC_URL" --json | jq -r ".hash") && jq --arg ts "$l1StartingBlockTag" '.l1StartingBlockTag = $ts' ${DEPLOY_CONFIG_PATH} > tmp.json && mv tmp.json ${DEPLOY_CONFIG_PATH} && \
+    l1StartingBlockTag=$(cast block finalized --rpc-url "$ETH_RPC_URL" --json | jq -r ".hash") && jq --arg ts "$l1StartingBlockTag" '.l1StartingBlockTag = $ts' ${DEPLOY_CONFIG_PATH} > tmp.json && mv tmp.json ${DEPLOY_CONFIG_PATH} && \
     l2OutputOracleStartingTimestamp=$(cast block "$l1StartingBlockTag" --rpc-url "$ETH_RPC_URL" --json | jq -r ".timestamp" | xargs printf "%d\n") && jq --arg ts "$l2OutputOracleStartingTimestamp" '.l2OutputOracleStartingTimestamp = ($ts | tonumber)' ${DEPLOY_CONFIG_PATH} > tmp.json && mv tmp.json ${DEPLOY_CONFIG_PATH} && \
     echo "{}" > ${DEPLOYMENT_OUTFILE} && \
-    cd /app/packages/contracts-bedrock && forge script scripts/deploy/Deploy.s.sol:Deploy --sig 'runWithStateDump()' --sender "${DEPLOYER_ADDRESS}" --private-key "${DEPLOYER_PRIVATE_KEY}" --gas-estimate-multiplier ${GAS_MULTIPLIER} --rpc-url "${ETH_RPC_URL}" --broadcast ${SLOW_ARG} && \
+    cd /app/packages/contracts-bedrock && forge script scripts/deploy/Deploy.s.sol:Deploy --sig 'runWithStateDump()' --sender "${DEPLOYER_ADDRESS}" --private-key "${DEPLOYER_PRIVATE_KEY}" --gas-estimate-multiplier ${GAS_MULTIPLIER} --rpc-url "${ETH_RPC_URL}" --broadcast ${SLOW_ARG} --non-interactive && \
     cp ${DEPLOY_CONFIG_PATH} ${OUT_DEPLOY_CONFIG} && \
     cp ${DEPLOYMENT_OUTFILE} ${OUT_ADDRESSES} && \
 

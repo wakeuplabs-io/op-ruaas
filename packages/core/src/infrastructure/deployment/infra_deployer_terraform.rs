@@ -95,7 +95,7 @@ impl TInfraDeployerProvider for TerraformDeployer {
         )?;
 
         // save it in the deployment repository
-        deployment.infra_base_url = Some(format!("http://{}", opts.host));
+        deployment.infra_base_url = Some(opts.host.clone());
 
         Ok(())
     }

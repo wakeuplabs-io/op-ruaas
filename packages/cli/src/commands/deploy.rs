@@ -125,7 +125,7 @@ impl DeployCommand {
         let release_registry: String = self
             .dialoguer
             .prompt("Input Docker registry url (e.g. wakeuplabs) ");
-        let release_tag: String = self.dialoguer.prompt("Input release tag (e.g. v0.0.4)");
+        let release_tag: String = self.dialoguer.prompt("Input release tag (e.g. v1.0.0)");
 
         if !self
             .dialoguer
@@ -185,7 +185,7 @@ impl DeployCommand {
                 .await?
                 .expect("Contracts deployment not found");
 
-            if sequencer_url.is_empty() && kind == DeployDeploymentKind::Sequencer {
+            if sequencer_url.is_empty() && kind == DeployDeploymentKind::Replica {
                 return Err("Sequencer url is empty".into());
             }
 
@@ -237,11 +237,11 @@ impl DeployCommand {
 
         if matches!(target, DeployTarget::Infra) {
             match &deployment.infra_base_url {
-                Some(base_url) => println!(
+                Some(hostname) => println!(
                     r#"Relevant endpoints from your infra:
-                - Explorer: {base_url}
-                - Rpc: {base_url}/rpc
-                - Monitoring: {base_url}/monitoring"#
+                - Explorer: explorer.{hostname}
+                - Rpc: rpc.{hostname}
+                - Monitoring: monitoring.{hostname}"#
                 ),
                 None => println!("No infra found"),
             }
@@ -259,12 +259,14 @@ impl DeployCommand {
             {note}\n",
             title = "What's Next?".bright_white().bold(),
             bin_name=env!("CARGO_BIN_NAME").blue(),
-            command="inspect [contracts|infra] --name <deployment_name>".blue(),
+            command="inspect [contracts|infra] --deployment-id <deployment-id>".blue(),
             note="NOTE: At the moment there's no way to remove a deployment, you'll need to manually go to `infra/aws` and run `terraform destroy`. For upgrades you'll also need to run them directly in helm.".yellow()
         );
 
         if matches!(target, DeployTarget::Infra) {
             println!("\n{}\n", "Make sure to create an A record pointing to `elb_dnsname` as specified here: https://github.com/amcginlay/venafi-demos/tree/main/demos/01-eks-ingress-nginx-cert-manager#configure-route53".yellow());
+        } else if matches!(target, DeployTarget::Contracts) {
+            println!("\n{}\n", "Ideally wait ~256 blocks, ~1 hour (in ethereum) for full finalization before moving forward with infra deployment".yellow());
         }
 
         Ok(())

@@ -16,10 +16,20 @@ spec:
       secretName: {{ .Values.global.host | replace "." "-" }}-tls  # TLS requirement - certificate stored here
   {{- end }}
   rules:
-    - host: {{ .Values.global.host }}
+    - host: {{ .Values.proxyd.ingress.hostname }}
       http:
         paths:
-          - path: {{ .Values.proxyd.ingress.nodePath }}
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.proxyd.name }}-service
+                port:
+                  number: {{ .Values.proxyd.port }}
+    - host: host.docker.internal
+      http:
+        paths:
+          - path: /
             pathType: Prefix
             backend:
               service:

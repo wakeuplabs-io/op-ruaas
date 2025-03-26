@@ -279,9 +279,7 @@ impl Deployment {
 # global configs ===============================================================
 
 global:
-  hosts: 
-    - host.docker.internal
-    - {host}
+  host: {host}
   protocol: http
   email: email@email.com
   storageClassName: "{storage_class_name}"
@@ -303,8 +301,8 @@ wallets:
 geth:
   name: op-geth
   image:
-    repository: wakeuplabs/op-geth
-    tag: v0.0.4
+    repository: {release_registry}/op-geth
+    tag: {release_tag}
   ports:
     rpcHttp: 8545 
     rpcWs: 8546
@@ -319,8 +317,8 @@ geth:
 node:
   name: op-node
   image:
-    repository: wakeuplabs/op-node
-    tag: v0.0.4
+    repository: {release_registry}/op-node
+    tag: {release_tag}
   ports:
     rpc: 7545
     p2p: 9222
@@ -329,8 +327,8 @@ node:
 batcher:
   name: op-batcher
   image:
-    repository: wakeuplabs/op-batcher
-    tag: v0.0.4
+    repository: {release_registry}/op-batcher
+    tag: {release_tag}
   ports:
     rpc: 6545 
     metrics: 7300
@@ -338,8 +336,8 @@ batcher:
 proposer:
   name: op-proposer
   image:
-    repository: wakeuplabs/op-proposer
-    tag: v0.0.4
+    repository: {release_registry}/op-proposer
+    tag: {release_tag}
   ports:
     rpc: 5545 
     metrics: 7300
@@ -347,20 +345,20 @@ proposer:
 proxyd:
   name: proxyd
   image:
-    repository: us-docker.pkg.dev/oplabs-tools-artifacts/images/proxyd
-    tag: latest
+    repository: wakeuplabs/op-proxyd
+    tag: "v1.0.0"
   port: 8080
   urls:
     http: http://proxyd-service:8080
     ws: ws://proxyd-service:8080
   ingress:
-    nodePath: /rpc
+    hostname: replica-rpc.{host}
   redis:
     name: proxyd-redis
     port: 6379
     image:
       repository: redis
-      tag: latest
+      tag: "7.4.2"
 
 # monitoring ===============================================================
 
@@ -384,22 +382,23 @@ grafana:
         - name: Prometheus
           type: prometheus
           access: proxy
-          url: http://{{ .Release.Name }}-prometheus-server
+          url: http://{{{{ .Release.Name }}}}-prometheus-server
           isDefault: true
           uid: prometheus-datasource
   ingress:
     enabled: true
     path: /monitoring(/|$)(.*)
+    ingressClassName: "nginx"
     annotations:
       kubernetes.io/ingress.class: "nginx"
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
       nginx.ingress.kubernetes.io/rewrite-target: /$2
     hosts:
-      - {host}
+      - monitoring.{host}
 
-  grafana.ini:
-    server:
-      root_url: "%(protocol)s://%(domain)s/monitoring"  # Dynamically adapts to ingress host
+    grafana.ini:
+      server:
+        root_url: "%(protocol)s://%(domain)s/monitoring"  # Dynamically adapts to ingress host
 
 prometheus:
   enabled: true
@@ -430,7 +429,7 @@ blockscout:
     password: password
     image:
       repository: postgres
-      tag: latest
+      tag: "17.4"
     storage: 5Gi
 
 blockscout-stack:
@@ -438,10 +437,15 @@ blockscout-stack:
     prometheus:
       enabled: false
   blockscout:
+    image:
+      repository: blockscout/blockscout
+      pullPolicy: IfNotPresent
+      tag: "6.10.0"
+
     ingress:
       enabled: true
-      className: nginx
-      hostname: {host}
+      className: "nginx"
+      hostname: explorer.{host}
 
     env:
       CHAIN_ID: "{l2_chain_id}"
@@ -450,6 +454,7 @@ blockscout-stack:
       ETHEREUM_JSONRPC_VARIANT: "geth"
       ETHEREUM_JSONRPC_HTTP_URL: http://proxyd-service:8080
       ETHEREUM_JSONRPC_WS_URL: ws://proxyd-service:8080
+      CHECK_ORIGIN: "false"
     extraEnv:
       - name: DATABASE_URL
         valueFrom:
@@ -460,8 +465,8 @@ blockscout-stack:
   frontend:
     ingress:
       enabled: true
-      className: nginx
-      hostname: {host}
+      className: "nginx"
+      hostname: explorer.{host}
     env:
       NEXT_PUBLIC_API_PROTOCOL: http
             "#,
@@ -473,6 +478,8 @@ blockscout-stack:
             monitoring_enabled = opts.monitoring,
             explorer_enabled = opts.explorer,
             host = opts.host,
+            release_registry = self.release_registry,
+            release_tag = self.release_tag,
         );
 
         Ok(yaml)
@@ -488,8 +495,7 @@ blockscout-stack:
 # global configs ===============================================================
 
 global:
-  hosts: 
-    - {host}
+  host: {host}
   protocol: http
   email: email@email.com
   storageClassName: "{storage_class_name}"
@@ -510,8 +516,8 @@ sequencer_host: {sequencer_host}
 geth:
   name: op-geth
   image:
-    repository: wakeuplabs/op-geth
-    tag: v0.0.4
+    repository: {release_registry}/op-geth
+    tag: {release_tag}
   ports:
     rpcHttp: 8545 
     rpcWs: 8546
@@ -526,8 +532,8 @@ geth:
 node:
   name: op-node
   image:
-    repository: wakeuplabs/op-node
-    tag: v0.0.4
+    repository: {release_registry}/op-node
+    tag: {release_tag}
   ports:
     rpc: 7545
     p2p: 9222
@@ -536,8 +542,8 @@ node:
 batcher:
   name: op-batcher
   image:
-    repository: wakeuplabs/op-batcher
-    tag: v0.0.4
+    repository: {release_registry}/op-batcher
+    tag: {release_tag}
   ports:
     rpc: 6545 
     metrics: 7300
@@ -545,8 +551,8 @@ batcher:
 proposer:
   name: op-proposer
   image:
-    repository: wakeuplabs/op-proposer
-    tag: v0.0.4
+    repository: {release_registry}/op-proposer
+    tag: {release_tag}
   ports:
     rpc: 5545 
     metrics: 7300
@@ -554,20 +560,20 @@ proposer:
 proxyd:
   name: proxyd
   image:
-    repository: us-docker.pkg.dev/oplabs-tools-artifacts/images/proxyd
-    tag: latest
+    repository: wakeuplabs/op-proxyd
+    tag: "v1.0.0"
   port: 8080
   urls:
     http: http://proxyd-service:8080
     ws: ws://proxyd-service:8080
   ingress:
-    nodePath: /rpc
+    hostname: replica-rpc.{host}
   redis:
     name: proxyd-redis
     port: 6379
     image:
       repository: redis
-      tag: latest
+      tag: "7.4.2"
 
 # monitoring ===============================================================
 
@@ -591,19 +597,20 @@ grafana:
         - name: Prometheus
           type: prometheus
           access: proxy
-          url: http://{{ .Release.Name }}-prometheus-server
+          url: http://{{{{ .Release.Name }}}}-prometheus-server
           isDefault: true
           uid: prometheus-datasource
   ingress:
     enabled: true
     path: /monitoring(/|$)(.*)
+    ingressClassName: "nginx"
     annotations:
       kubernetes.io/ingress.class: "nginx"
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
       nginx.ingress.kubernetes.io/rewrite-target: /$2
     hosts:
-      - {host}
-
+      - replica-monitoring.{host}
+      
   grafana.ini:
     server:
       root_url: "%(protocol)s://%(domain)s/monitoring"  # Dynamically adapts to ingress host
@@ -637,7 +644,7 @@ blockscout:
     password: password
     image:
       repository: postgres
-      tag: latest
+      tag: "17.4"
     storage: 5Gi
 
 blockscout-stack:
@@ -645,10 +652,15 @@ blockscout-stack:
     prometheus:
       enabled: false
   blockscout:
+    image:
+      repository: blockscout/blockscout
+      pullPolicy: IfNotPresent
+      tag: "6.10.0"
+
     ingress:
       enabled: true
-      className: nginx
-      hostname: {host}
+      className: "nginx"
+      hostname: replica-explorer.{host}
 
     env:
       CHAIN_ID: "{l2_chain_id}"
@@ -667,8 +679,8 @@ blockscout-stack:
   frontend:
     ingress:
       enabled: true
-      className: nginx
-      hostname: {host}
+      className: "nginx"
+      hostname: replica-explorer.{host}
     env:
       NEXT_PUBLIC_API_PROTOCOL: http
             "#,
@@ -678,6 +690,8 @@ blockscout-stack:
             storage_class_name = opts.storage_class_name,
             monitoring_enabled = opts.monitoring,
             explorer_enabled = opts.explorer,
+            release_registry = self.release_registry,
+            release_tag = self.release_tag,
             sequencer_url = opts.sequencer_url.as_ref().unwrap(),
             sequencer_host = Url::parse(opts.sequencer_url.as_ref().unwrap())
                 .unwrap()

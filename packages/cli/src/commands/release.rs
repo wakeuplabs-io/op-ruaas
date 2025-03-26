@@ -56,7 +56,7 @@ impl ReleaseCommand {
         let registry_url: String = self
             .dialoguer
             .prompt("Input Docker registry url (e.g. dockerhub.io/wakeuplabs) ");
-        let release_name: String = self.dialoguer.prompt("Input release name (e.g. v0.1.0)");
+        let release_name: String = self.dialoguer.prompt("Input release name (e.g. v1.0.0)");
 
         // Offer option to tag release in git
         if self
@@ -142,7 +142,7 @@ impl ReleaseCommand {
             title = "What's Next?".bright_white().bold(),
             bin = env!("CARGO_BIN_NAME").blue(),
             dev_cmd = "dev".blue(),
-            deploy_cmd = "deploy [contracts|infra|all] --name <deployment_name>".blue()
+            deploy_cmd = "deploy [contracts|infra] --deployment-id <deployment-id>".blue()
         );
 
         Ok(())

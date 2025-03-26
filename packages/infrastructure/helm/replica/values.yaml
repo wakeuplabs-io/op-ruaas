@@ -1,8 +1,7 @@
 # global configs ===============================================================
 
 global:
-  hosts: 
-    - localhost 
+  host: localhost 
   protocol: http
   email: email@email.com
   storageClassName: "" # Override with "" for default (recommended in local environment)
@@ -24,7 +23,7 @@ geth:
   name: op-geth
   image:
     repository: wakeuplabs/op-geth
-    tag: v0.0.4
+    tag: v1.0.0
   ports:
     rpcHttp: 8545 
     rpcWs: 8546
@@ -39,7 +38,7 @@ node:
   name: op-node
   image:
     repository: wakeuplabs/op-node
-    tag: v0.0.4
+    tag: v1.0.0
   ports:
     rpc: 7545
     p2p: 9222
@@ -48,20 +47,20 @@ node:
 proxyd:
   name: proxyd
   image:
-    repository: us-docker.pkg.dev/oplabs-tools-artifacts/images/proxyd
-    tag: latest
+    repository: wakeuplabs/op-proxyd
+    tag: "v1.0.0"
   port: 8080
   urls:
     http: http://proxyd-service:8080
     ws: ws://proxyd-service:8080
   ingress:
-    nodePath: /rpc-replica
+    hostname: replica-rpc
   redis:
     name: proxyd-redis
     port: 6379
     image:
       repository: redis
-      tag: latest
+      tag: "7.4.2"
 
 # monitoring ===============================================================
 
@@ -96,7 +95,7 @@ grafana:
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
       nginx.ingress.kubernetes.io/rewrite-target: /$2
     hosts:
-      - self.global.host
+      - replica-monitoring.localhost
 
   grafana.ini:
     server:
@@ -131,7 +130,7 @@ blockscout:
     password: password
     image:
       repository: postgres
-      tag: latest
+      tag: "17.4"
     storage: 5Gi
 
 blockscout-stack:
@@ -142,7 +141,7 @@ blockscout-stack:
     ingress:
       enabled: true
       className: nginx
-      hostname: self.global.host
+      hostname: replica-explorer.localhost
 
     env:
       CHAIN_ID: self.chain.id
@@ -162,6 +161,6 @@ blockscout-stack:
     ingress:
       enabled: true
       className: nginx
-      hostname: self.global.host
+      hostname: replica-explorer.localhost
     env:
       NEXT_PUBLIC_API_PROTOCOL: self.global.protocol

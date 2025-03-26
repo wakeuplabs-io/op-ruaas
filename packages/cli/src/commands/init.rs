@@ -116,7 +116,7 @@ impl InitCommand {
             build_cmd = "build [contracts|node|etc...]".blue(),
             release_cmd = "release [contracts|node|etc...]".blue(),
             dev_cmd = "dev".blue(),
-            deploy_cmd = "deploy [contracts|infra|all] --name <deployment_name>".blue()
+            deploy_cmd = "deploy [contracts|infra] --deployment-id <deployment-id>".blue()
         );
 
         Ok(())

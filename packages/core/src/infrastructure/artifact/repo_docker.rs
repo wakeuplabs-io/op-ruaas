@@ -37,6 +37,7 @@ impl domain::TArtifactRepository for DockerArtifactRepository {
                     .arg("linux/amd64")
                     .arg("-t")
                     .arg(artifact.name())
+                    .arg("--load")
                     .arg("-f")
                     .arg(artifact.dockerfile())
                     .arg(".")
