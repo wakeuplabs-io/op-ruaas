@@ -1,5 +1,5 @@
 
-VERSION := "0.1.7"
+VERSION := "1.0.0"
 APPLE_TARGET := "x86_64-apple-darwin"
 WINDOWS_TARGET := "x86_64-pc-windows-gnu"
 LINUX_TARGET := "x86_64-unknown-linux-musl"
