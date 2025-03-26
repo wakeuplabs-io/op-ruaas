@@ -3,45 +3,36 @@ kind: Ingress
 metadata:
   name: ingress
   annotations:
-    # Iterate over the host array to determine if any host is not "localhost" for cert-manager
-    {{- $needsCert := false }}
-    {{- range .Values.global.hosts }}
-    {{- if ne . "localhost" }}
-    {{- $needsCert = true }}
-    {{- end }}
-    {{- end }}
-    {{- if $needsCert }}
+    {{- if ne .Values.global.host "localhost" }}
     cert-manager.io/issuer: "letsencrypt"  # TLS requirement - enables cert-manager
     {{- end }}
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   ingressClassName: nginx
-  # TLS configuration for all non-localhost hosts
-  {{- $tlsHosts := list }}
-  {{- range .Values.global.hosts }}
-  {{- if ne . "localhost" }}
-  {{- $tlsHosts = append $tlsHosts . }}
-  {{- end }}
-  {{- end }}
-  {{- if $tlsHosts }}
+  {{- if ne .Values.global.host "localhost" }}
   tls:
-    {{- range $tlsHosts }}
     - hosts:
-        - {{ . }}
-      secretName: {{ . | replace "." "-" }}-tls  # TLS requirement - certificate stored here
-    {{- end }}
+        - {{ .Values.global.host }}
+      secretName: {{ .Values.global.host | replace "." "-" }}-tls  # TLS requirement - certificate stored here
   {{- end }}
   rules:
-    # Generate a rule for each host in the array
-    {{- range .Values.global.hosts }}
-    - host: {{ . }}
+    - host: {{ .Values.proxyd.ingress.hostname }}
       http:
         paths:
-          - path: {{ $.Values.proxyd.ingress.nodePath }}
+          - path: /
             pathType: Prefix
             backend:
               service:
-                name: {{ $.Values.proxyd.name }}-service
+                name: {{ .Values.proxyd.name }}-service
                 port:
-                  number: {{ $.Values.proxyd.port }}
-    {{- end }}
+                  number: {{ .Values.proxyd.port }}
+    - host: host.docker.internal
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.proxyd.name }}-service
+                port:
+                  number: {{ .Values.proxyd.port }}

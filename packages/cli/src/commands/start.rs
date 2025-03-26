@@ -258,10 +258,7 @@ impl StartCommand {
             }
         }
 
-        let host = match kind {
-            StartDeploymentKind::Replica => "replica.localhost",
-            StartDeploymentKind::Sequencer => "localhost",
-        };
+        let host = "localhost";
 
         // run sequencer or replica
         self.deployment_runner
@@ -269,7 +266,7 @@ impl StartCommand {
                 &project,
                 &deployment,
                 &DeploymentOptions {
-                    kind: kind.into(),
+                    kind: kind.clone().into(),
                     explorer: enable_explorer,
                     monitoring: enable_monitoring,
                     host: host.to_string(),
@@ -288,25 +285,35 @@ impl StartCommand {
 
         print_info("\n\n================================================\n\n");
 
+        let prefix = match kind {
+            StartDeploymentKind::Replica => "replica-",
+            StartDeploymentKind::Sequencer => "",
+        };
+
         print_info(&format!("L1 rpc available at http://{}:8545", host));
-        print_info(&format!("L2 rpc available at http://{}:80/rpc", host));
+        print_info(&format!(
+            "L2 rpc available at http://{}rpc.{}",
+            prefix, host
+        ));
         if enable_monitoring {
             print_info(&format!(
-                "L2 monitoring available at http://{}:80/monitoring",
-                host
+                "L2 monitoring available at http://{}monitoring.{}",
+                prefix, host
             ));
         }
         if enable_explorer {
-            print_info(&format!("L2 explorer available at http://{}:80", host));
-        }
-        print_warning("It may take a little bit for rpc to respond and explorer to index...");
-
-        if host != "localhost" {
-            print_warning(&format!(
-                "Remember to add `127.0.0.1 {}` to `/etc/hosts`",
-                host
+            print_info(&format!(
+                "L2 explorer available at http://{}explorer.{}",
+                prefix, host
             ));
         }
+
+        print_warning("It may take a little bit for rpc to respond and explorer to index...");
+        print_warning(&format!(
+            "Remember to add `127.0.0.1 {prefix}rpc.{host}`, `127.0.0.1 {prefix}explorer.{host}` and `127.0.0.1 {prefix}monitoring.{host}` to `/etc/hosts`",
+            prefix=prefix,
+            host=host
+        ));
 
         print_info("\n\n================================================\n\n");
 

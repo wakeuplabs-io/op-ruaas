@@ -279,9 +279,7 @@ impl Deployment {
 # global configs ===============================================================
 
 global:
-  hosts: 
-    - host.docker.internal
-    - {host}
+  host: {host}
   protocol: http
   email: email@email.com
   storageClassName: "{storage_class_name}"
@@ -354,7 +352,7 @@ proxyd:
     http: http://proxyd-service:8080
     ws: ws://proxyd-service:8080
   ingress:
-    nodePath: /rpc
+    hostname: replica-rpc.{host}
   redis:
     name: proxyd-redis
     port: 6379
@@ -384,22 +382,23 @@ grafana:
         - name: Prometheus
           type: prometheus
           access: proxy
-          url: http://{{ .Release.Name }}-prometheus-server
+          url: http://{{{{ .Release.Name }}}}-prometheus-server
           isDefault: true
           uid: prometheus-datasource
   ingress:
     enabled: true
     path: /monitoring(/|$)(.*)
+    ingressClassName: "nginx"
     annotations:
       kubernetes.io/ingress.class: "nginx"
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
       nginx.ingress.kubernetes.io/rewrite-target: /$2
     hosts:
-      - {host}
+      - monitoring.{host}
 
-  grafana.ini:
-    server:
-      root_url: "%(protocol)s://%(domain)s/monitoring"  # Dynamically adapts to ingress host
+    grafana.ini:
+      server:
+        root_url: "%(protocol)s://%(domain)s/monitoring"  # Dynamically adapts to ingress host
 
 prometheus:
   enabled: true
@@ -446,7 +445,7 @@ blockscout-stack:
     ingress:
       enabled: true
       className: "nginx"
-      hostname: {host}
+      hostname: explorer.{host}
 
     env:
       CHAIN_ID: "{l2_chain_id}"
@@ -467,7 +466,7 @@ blockscout-stack:
     ingress:
       enabled: true
       className: "nginx"
-      hostname: {host}
+      hostname: explorer.{host}
     env:
       NEXT_PUBLIC_API_PROTOCOL: http
             "#,
@@ -496,8 +495,7 @@ blockscout-stack:
 # global configs ===============================================================
 
 global:
-  hosts: 
-    - {host}
+  host: {host}
   protocol: http
   email: email@email.com
   storageClassName: "{storage_class_name}"
@@ -569,7 +567,7 @@ proxyd:
     http: http://proxyd-service:8080
     ws: ws://proxyd-service:8080
   ingress:
-    nodePath: /rpc
+    hostname: replica-rpc.{host}
   redis:
     name: proxyd-redis
     port: 6379
@@ -599,19 +597,20 @@ grafana:
         - name: Prometheus
           type: prometheus
           access: proxy
-          url: http://{{ .Release.Name }}-prometheus-server
+          url: http://{{{{ .Release.Name }}}}-prometheus-server
           isDefault: true
           uid: prometheus-datasource
   ingress:
     enabled: true
     path: /monitoring(/|$)(.*)
+    ingressClassName: "nginx"
     annotations:
       kubernetes.io/ingress.class: "nginx"
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
       nginx.ingress.kubernetes.io/rewrite-target: /$2
     hosts:
-      - {host}
-
+      - replica-monitoring.{host}
+      
   grafana.ini:
     server:
       root_url: "%(protocol)s://%(domain)s/monitoring"  # Dynamically adapts to ingress host
@@ -661,7 +660,7 @@ blockscout-stack:
     ingress:
       enabled: true
       className: "nginx"
-      hostname: {host}
+      hostname: replica-explorer.{host}
 
     env:
       CHAIN_ID: "{l2_chain_id}"
@@ -681,7 +680,7 @@ blockscout-stack:
     ingress:
       enabled: true
       className: "nginx"
-      hostname: {host}
+      hostname: replica-explorer.{host}
     env:
       NEXT_PUBLIC_API_PROTOCOL: http
             "#,

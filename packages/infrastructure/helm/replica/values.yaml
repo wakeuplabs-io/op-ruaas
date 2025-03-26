@@ -1,8 +1,7 @@
 # global configs ===============================================================
 
 global:
-  hosts: 
-    - localhost 
+  host: localhost 
   protocol: http
   email: email@email.com
   storageClassName: "" # Override with "" for default (recommended in local environment)
@@ -55,7 +54,7 @@ proxyd:
     http: http://proxyd-service:8080
     ws: ws://proxyd-service:8080
   ingress:
-    nodePath: /rpc-replica
+    hostname: replica-rpc
   redis:
     name: proxyd-redis
     port: 6379
@@ -96,7 +95,7 @@ grafana:
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
       nginx.ingress.kubernetes.io/rewrite-target: /$2
     hosts:
-      - self.global.host
+      - replica-monitoring.localhost
 
   grafana.ini:
     server:
@@ -142,7 +141,7 @@ blockscout-stack:
     ingress:
       enabled: true
       className: nginx
-      hostname: self.global.host
+      hostname: replica-explorer.localhost
 
     env:
       CHAIN_ID: self.chain.id
@@ -162,6 +161,6 @@ blockscout-stack:
     ingress:
       enabled: true
       className: nginx
-      hostname: self.global.host
+      hostname: replica-explorer.localhost
     env:
       NEXT_PUBLIC_API_PROTOCOL: self.global.protocol

@@ -62,7 +62,6 @@ enum Commands {
             help = "Weather to use default releases or not"
         )]
         default: bool,
-        // TODO: values file
     },
     /// Deploy your blockchain. Target must be one of: contracts, infra, all
     Deploy {

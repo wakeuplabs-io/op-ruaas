@@ -55,11 +55,11 @@ impl InspectCommand {
 
         if matches!(target, InspectTarget::Infra | InspectTarget::All) {
             match &deployment.infra_base_url {
-                Some(base_url) => println!(
+                Some(hostname) => println!(
                     r#"Relevant endpoints from your infra:
-                - Explorer: {base_url}
-                - Rpc: {base_url}/rpc
-                - Monitoring: {base_url}/monitoring"#
+                - Explorer: http://explorer.{hostname}
+                - Rpc: http://rpc.{hostname}
+                - Monitoring: http://monitoring.{hostname}"#
                 ),
                 None => println!("No infra found"),
             }

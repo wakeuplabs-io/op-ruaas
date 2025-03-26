@@ -95,15 +95,15 @@ Once all deployments are up and running, it may take some time for the system to
 If you have cast installed, the following commands can help you test the deployment and interact with the setup:
 
 ```bash
-cast chain-id --rpc-url http://localhost:80/rpc
+cast chain-id --rpc-url http://rpc.localhost:80
 
-cast balance 0x3fAB184622Dc19b6109349B94811493BF2a45362 --rpc-url http://localhost:80/rpc
-cast balance 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --rpc-url http://localhost:80/rpc
+cast balance 0x3fAB184622Dc19b6109349B94811493BF2a45362 --rpc-url http://rpc.localhost:80
+cast balance 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --rpc-url http://rpc.localhost:80
 
 cast send \
   --from 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 \
   --private-key ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
-  --rpc-url http://localhost:80/rpc \
+  --rpc-url http://rpc.localhost:80 \
   --value 1ether \
   0x3fAB184622Dc19b6109349B94811493BF2a45362
 ```
@@ -146,9 +146,9 @@ In dev mode, all wallets on both L1 and L2 will be funded by default. This is ac
 Once the setup is complete, you can access the following services:
 
 - L1 RPC: http://localhost:8545
-- L2 RPC: http://localhost:80/rpc
-- Off-chain Monitoring: http://localhost:80/monitoring
-- Explorer: http://localhost:80
+- L2 RPC: http://rpc.localhost
+- Off-chain Monitoring: http://monitoring.localhost
+- Explorer: http://explorer.localhost
 
 ### Deploy contracts/infra(sequencer/replica) with `deploy`
 

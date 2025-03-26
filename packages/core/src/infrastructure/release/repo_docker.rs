@@ -1,8 +1,8 @@
-use log::warn;
 use crate::{
     domain::{self, Release},
     system,
 };
+use log::warn;
 use std::process::Command;
 
 pub struct DockerReleaseRepository;
@@ -63,7 +63,7 @@ impl domain::TReleaseRepository for DockerReleaseRepository {
                     .arg("buildx")
                     .arg("build")
                     .arg("--platform")
-                    .arg("linux/amd64")
+                    .arg("linux/amd64,linux/arm64")
                     .arg("-t")
                     .arg(release.uri())
                     .arg("--push")
