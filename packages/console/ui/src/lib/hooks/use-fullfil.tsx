@@ -36,9 +36,9 @@ export const useFullFilRequest = () => {
                 l2ChainID: networkConfig["l2_chain_id"],
               },
               urls: {
-                rpc: `${infraBaseUrl}/rpc`,
-                monitoring: `${infraBaseUrl}/monitoring`,
-                explorer: `${infraBaseUrl}`,
+                rpc: `rpc.${infraBaseUrl}`,
+                monitoring: `monitoring.${infraBaseUrl}`,
+                explorer: `explorer.${infraBaseUrl}`,
               },
               addresses: {
                 addressManager: contractAddresses["AddressManager"],

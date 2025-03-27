@@ -72,7 +72,7 @@ impl TDeploymentMonitorRunner for DockerMonitorRunner {
         let l2_rpc = match deployment.id.as_str() {
             "dev" => "http://host.docker.internal".to_string(),
             _ => format!(
-                "{}/rpc",
+                "http://rpc.{}",
                 deployment
                     .infra_base_url
                     .as_ref()
@@ -85,7 +85,7 @@ impl TDeploymentMonitorRunner for DockerMonitorRunner {
 
         // prefills
         let args: Vec<String> = match opts.kind {
-            MonitorKind::Balances => vec!["balances".to_string(), "--node.url".to_string(), l1_rpc],
+            MonitorKind::Balances => vec!["balances".to_string(), "--node.url".to_string(), l2_rpc],
             MonitorKind::Drippie => vec!["drippie".to_string(), "--l1.node.url".to_string(), l1_rpc],
             MonitorKind::Fault => vec![
                 "fault".to_string(),

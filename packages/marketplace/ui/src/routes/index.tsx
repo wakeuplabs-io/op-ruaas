@@ -79,15 +79,16 @@ const PlanCard: React.FC<{
   return (
     <div
       className={cn(
-        "rounded-lg p-[1px] bg-white shadow-sm border transition-all",
-        selected ? "border-red-500" : "border-gray-200",
-        "min-w-[300px] md:w-full md:max-w-[400px] w-[90%] mx-auto"
+        "rounded-lg bg-gradient-to-tl from-primary to-transparent",
+        selected ? "p-[2px] from-primary" : "p-[1px] from-gray-200"
       )}
     >
       <div
         className={cn(
-          "border p-6 flex flex-col justify-between bg-white",
-          "h-auto md:h-[550px]"
+          "border p-12 shadow-sm flex flex-col justify-between h-[550px] bg-white",
+          selected
+            ? "rounded-[calc(0.6rem-2px)] "
+            : "rounded-[calc(0.6rem-1px)] "
         )}
       >
         <div>
