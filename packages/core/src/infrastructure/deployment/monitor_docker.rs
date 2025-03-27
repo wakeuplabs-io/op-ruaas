@@ -70,7 +70,7 @@ impl TDeploymentMonitorRunner for DockerMonitorRunner {
         };
 
         let l2_rpc = match deployment.id.as_str() {
-            "dev" => "http://host.docker.internal:80/rpc".to_string(),
+            "dev" => "http://host.docker.internal".to_string(),
             _ => format!(
                 "{}/rpc",
                 deployment

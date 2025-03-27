@@ -352,7 +352,7 @@ proxyd:
     http: http://proxyd-service:8080
     ws: ws://proxyd-service:8080
   ingress:
-    hostname: replica-rpc.{host}
+    hostname: rpc.{host}
   redis:
     name: proxyd-redis
     port: 6379

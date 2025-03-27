@@ -16,7 +16,7 @@ chain:
 
 # core ===============================================================
 
-sequencer_url: http://host.docker.internal:80/rpc
+sequencer_url: http://host.docker.internal
 sequencer_host: host.docker.internal
 
 geth:

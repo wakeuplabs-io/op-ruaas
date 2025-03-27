@@ -55,7 +55,7 @@ impl ReleaseCommand {
 
         let registry_url: String = self
             .dialoguer
-            .prompt("Input Docker registry url (e.g. dockerhub.io/wakeuplabs) ");
+            .prompt("Input Docker registry url (e.g. docker.io/wakeuplabs) ");
         let release_name: String = self.dialoguer.prompt("Input release name (e.g. v1.0.0)");
 
         // Offer option to tag release in git
@@ -141,7 +141,7 @@ impl ReleaseCommand {
             \tUse your artifacts to create contracts deployments or whole infra.\n",
             title = "What's Next?".bright_white().bold(),
             bin = env!("CARGO_BIN_NAME").blue(),
-            dev_cmd = "dev".blue(),
+            dev_cmd = "start".blue(),
             deploy_cmd = "deploy [contracts|infra] --deployment-id <deployment-id>".blue()
         );
 

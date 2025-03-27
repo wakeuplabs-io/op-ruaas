@@ -47,7 +47,7 @@ enum Commands {
         #[arg(value_enum, default_value_t = StartDeploymentKind::Sequencer)]
         kind: StartDeploymentKind,
 
-        #[arg(value_enum, default_value = "http://host.docker.internal:80/rpc")]
+        #[arg(value_enum, default_value = "http://host.docker.internal")]
         sequencer_url: String,
 
         #[arg(long, help = "Path to a custom helm values file")]
@@ -74,7 +74,7 @@ enum Commands {
         deployment_id: String,
 
         #[arg(long)]
-        deployment_name: String,
+        deployment_name: Option<String>,
 
         #[arg(long, default_value_t = false)]
         deploy_deterministic_deployer: bool,
@@ -198,7 +198,7 @@ async fn main() {
                     &ctx,
                     &target,
                     &deployment_id,
-                    &deployment_name,
+                    &deployment_name.unwrap_or(deployment_id.clone()),
                     &deployment_release_tag,
                     &deployment_release_namespace,
                     deploy_deterministic_deployer,

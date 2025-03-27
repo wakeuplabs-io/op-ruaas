@@ -98,7 +98,12 @@ const DeployStep: React.FC = () => {
 
       <Command
         className="mt-10"
-        command="opruaas -v deploy --deployment-id holensky --deployment-name 'My Prod Deployment' --target all"
+        command="opruaas -v deploy contracts --deployment-id holensky" 
+      />
+
+      <Command
+        className="mt-10"
+        command="opruaas -v deploy infra --deployment-id holensky"
       />
     </Card>
   );

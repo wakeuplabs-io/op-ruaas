@@ -76,19 +76,19 @@ function RouteComponent() {
               <ul className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
                 <li>
                   <DeploymentValue
-                    value={`${deployment.infra_base_url}`}
+                    value={`http://explorer.${deployment.infra_base_url}`}
                     description="Explorer url"
                   />
                 </li>
                 <li>
                   <DeploymentValue
-                    value={`${deployment.infra_base_url}/rpc`}
+                    value={`http://rpc.${deployment.infra_base_url}`}
                     description="Rpc url"
                   />
                 </li>
                 <li>
                   <DeploymentValue
-                    value={`${deployment.infra_base_url}/monitoring`}
+                    value={`http://monitoring.${deployment.infra_base_url}/monitoring`}
                     description="Monitoring url"
                   />
                 </li>

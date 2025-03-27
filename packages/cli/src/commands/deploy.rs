@@ -264,10 +264,8 @@ impl DeployCommand {
         );
 
         if matches!(target, DeployTarget::Infra) {
-            println!("\n{}\n", "Make sure to create an A record pointing to `elb_dnsname` as specified here: https://github.com/amcginlay/venafi-demos/tree/main/demos/01-eks-ingress-nginx-cert-manager#configure-route53".yellow());
-        } else if matches!(target, DeployTarget::Contracts) {
-            println!("\n{}\n", "Ideally wait ~256 blocks, ~1 hour (in ethereum) for full finalization before moving forward with infra deployment".yellow());
-        }
+            println!("\n{}\n", "Make sure to create an A records for each subdomain pointing to `elb_dnsname` as specified here: https://github.com/amcginlay/venafi-demos/tree/main/demos/01-eks-ingress-nginx-cert-manager#configure-route53".yellow());
+        } 
 
         Ok(())
     }

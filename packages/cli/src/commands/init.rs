@@ -115,7 +115,7 @@ impl InitCommand {
             bin = env!("CARGO_BIN_NAME").blue(),
             build_cmd = "build [contracts|node|etc...]".blue(),
             release_cmd = "release [contracts|node|etc...]".blue(),
-            dev_cmd = "dev".blue(),
+            dev_cmd = "start".blue(),
             deploy_cmd = "deploy [contracts|infra] --deployment-id <deployment-id>".blue()
         );
 

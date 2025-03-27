@@ -118,7 +118,7 @@ impl BuildCommand {
             title = "What's Next?".bright_white().bold(),
             bin = env!("CARGO_BIN_NAME").blue(),
             release_cmd = "release [contracts|node|etc...]".blue(),
-            dev_cmd = "dev".blue(),
+            dev_cmd = "start".blue(),
             deploy_cmd = "deploy [contracts|infra] --deployment-id <deployment-id>".blue()
         );
 

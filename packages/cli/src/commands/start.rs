@@ -145,7 +145,7 @@ impl StartCommand {
             true => DEFAULT_REGISTRY.into(),
             false => self
                 .dialoguer
-                .prompt("Input docker registry url (e.g. dockerhub.io/wakeuplabs) "),
+                .prompt("Input docker registry url (e.g. docker.io/wakeuplabs) "),
         };
 
         let release_tag: String = match default {
