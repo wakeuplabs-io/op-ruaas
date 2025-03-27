@@ -64,7 +64,7 @@ export const BuyReplicaModal: React.FC<
           artifacts
         );
 
-        router.navigate({ to: `/rollups/$id`, params: { id: orderId.toString()} });
+        router.navigate({ to: `/rollups/$id`, params: { id: orderId.toString() } });
       } catch (e: any) {
         alert("Error creating order: " + e?.message);
       }
@@ -77,7 +77,7 @@ export const BuyReplicaModal: React.FC<
       <DialogTrigger>
         <Button {...props} />
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[550px] p-12">
+      <DialogContent className="sm:max-w-[90%] md:max-w-[550px] p-6 md:p-12">
         {showSetup ? (
           <>
             <Form {...form}>
@@ -147,7 +147,7 @@ export const BuyReplicaModal: React.FC<
               </DialogDescription>
             </DialogHeader>
             <RadioGroup
-              className="mt-12"
+              className="mt-6 md:mt-12"
               options={[
                 {
                   label: "1 month",
@@ -176,7 +176,7 @@ export const BuyReplicaModal: React.FC<
 
             <Button
               size="lg"
-              className="mt-8"
+              className="mt-6 md:mt-8"
               onClick={() => setShowSetup(true)}
               disabled={!isConnected}
             >
@@ -196,17 +196,17 @@ const RadioGroup: React.FC<{
   className?: string;
 }> = ({ options, currentValue, onChange, className }) => {
   return (
-    <div className={cn("grid grid-cols-2 gap-4", className)}>
+    <div className={cn("grid grid-cols-1 md:grid-cols-2 gap-4", className)}>
       {options.map((option) => (
         <div
           className={cn(
-            "border cursor-pointer rounded-md text-center space-y-3 h-[100px] flex flex-col justify-center",
+            "border cursor-pointer rounded-md text-center space-y-3 h-[80px] md:h-[100px] flex flex-col justify-center p-3",
             option.value === currentValue && "border-red-600"
           )}
           onClick={() => onChange(option.value)}
         >
-          <div className="text-lg">{option.label}</div>
-          <div className="text-muted-foreground text-sm">
+          <div className="text-base md:text-lg">{option.label}</div>
+          <div className="text-muted-foreground text-xs md:text-sm">
             {option.description}
           </div>
         </div>
