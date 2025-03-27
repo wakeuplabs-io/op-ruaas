@@ -1,21 +1,26 @@
-import * as React from "react"
-import { Plus } from "lucide-react"
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from "@/components/ui/sidebar"
-import { cn } from "@/lib/utils"
-import CustomConnectButton from "./connect-wallet"
-import { buttonVariants } from "./ui/button"
-import { Link } from "@tanstack/react-router"
-import { RollupList } from "./sidebar/rollup-list"
-import { useAccount } from "wagmi"
-import { useOrders } from "@/lib/hooks/use-orders"
-import { useProviderInfo } from "@/lib/hooks/use-provider-info"
+import * as React from "react";
+import { Plus } from "lucide-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+} from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
+import CustomConnectButton from "./connect-wallet";
+import { buttonVariants } from "./ui/button";
+import { Link } from "@tanstack/react-router";
+import { RollupList } from "./sidebar/rollup-list";
+import { useAccount } from "wagmi";
+import { useOrders } from "@/lib/hooks/use-orders";
+import { useProviderInfo } from "@/lib/hooks/use-provider-info";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
-  const { isConnected } = useAccount()
-  const { sequencerRollups, replicaRollups } = useOrders()
-  const { name } = useProviderInfo()
+  const { isConnected } = useAccount();
+  const { sequencerRollups, replicaRollups } = useOrders();
+  const { name } = useProviderInfo();
 
-  const [selectedRollupId, setSelectedRollupId] = React.useState<bigint>()
+  const [selectedRollupId, setSelectedRollupId] = React.useState<bigint>();
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -37,14 +42,20 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
           <RollupList
             name="Sequencer"
-            rollups={sequencerRollups}
+            rollups={sequencerRollups.map((r) => ({
+              id: r.id,
+              name: r.setupMetadata.name,
+            }))}
             selectedId={selectedRollupId}
             onSelect={setSelectedRollupId}
           />
           <hr />
           <RollupList
             name="Replica"
-            rollups={replicaRollups}
+            rollups={replicaRollups.map((r) => ({
+              id: r.id,
+              name: r.setupMetadata.name,
+            }))}
             selectedId={selectedRollupId}
             onSelect={setSelectedRollupId}
           />
@@ -73,5 +84,5 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         </a>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

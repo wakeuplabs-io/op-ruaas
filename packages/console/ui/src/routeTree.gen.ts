@@ -11,6 +11,7 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as AppImport } from './routes/app'
 import { Route as IndexImport } from './routes/index'
 import { Route as DeploymentsIdImport } from './routes/deployments/$id'
 import { Route as MarketplaceRequestsIndexImport } from './routes/marketplace/requests.index'
@@ -19,6 +20,12 @@ import { Route as CreateSetupIndexImport } from './routes/create/setup.index'
 import { Route as CreateDeployIndexImport } from './routes/create/deploy.index'
 
 // Create/Update Routes
+
+const AppRoute = AppImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const IndexRoute = IndexImport.update({
   id: '/',
@@ -67,6 +74,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppImport
+      parentRoute: typeof rootRoute
+    }
     '/deployments/$id': {
       id: '/deployments/$id'
       path: '/deployments/$id'
@@ -109,6 +123,7 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app': typeof AppRoute
   '/deployments/$id': typeof DeploymentsIdRoute
   '/create/deploy': typeof CreateDeployIndexRoute
   '/create/setup': typeof CreateSetupIndexRoute
@@ -118,6 +133,7 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/app': typeof AppRoute
   '/deployments/$id': typeof DeploymentsIdRoute
   '/create/deploy': typeof CreateDeployIndexRoute
   '/create/setup': typeof CreateSetupIndexRoute
@@ -128,6 +144,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/app': typeof AppRoute
   '/deployments/$id': typeof DeploymentsIdRoute
   '/create/deploy/': typeof CreateDeployIndexRoute
   '/create/setup/': typeof CreateSetupIndexRoute
@@ -139,6 +156,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/app'
     | '/deployments/$id'
     | '/create/deploy'
     | '/create/setup'
@@ -147,6 +165,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/app'
     | '/deployments/$id'
     | '/create/deploy'
     | '/create/setup'
@@ -155,6 +174,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/app'
     | '/deployments/$id'
     | '/create/deploy/'
     | '/create/setup/'
@@ -165,6 +185,7 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRoute
   DeploymentsIdRoute: typeof DeploymentsIdRoute
   CreateDeployIndexRoute: typeof CreateDeployIndexRoute
   CreateSetupIndexRoute: typeof CreateSetupIndexRoute
@@ -174,6 +195,7 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRoute,
   DeploymentsIdRoute: DeploymentsIdRoute,
   CreateDeployIndexRoute: CreateDeployIndexRoute,
   CreateSetupIndexRoute: CreateSetupIndexRoute,
@@ -192,6 +214,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/app",
         "/deployments/$id",
         "/create/deploy/",
         "/create/setup/",
@@ -201,6 +224,9 @@ export const routeTree = rootRoute
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/app": {
+      "filePath": "app.tsx"
     },
     "/deployments/$id": {
       "filePath": "deployments/$id.tsx"
