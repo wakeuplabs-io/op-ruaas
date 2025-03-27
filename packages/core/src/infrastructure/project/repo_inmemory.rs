@@ -276,11 +276,11 @@ There're two main options here, `onchain` and `offchain`.
 Example usage:
 
 ```bash
-opraas monitor offchain --deployment-id dev
+opruaas monitor offchain --deployment-id dev
 # Monitor URL:
 # http://monitoring.localhost:80
 
-opraas -v monitor onchain --deployment-id dev --kind balances -- --accounts 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266:mine
+opruaas -v monitor onchain --deployment-id dev --kind balances -- --accounts 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266:mine
 # Running monitor...
 # Remember to use '-v' to see the logs. We'll prefill some values for you.
 #  INFO opraas_core::utils::system > Executing command: "docker" "pull" "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-monitorism:latest"

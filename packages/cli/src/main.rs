@@ -21,7 +21,7 @@ use log::{Level, LevelFilter};
 
 #[derive(Parser)]
 #[clap(name = "opruaas")]
-#[clap(version = "1.0.0")]
+#[clap(version = "1.0.1")]
 #[clap(about = "Easily deploy and manage rollups with the Optimism stack.", long_about = None)]
 struct Args {
     #[command(subcommand)]

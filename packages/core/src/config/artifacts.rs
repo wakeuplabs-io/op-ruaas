@@ -16,7 +16,7 @@ pub struct ArtifactConfig {
 }
 
 pub const INFRA_SOURCE_REPO: &str = "wakeuplabs-io/op-ruaas";
-pub const INFRA_SOURCE_REPO_VERSION: &str = "v1.0.0";
+pub const INFRA_SOURCE_REPO_VERSION: &str = "v1.0.1";
 
 impl ArtifactsConfig {
     pub fn null() -> Self {
