@@ -2,6 +2,7 @@
 
 import "dotenv/config";
 
+const CUSTOMER = 'optimism';
 const PROJECT_NAME = "opruaas-console";
 const REGION = "us-east-1";
 
@@ -16,7 +17,9 @@ export default $config({
           region: REGION,
           defaultTags: {
             tags: {
-              customer: "op-ruaas-console",
+              customer: CUSTOMER,
+              project: PROJECT_NAME,
+              stage: input?.stage,
             },
           },
         },
