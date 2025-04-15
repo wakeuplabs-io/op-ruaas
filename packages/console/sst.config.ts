@@ -19,6 +19,7 @@ export default $config({
             tags: {
               customer: CUSTOMER,
               project: PROJECT_NAME,
+              stage: input?.stage,
             },
           },
         },
